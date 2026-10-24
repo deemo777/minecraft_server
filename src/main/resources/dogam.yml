@@ -1,0 +1,92 @@
+# 도감 설정 (대화창)
+#
+# 등록 방법: 도감 칸을 클릭 → 내 인벤토리에 required 개수만큼 있으면 그만큼 가져가고 등록
+#
+# ⚠ 리소스팩 아이콘은 이 파일의 "항목 순서"로 번호가 정해져요.
+#   항목을 추가/삭제/순서 변경했다면 tools/build_pack.py 로 리소스팩을 다시 만들어 올리세요.
+
+grid:
+  columns: 15      # 가로 칸 수
+  rows: 7          # 세로 줄 수 (가운데 줄 양 끝이 ◀ ▶ 버튼)
+  button-width: 20 # 칸 너비 (높이는 마인크래프트가 20으로 고정)
+
+# 개수가 1인 항목에도 숫자를 표시할지
+show-count-when-one: true
+
+title: "<#cdbf8e>도감 진행도 (%found%/%total%)"
+page-format: "<#8a8466>%page% / %pages%"
+close-label: "<gray>닫기"
+
+messages:
+  registered: "<gold>[도감]</gold> <white>등록 완료:</white> %entry% <gray>(%found%/%total%)</gray>"
+  category-complete: "<gold>[도감]</gold> <green><bold>%category%</bold> 항목을 모두 채웠어요!</green>"
+  already-registered: "<gold>[도감]</gold> <gray>%entry%<gray>은(는) 이미 등록했어요."
+  not-enough: "<gold>[도감]</gold> %entry% <gray>을(를) 등록하려면 <white>%required%개</white>가 필요해요. <dark_gray>(보유 %have%개)"
+  tooltip-registered: "<#8fd16a>✔ 등록 완료"
+  tooltip-unregistered: "<#e06c6c>미등록 <dark_gray>· <gray>필요 <white>%required%개</white> <dark_gray>(보유 %have%개)"
+  tooltip-click: "<#f2a65a>▶ 클릭해서 등록"
+  prev-page: "<white>◀ 이전 페이지"
+  next-page: "<white>다음 페이지 ▶"
+
+categories:
+  crops:
+    name: "<#8fd16a>작물"
+    complete-rewards:
+      - "give %player% golden_hoe 1"
+    entries:
+      wheat:
+        name: "<yellow>밀"
+        material: WHEAT
+        required: 10
+        description:
+          - "<gray>가장 기본적인 작물"
+      carrot:
+        name: "<gold>당근"
+        material: CARROT
+        required: 10
+      potato:
+        name: "<#d4a85a>감자"
+        material: POTATO
+        required: 10
+      beetroot:
+        name: "<red>비트"
+        material: BEETROOT
+        required: 10
+      pumpkin:
+        name: "<gold>호박"
+        material: PUMPKIN
+        required: 5
+        description:
+          - "<gray>가을의 상징"
+      melon:
+        name: "<green>수박"
+        material: MELON_SLICE
+        required: 10
+
+  fish:
+    name: "<#6fa8dc>물고기"
+    complete-rewards:
+      - "give %player% fishing_rod 1"
+    entries:
+      cod:
+        name: "<white>대구"
+        material: COD
+        required: 1
+      salmon:
+        name: "<#f08a6b>연어"
+        material: SALMON
+        required: 1
+        description:
+          - "<gray>강을 거슬러 올라가요"
+      tropical_fish:
+        name: "<yellow>열대어"
+        material: TROPICAL_FISH
+        required: 1
+      pufferfish:
+        name: "<yellow>복어"
+        material: PUFFERFISH
+        required: 1
+        description:
+          - "<gray>먹으면 큰일 나요"
+        rewards:
+          - "give %player% emerald 1"

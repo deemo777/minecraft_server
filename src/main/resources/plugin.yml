@@ -1,0 +1,29 @@
+name: ServerCore
+version: '${version}'
+main: com.htk.core.ServerCore
+api-version: '1.21'
+description: 서버 전용 기능 모음 (대화창 메뉴, 도감)
+
+commands:
+  menu:
+    description: 마을 메뉴를 엽니다
+    aliases: [메뉴]
+  dogam:
+    description: 도감을 엽니다
+    usage: /<command> [페이지] | reset <플레이어>
+    aliases: [도감, collection]
+  servercore:
+    description: ServerCore 관리 명령어
+    usage: /<command> reload
+    aliases: [코어]
+
+permissions:
+  servercore.menu:
+    description: 메뉴 열기
+    default: true
+  servercore.dogam:
+    description: 도감 열기
+    default: true
+  servercore.admin:
+    description: 관리 명령어 (reload, 도감 reset)
+    default: op

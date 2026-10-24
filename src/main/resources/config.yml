@@ -1,0 +1,26 @@
+# ServerCore 공통 설정
+# 글자 색은 MiniMessage 형식이에요. 예: <green>초록</green>, <#cdbf8e>색 코드</#cdbf8e>
+
+# 기능 켜기/끄기 (바꾼 뒤에는 서버 재시작)
+features:
+  menu: true
+  dogam: true
+
+# 리소스팩(아이콘, 체크, 숫자, 진행도 막대)을 쓰는지
+# false면 리소스팩 없이도 동작하는 글자 모드로 보여줘요
+resourcepack:
+  enabled: true
+
+menu:
+  # G 키(빠른 동작)로 메뉴 열기 - 월드에 데이터팩을 설치해요 (처음 설치/메뉴 수정 후 재시작 1번 필요)
+  quick-actions: true
+  # Shift(웅크리기) + F(양손 바꾸기)로도 메뉴 열기
+  open-with-sneak-swap: true
+  # 접속할 때 안내 메시지 (비워두면 안 보냄)
+  join-hint: "<gray>[<gold>🌾</gold>] <white>G 키</white>를 누르면 마을 메뉴가 열려요."
+
+messages:
+  no-permission: "<red>권한이 없어요."
+  feature-disabled: "<red>지금은 꺼져 있는 기능이에요."
+  coming-soon: "<gray>[<gold>🌾</gold>] 아직 준비 중인 기능이에요. 조금만 기다려 주세요!"
+  reloaded: "<green>ServerCore 설정을 다시 불러왔어요. (G 키 메뉴 변경은 서버 재시작 후 적용)"

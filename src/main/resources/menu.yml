@@ -1,0 +1,40 @@
+# 마을 메뉴 (대화창)
+# G 키, /메뉴, Shift + F 로 열려요.
+#
+# buttons 항목
+#   label        버튼 글자 (MiniMessage)
+#   tooltip      마우스를 올렸을 때 설명 (여러 줄 가능)
+#   command      누르면 실행할 명령어 (앞에 / 빼고)
+#   coming-soon  true면 "준비 중" 안내만
+#
+# ※ G 키 메뉴는 서버가 켜질 때 이 파일로 만들어져요. 고친 뒤에는 서버를 재시작하세요.
+#   (/메뉴, Shift + F 는 /코어 reload 만으로 바로 반영)
+
+title: "<#cdbf8e><bold>🌾 마을 메뉴</bold>"
+# 버튼 한 줄에 몇 개씩
+columns: 2
+# 버튼 너비 (1~1024)
+button-width: 120
+
+buttons:
+  - label: "<#f9d77e>📖 도감"
+    tooltip:
+      - "<white>모은 작물과 물고기를 도감에 등록해요."
+    command: "dogam"
+  - label: "<#8fd16a>🛒 상점"
+    tooltip:
+      - "<gray>작물과 물고기를 팔고 씨앗과 도구를 사요."
+      - "<dark_gray>준비 중"
+    coming-soon: true
+  - label: "<#9fd3e8>🏠 집으로"
+    tooltip:
+      - "<gray>내 집으로 이동해요."
+      - "<dark_gray>준비 중"
+    coming-soon: true
+  - label: "<#6fa8dc>🎣 낚시 대회"
+    tooltip:
+      - "<gray>진행 중인 낚시 대회와 순위를 봐요."
+      - "<dark_gray>준비 중"
+    coming-soon: true
+
+close-label: "<gray>닫기"
