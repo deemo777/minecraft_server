@@ -101,7 +101,7 @@ pages:
 
     지도의 위쪽은 집터를 놓을 때 바라본 방향이에요.
 
-    <dark_green>노란 +</dark_green>를 누르면 그쪽으로 한 칸 넓어져요.
+    <dark_green>노란 +</dark_green>를 누르면 넓힐 곳이 노란 선으로 보여요. 채팅의 <dark_green>[✔ 넓히기]</dark_green>를 누르면 넓어져요.
   - |
     <#6b4226><bold>4. 내 집 - 넓히기</bold></#6b4226>
 

@@ -37,9 +37,12 @@ public final class Dialogs {
         return ActionButton.create(label, tooltip, clampWidth(width), action);
     }
 
-    /** 누르면 그냥 닫히는 버튼 (서버 응답을 기다리지 않아요) */
-    public static ActionButton close(Component label, int width) {
-        return ActionButton.create(label, null, clampWidth(width), null);
+    /**
+     * 닫기 버튼: 서버가 창을 닫아 줘요.
+     * (창의 afterAction 이 NONE 이면 동작 없는 버튼은 아무 일도 안 해서, 닫기는 꼭 이걸 써요)
+     */
+    public static ActionButton close(Plugin plugin, Component label, int width) {
+        return button(plugin, label, null, width, Player::closeDialog);
     }
 
     public static int clampWidth(int width) {

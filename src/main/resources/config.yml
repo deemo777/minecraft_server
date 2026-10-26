@@ -106,7 +106,7 @@ hud:
 #   이웃(/land trust <이름>)은 내 땅에서 전부 할 수 있고, 나머지 사람은 아무것도 못 해요.
 #   관리자: /land bypass (남의 땅도 만지기 켜기/끄기), /land delete <이름>, /land give <이름> (집터 주기)
 land:
-  worlds: [village]          # 집을 지을 수 있는 월드 (야생)
+  # 집을 지을 수 있는 월드는 마을(village)로 고정이에요 (코드에서 정해요, 다른 월드에서는 집터를 못 놓아요)
   core-block: LODESTONE    # 집터 아이템의 바탕 블록 (리소스팩이 있으면 집 모형으로 보이고, 설치하면 방벽+집 모형으로 바뀌어요)
   give-core-on-first-join: true   # 처음 접속할 때 집터 주기 (이장님 기능이 켜져 있으면 무시하고 이장님이 줘요)
   max-chunks: 4            # 최대 청크 수

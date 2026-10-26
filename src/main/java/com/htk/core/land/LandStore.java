@@ -156,6 +156,14 @@ final class LandStore {
         save();
     }
 
+    void removeChunk(Land land, int cx, int cz) {
+        long k = Land.key(cx, cz);
+        if (!land.chunks.remove(k)) return;
+        Map<Long, Land> m = index.get(land.world);
+        if (m != null) m.remove(k);
+        save();
+    }
+
     void remove(Land land) {
         byOwner.remove(land.owner);
         Map<Long, Land> m = index.get(land.world);

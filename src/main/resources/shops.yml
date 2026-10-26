@@ -76,13 +76,14 @@ shops:
     npc-profession: toolsmith
     skill: mining
     items:
+      # 원석 → 주괴: 주괴 값 > 원석 값 + 석탄 1개 값 이 되게 (석탄 1개로 8개를 구우니 실제로는 훨씬 이득)
       coal:            { material: COAL, sell: 8 }
-      raw_copper:      { material: RAW_COPPER, sell: 10 }
-      copper_ingot:    { material: COPPER_INGOT, sell: 14 }
-      raw_iron:        { material: RAW_IRON, sell: 24 }
-      iron_ingot:      { material: IRON_INGOT, sell: 30 }
-      raw_gold:        { material: RAW_GOLD, sell: 50 }
-      gold_ingot:      { material: GOLD_INGOT, sell: 60 }
+      raw_copper:      { material: RAW_COPPER, sell: 8 }
+      copper_ingot:    { material: COPPER_INGOT, sell: 22 }
+      raw_iron:        { material: RAW_IRON, sell: 20 }
+      iron_ingot:      { material: IRON_INGOT, sell: 42 }
+      raw_gold:        { material: RAW_GOLD, sell: 40 }
+      gold_ingot:      { material: GOLD_INGOT, sell: 70 }
       redstone:        { material: REDSTONE, sell: 6 }
       lapis_lazuli:    { material: LAPIS_LAZULI, sell: 12 }
       quartz:          { material: QUARTZ, sell: 12 }

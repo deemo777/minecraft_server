@@ -124,7 +124,9 @@ public final class MayorFeature implements Feature, Listener {
     /** config 의 mayor.intro : 장(page)마다 줄 목록 */
     private List<List<String>> introPages() {
         List<List<String>> pages = new ArrayList<>();
-        for (Object o : cfg().getList("mayor.intro", List.of())) {
+        // 기본값을 따로 주지 않아야 서버 config.yml 에 없을 때 jar 안의 기본 대사를 써요
+        List<?> raw = cfg().getList("mayor.intro");
+        for (Object o : raw == null ? List.of() : raw) {
             if (o instanceof List<?> lines) {
                 List<String> page = new ArrayList<>();
                 for (Object l : lines) page.add(String.valueOf(l));
@@ -152,12 +154,12 @@ public final class MayorFeature implements Feature, Listener {
         ActionButton next = last
                 ? Dialogs.button(plugin, Text.mm(s("give-label", "<#7acb52><bold>🏠 집터 받기")), null, 150, this::finishIntro)
                 : Dialogs.button(plugin, Text.mm(s("next-label", "다음 ▶")), null, 150, pl -> showIntro(pl, page + 1));
-        ActionButton later = Dialogs.close(Text.mm(s("later-label", "<gray>나중에")), 100);
+        ActionButton later = Dialogs.close(plugin, Text.mm(s("later-label", "<gray>나중에")), 100);
 
         String counter = s("page-format", "<gray>(%page%/%pages%)")
                 .replace("%page%", String.valueOf(page + 1)).replace("%pages%", String.valueOf(pages.size()));
         p.showDialog(dialog(Text.mm(s("title", "<#6b4226>이장님") + " " + counter), pages.get(page),
-                List.of(next), later, 1, !last));
+                List.of(next), later, 1));
         if (page == 0) p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 0.8f, 1f);
     }
 
@@ -194,7 +196,8 @@ public final class MayorFeature implements Feature, Listener {
         } else {
             for (String l : cfg().getStringList("mayor.office.debt"))
                 body.add(l.replace("%debt%", Economy.format(debt)).replace("%balance%", Economy.format(balance)));
-            for (Object o : cfg().getList("mayor.pay-amounts", List.of(1000, 10000))) {
+            List<?> amounts = cfg().getList("mayor.pay-amounts");
+            for (Object o : amounts == null ? List.of(1000, 10000, 50000) : amounts) {
                 long amount;
                 try {
                     amount = Long.parseLong(String.valueOf(o).replace(",", "").trim());
@@ -212,8 +215,8 @@ public final class MayorFeature implements Feature, Listener {
             buttons.add(payButton(allLabel.replace("%amount%", Economy.format(all)), 0, all > 0));
         }
         if (body.isEmpty()) body.add("<white>잘 지내고 있나?");
-        ActionButton close = Dialogs.close(Text.mm(s("office.close-label", "<gray>닫기")), 100);
-        p.showDialog(dialog(Text.mm(s("title", "<#6b4226>이장님")), body, buttons, close, 1, true));
+        ActionButton close = Dialogs.close(plugin, Text.mm(s("office.close-label", "<gray>닫기")), 100);
+        p.showDialog(dialog(Text.mm(s("title", "<#6b4226>이장님")), body, buttons, close, 1));
     }
 
     private ActionButton payButton(String label, long amount, boolean enough) {
@@ -226,12 +229,13 @@ public final class MayorFeature implements Feature, Listener {
     }
 
     private Dialog dialog(net.kyori.adventure.text.Component title, List<String> lines,
-                          List<ActionButton> buttons, ActionButton exit, int columns, boolean waitForResponse) {
+                          List<ActionButton> buttons, ActionButton exit, int columns) {
         DialogBase base = DialogBase.builder(title)
                 .canCloseWithEscape(true)
                 .pause(false)
-                .afterAction(waitForResponse ? DialogBase.DialogAfterAction.WAIT_FOR_RESPONSE
-                                             : DialogBase.DialogAfterAction.CLOSE)
+                // 버튼을 눌러도 창은 그대로 → 서버가 다음 장을 보내면 바뀌고, 끝나면 서버가 닫아요.
+                // (WAIT_FOR_RESPONSE 는 '서버를 기다리는 중' 화면으로 넘어가는데, 그 화면은 서버가 닫아 줄 수 없어서 멈춰요)
+                .afterAction(DialogBase.DialogAfterAction.NONE)
                 .body(List.of(DialogBody.plainMessage(Text.lines(lines))))
                 .build();
         List<ActionButton> list = buttons.isEmpty() ? List.of(exit) : buttons;
