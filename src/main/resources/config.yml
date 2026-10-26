@@ -43,7 +43,7 @@ jump-pad:
 # 도약: 달리면서 점프하면 바라보는 방향으로 멀리 뛰어요 (쿨타임 동안은 일반 점프)
 # 바꾼 뒤 /servercore reload
 long-jump:
-  worlds: [village]       # 도약을 쓸 수 있는 월드 (비우면 모든 월드). 예: [world, village]
+  worlds: [village, lobby]       # 도약을 쓸 수 있는 월드 (비우면 모든 월드). 예: [world, village]
   forward: 1.3            # 앞으로 뛰는 세기
   up: 0.55                # 위로 뛰는 세기
   cooldown-seconds: 5
@@ -105,7 +105,7 @@ hud:
 #   이웃(/land trust <이름>)은 내 땅에서 전부 할 수 있고, 나머지 사람은 아무것도 못 해요.
 #   관리자: /land bypass (남의 땅도 만지기 켜기/끄기), /land delete <이름>, /land give <이름> (집터 주기)
 land:
-  worlds: [world]          # 집을 지을 수 있는 월드 (야생)
+  worlds: [village]          # 집을 지을 수 있는 월드 (마을)
   core-block: LODESTONE    # 집터 아이템의 바탕 블록 (리소스팩이 있으면 집 모형으로 보이고, 설치하면 방벽+집 모형으로 바뀌어요)
   give-core-on-first-join: true   # 처음 접속할 때 집터 주기
   max-chunks: 4            # 최대 청크 수
@@ -117,7 +117,7 @@ land:
 
 # 메뉴의 이동 버튼 (집으로 등): 화면에 숫자를 센 뒤 이동
 teleport:
-  countdown-seconds: 3                       # 0이면 바로 이동
+  countdown-seconds: 2                       # 0이면 바로 이동
   countdown-title: "<#f3c060><bold>%seconds%"
   countdown-subtitle: "<gray>이동 중…"
 

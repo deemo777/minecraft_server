@@ -378,9 +378,9 @@ def draw_shop(theme):
 #  메뉴 (5줄 상자) — 모든 그림은 자기 칸(18x18 격자) 안에만 그려요
 #    칸 c열 r줄의 영역: x 7+18c ~ 25+18c, y 17+18r ~ 35+18r
 #    0번 줄: 0열 내 머리, 1·7열 하트, 2~6열 "어서 오세요!", 8열 닫기
-#    1~2줄: 0~2열 도감,   6~8열 상점
+#    1~2줄: 0~2열 도감,   6~8열 로비
 #    1~4줄: 3~5열 워프 (가운데 큰 버튼)
-#    3~4줄: 0~2열 집으로, 6~8열 마을로
+#    3~4줄: 0~2열 야생,   6~8열 마을로
 #    ⚠ menu.yml 의 slots 와 같아야 해요
 # ======================================================================
 def cell(c0, c1, r0, r1):
@@ -424,6 +424,97 @@ def tile_shop(cv, x0, y0, x1, y1):
     cv.box(x1 - 15, y0 + 9, x1 - 4, y1 + 1, c("#c98a4a"))     # 문
     cv.rect(x1 - 13, y0 + 11, x1 - 6, y0 + 15, c("#a8e0ff"))
     cv.px(x1 - 7, y0 + 17, c("#ffd34d"))
+
+
+def tile_lobby(cv, x0, y0, x1, y1):
+    """로비: 빨간 박공지붕 회관(흰 기둥·큰 문·깃발)과 돌 광장, 양옆 가로등·화분"""
+    W, H = x1 - x0, y1 - y0
+    cv.rect(x0, y0, x1, y1, c("#bfe6ff"))                     # 하늘
+    cv.rect(x0 + 3, y0 + 3, x0 + 10, y0 + 5, WHITE)           # 구름
+    cv.rect(x0 + 5, y0 + 2, x0 + 8, y0 + 3, WHITE)
+    cv.rect(x1 - 10, y0 + 5, x1 - 3, y0 + 7, WHITE)
+    cv.rect(x0, y1 - 4, x1, y1, c("#e8dcc8"))                 # 돌 광장
+    for x in range(x0 + 1, x1, 5):
+        cv.px(x, y1 - 2, c("#cfc0a6"))
+    mx = (x0 + x1) // 2
+    bx0, bx1 = mx - 15, mx + 15
+    roof_top, wall_top, wall_bot = y0 + 3, y0 + 9, y1 - 5
+    # 깃발 (지붕 꼭대기, 칸 안쪽)
+    cv.rect(mx, y0 + 0, mx + 1, roof_top + 1, LINE)
+    cv.rect(mx + 1, y0 + 0, mx + 5, y0 + 2, c("#5cb84a"))
+    # 박공 지붕 (외곽선 + 빨강, 아래로 갈수록 넓게)
+    for i in range(wall_top - roof_top):
+        hw = 3 + i * 3
+        cv.rect(mx - hw, roof_top + i, mx + hw + 1, roof_top + i + 1, c("#f26b5b"))
+        cv.px(mx - hw, roof_top + i, LINE)
+        cv.px(mx + hw, roof_top + i, LINE)
+    cv.rect(mx - 1, roof_top + 2, mx + 2, roof_top + 4, c("#ffd34d"))   # 지붕 창 (동그라미 대신 노란 창)
+    cv.rect(bx0 - 2, wall_top, bx1 + 3, wall_top + 1, LINE)            # 처마
+    # 벽 + 기둥
+    cv.rect(bx0, wall_top + 1, bx1 + 1, wall_bot, c("#fff3d6"))
+    for cx in (bx0 + 1, bx0 + 7, bx1 - 9, bx1 - 3):
+        cv.rect(cx, wall_top + 1, cx + 3, wall_bot, WHITE)
+        cv.rect(cx + 2, wall_top + 1, cx + 3, wall_bot, c("#e2d6c0"))
+    # 큰 문 (아치 느낌)
+    cv.rect(mx - 3, wall_top + 3, mx + 4, wall_bot, LINE)
+    cv.rect(mx - 2, wall_top + 4, mx + 3, wall_bot, c("#c98a4a"))
+    cv.rect(mx, wall_top + 4, mx + 1, wall_bot, c("#a8703c"))
+    cv.px(mx + 2, wall_top + 7, c("#ffd34d"))
+    cv.rect(bx0 - 1, wall_bot, bx1 + 2, wall_bot + 1, LINE)           # 계단
+    cv.rect(bx0 - 3, wall_bot + 1, bx1 + 4, wall_bot + 2, c("#d8ccb4"))
+    # 양옆 가로등
+    for lx in (x0 + 3, x1 - 5):
+        cv.rect(lx, y0 + 9, lx + 2, y1 - 3, LINE)
+        cv.rect(lx - 1, y0 + 7, lx + 3, y0 + 10, c("#ffd34d"))
+        cv.rect(lx - 1, y0 + 6, lx + 3, y0 + 7, LINE)
+    # 화분
+    for fx in (x0 + 7, x1 - 11):
+        cv.rect(fx, y1 - 7, fx + 4, y1 - 4, c("#c98a4a"))
+        cv.rect(fx, y1 - 9, fx + 4, y1 - 7, c("#5cc04a"))
+        cv.px(fx + 1, y1 - 9, c("#ff6b6b"))
+        cv.px(fx + 3, y1 - 8, c("#ff9ec4"))
+
+
+def tile_wild(cv, x0, y0, x1, y1):
+    """야생: 해, 눈 덮인 산 두 개, 침엽수 숲, 굽이치는 강, 텐트와 모닥불"""
+    cv.rect(x0, y0, x1, y1, c("#a8dcff"))                     # 하늘
+    cv.rect(x0, y0 + 7, x1, y1, c("#c4e8ff"))
+    sun = [".yyy.", "yyyyy", "yyyyy", "yyyyy", ".yyy."]
+    cv.sprite(x1 - 8, y0 + 1, sun, {"y": c("#ffe066")})
+
+    def mountain(cx, top, base, col, shade, snow):
+        for i in range(base - top):
+            cv.rect(cx - i, top + i, cx + i + 1, top + i + 1, col)
+            cv.rect(cx + 1, top + i, cx + i + 1, top + i + 1, shade)   # 오른쪽 그늘
+        for i in range(3):
+            cv.rect(cx - i, top + i, cx + i + 1, top + i + 1, snow)
+    mountain(x0 + 13, y0 + 2, y0 + 13, c("#93aecb"), c("#7a96b6"), WHITE)
+    mountain(x0 + 26, y0 + 5, y0 + 13, c("#a3bcd6"), c("#8aa6c4"), c("#eef6ff"))
+    # 들판
+    cv.rect(x0, y0 + 12, x1, y1, c("#79c656"))
+    cv.rect(x0, y0 + 12, x1, y0 + 13, c("#9ad870"))
+    # 침엽수 숲 (오른쪽)
+    pine = {"g": c("#3f9a3a"), "G": c("#2a6e2a"), "t": c("#8a5a30")}
+    rows = ["...g...", "..ggG..", ".gggGG.", "..ggG..", ".gggGG.", "ggggGGG", "...t..."]
+    for (tx, ty) in [(x1 - 24, y0 + 7), (x1 - 18, y0 + 5), (x1 - 12, y0 + 7), (x1 - 7, y0 + 9)]:
+        cv.sprite(tx, ty, rows, pine)
+    # 강: 숲 사이에서 왼쪽 아래로
+    river = [(x1 - 26, 3), (x1 - 29, 4), (x1 - 33, 5), (x1 - 38, 6), (x1 - 44, 7), (x1 - 51, 8)]
+    for i, (rx, rw) in enumerate(river):
+        yy = y0 + 13 + i * 2
+        if yy >= y1:
+            break
+        cv.rect(max(x0, rx), yy, min(x1, rx + rw), min(y1, yy + 2), c("#5cb0f0"))
+        cv.px(max(x0, rx + 1), yy, c("#d0f0ff"))
+    # 텐트 + 모닥불 (왼쪽)
+    tent = ["...o...", "..oro..", ".orrRo.", "orrdRRo", "oooooo."]
+    cv.sprite(x0 + 3, y1 - 6, tent, {"o": LINE, "r": c("#ff9a3a"), "R": c("#e07020"), "d": c("#8a5a30")})
+    fx = x0 + 12
+    cv.rect(fx, y1 - 2, fx + 4, y1 - 1, c("#8a5a30"))
+    cv.rect(fx + 1, y1 - 4, fx + 3, y1 - 2, c("#ff7a2a"))
+    cv.px(fx + 1, y1 - 5, c("#ffd34d"))
+    for (px_, pc) in [(x0 + 22, "#ffffff"), (x1 - 3, "#ff9ec4"), (x0 + 30, "#ffd34d")]:
+        cv.px(px_, y1 - 2, c(pc))
 
 
 def tile_home(cv, x0, y0, x1, y1):
@@ -527,9 +618,9 @@ def tile_warp(cv, x0, y0, x1, y1):
 
 MENU_TILES = [  # (열 범위, 줄 범위, 그리기, 이름표, 이름표 색)
     ((0, 2), (1, 2), tile_dogam, "도감", "#5cb84a"),
-    ((6, 8), (1, 2), tile_shop, "상점", "#f2a33a"),
+    ((6, 8), (1, 2), tile_lobby, "로비", "#f2a33a"),
     ((3, 5), (1, 4), tile_warp, "워프", "#8a5ce0"),
-    ((0, 2), (3, 4), tile_home, "야생", "#4aa0e8"),
+    ((0, 2), (3, 4), tile_wild, "야생", "#4aa0e8"),
     ((6, 8), (3, 4), tile_village, "마을로", "#e8709a"),
 ]
 
