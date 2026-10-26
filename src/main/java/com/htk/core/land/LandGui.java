@@ -23,7 +23,7 @@ import java.util.Map;
  *       지도의 위 = 집터를 놓을 때 바라본 방향 (집 문은 아래쪽을 봐요). 북쪽 고정이 아니에요
  *       내 집 🚪 / 내 땅 🌱 / 넓힐 수 있는 곳 + / 남의 집 = 주인 얼굴
  *       지금 서 있는 곳: 빈 칸이면 나침반, 무언가 있으면 반짝이 + "(지금 여기)"
- *   5줄: 0열 ◀ 메뉴로, 3열 빚 갚기, 4열 이웃, 5열 테두리 보기
+ *   5줄: 0열 ◀ 메뉴로, 3열 빚 (보기만, 갚기는 로비의 이장님께), 4열 이웃, 5열 테두리 보기
  * ⚠ 칸 위치는 tools/make_art.py 의 draw_land() 와 약속
  */
 final class LandGui extends Gui {
@@ -112,7 +112,7 @@ final class LandGui extends Gui {
                 : Items.of(Material.ARROW, 1, "<gray>메뉴로", List.of(), null)));
         if (mine != null) {
             ItemStack debt = Items.of(Material.GOLD_NUGGET, 1, mine.debt > 0
-                            ? f.msg("btn-debt", "<#ffd34d><bold>빚 %debt%</bold> <gray>· 클릭해서 갚기").replace("%debt%", Economy.format(mine.debt))
+                            ? f.msg("btn-debt", "<#ffd34d><bold>빚 %debt%</bold> <gray>· 로비의 이장님께 갚아요").replace("%debt%", Economy.format(mine.debt))
                             : f.msg("btn-no-debt", "<#7acb52>빚 없음"),
                     List.of(), pack ? Glyphs.model("gold_coin") : null);
             if (mine.debt > 0) Items.glint(debt);
@@ -134,12 +134,6 @@ final class LandGui extends Gui {
         Land mine = f.landOf(p.getUniqueId());
         switch (slot) {
             case BACK -> run(p, "menu");
-            case DEBT -> {
-                if (mine != null && mine.debt > 0) {
-                    f.pay(p, 0);
-                    reopen(p);
-                }
-            }
             case MEMBERS -> {
                 if (mine != null) Bukkit.getScheduler().runTask(f.plugin(), () -> new MembersGui(f, p, 0).open(p));
             }

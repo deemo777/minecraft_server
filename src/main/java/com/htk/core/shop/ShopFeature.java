@@ -168,14 +168,22 @@ public final class ShopFeature implements Feature, Listener {
      * toCursor = false : 가진 것 전부 팔고 주머니를 가방에
      * 하나라도 팔았으면 true
      */
-    boolean sell(Player p, ShopConfig.Item item, boolean toCursor) {
+    /** 레벨 보너스를 넣은 판매 금액 (n개) */
+    long sellPrice(Player p, ShopConfig.Shop shop, ShopConfig.Item item, long n) {
+        double bonus = 0;
+        com.htk.core.skill.SkillFeature skills = plugin.feature(com.htk.core.skill.SkillFeature.class);
+        if (skills != null) bonus = skills.sellBonus(p, shop.skill());
+        return Math.round(item.sell() * n * (1.0 + bonus));
+    }
+
+    boolean sell(Player p, ShopConfig.Shop shop, ShopConfig.Item item, boolean toCursor) {
         if (item.sell() <= 0) return false;
         int n = Math.min(count(p, item.material()), toCursor ? 1 : Integer.MAX_VALUE);
         if (n <= 0) {
             p.sendActionBar(Text.mm(msg("nothing-to-sell", "<red>팔 물건이 없어요.")));
             return false;
         }
-        long earned = item.sell() * n;
+        long earned = sellPrice(p, shop, item, n);
         ItemStack pouch = gold.goldItem(earned);
         if (toCursor && !fitsCursor(p, pouch)) {
             cursorBusy(p);

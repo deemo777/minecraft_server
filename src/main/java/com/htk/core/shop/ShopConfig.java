@@ -20,7 +20,9 @@ public final class ShopConfig {
      */
     public record Item(String id, Material material, long sell, long buy) {}
 
-    public record Shop(String id, String title, String theme, String npcName, String npcProfession, List<Item> items) {}
+    /** skill = 판매가 보너스를 주는 레벨링 분야 (farming, mining ... 없으면 빈 글자) */
+    public record Shop(String id, String title, String theme, String npcName, String npcProfession, List<Item> items,
+                       String skill) {}
 
     private final Map<String, Shop> shops = new LinkedHashMap<>();
 
@@ -55,7 +57,7 @@ public final class ShopConfig {
             cfg.shops.put(id.toLowerCase(), new Shop(id.toLowerCase(),
                     s.getString("title", id), s.getString("theme", id),
                     s.getString("npc-name", s.getString("title", id)), s.getString("npc-profession", "NONE"),
-                    List.copyOf(items)));
+                    List.copyOf(items), s.getString("skill", "")));
         }
         log.info("상점 " + cfg.shops.size() + "개를 불러왔어요.");
         return cfg;

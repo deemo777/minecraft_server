@@ -2,7 +2,7 @@ name: ServerCore
 version: '${version}'
 main: com.htk.core.ServerCore
 api-version: '1.21'
-description: 서버 전용 기능 모음 (메뉴, 도감, 점프 패드, 도약, 골드, 상점, 레벨링, HUD, 집 땅, 안내서)
+description: 서버 전용 기능 모음 (메뉴, 도감, 점프 패드, 도약, 골드, 상점, 레벨링·칭호, HUD, 집 땅, 이장님, 안내서)
 
 commands:
   menu:
@@ -29,6 +29,10 @@ commands:
     description: 스킬 창 열기 / 레벨 설정 (관리자)
     usage: /<command> [info] | set <플레이어> <분야> <레벨> | reset <플레이어>
     aliases: [skills, 스킬, 레벨]
+  honor:
+    description: 칭호 목록 / 칭호 달기
+    usage: /<command> [분야:레벨|off]
+    aliases: [칭호, titles]
   hud:
     description: HUD 켜기/끄기, 위치 맞추기
     usage: /<command> [on|off] | left [칸] | right [칸] | pos <숫자> | reset
@@ -36,13 +40,17 @@ commands:
     description: 서버 안내서(책) 받기
     aliases: [가이드, 안내서]
   land:
-    description: 내 집 땅 (집터, 지도 창, 넓히기·빚 갚기·이웃 허가)
-    usage: /<command> [kit|home|sethome|pay [금액]|trust <이름>|untrust <이름>|show|info|abandon confirm]
+    description: 내 집 땅 (집터, 지도 창, 넓히기·이웃 허가)
+    usage: /<command> [kit|home|sethome|trust <이름>|untrust <이름>|show|info|abandon confirm]
     aliases: [home, house]
   jumppad:
     description: 점프 패드 아이템 받기
     usage: /<command> [개수] [플레이어]
     aliases: [점프패드]
+    permission: servercore.admin
+  mayornpc:
+    description: 이장님 NPC 세우기/없애기, 첫 대화 되돌리기 (관리자)
+    usage: /<command> create | remove | reset <플레이어>
     permission: servercore.admin
   servercore:
     description: ServerCore 관리 명령어

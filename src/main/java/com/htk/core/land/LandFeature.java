@@ -49,8 +49,9 @@ import java.util.UUID;
 
 /**
  * 내 집 땅 (동물의 숲 방식)
- *   - 집터 블록(처음 접속할 때 받음, /land kit)을 설치하면 그 청크가 바로 내 집 (처음 땅 값은 빚으로, 기본 0G)
- *   - 집터를 우클릭하면 집 지도 창 (넓히기·빚 갚기·이웃). 집터는 아무도 못 부숴요
+ *   - 집터 블록(로비의 이장님과 첫 대화를 마치면 받음)을 설치하면 그 청크가 바로 내 집 (처음 땅 값은 빚으로, 기본 0G)
+ *   - 집터를 우클릭하면 집 지도 창 (넓히기·이웃). 집터는 아무도 못 부숴요
+ *   - 빚은 로비의 이장님께 갚아요 (MayorFeature)
  *   - 붙어 있는 청크를 골라 한 칸씩 넓혀요 (최대 4청크). 넓히면 땅은 바로 생기고 그만큼 빚이 생겨요
  *   - 빚을 다 갚아야 다음 확장을 할 수 있어요
  *   - 이웃(허가한 사람)은 내 땅에서 전부 할 수 있고, 나머지 사람은 아무것도 못 해요
@@ -144,7 +145,7 @@ public final class LandFeature implements Feature, Listener {
     /** 집 지도 창 열기 */
     public void openGui(Player p) {
         if (store.of(p.getUniqueId()) == null) {
-            send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(잃어버렸으면 /land kit)");
+            send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(집터는 로비의 이장님께)");
             return;
         }
         new LandGui(this, p).open(p);
@@ -155,7 +156,7 @@ public final class LandFeature implements Feature, Listener {
         if (store.of(p.getUniqueId()) != null) goHome(p);
         else {
             p.closeInventory();
-            send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(잃어버렸으면 /land kit)");
+            send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(집터는 로비의 이장님께)");
         }
     }
 
@@ -276,8 +277,14 @@ public final class LandFeature implements Feature, Listener {
         return true;
     }
 
-    /** 가진 골드로 빚 갚기 (amount <= 0 이면 갚을 수 있는 만큼) */
-    void pay(Player p, long amount) {
+    /** 남은 빚 (집이 없으면 0) */
+    public long debtOf(UUID owner) {
+        Land land = store.of(owner);
+        return land == null ? 0 : Math.max(0, land.debt);
+    }
+
+    /** 이장님 창에서: 가진 골드로 빚 갚기 (amount <= 0 이면 갚을 수 있는 만큼) */
+    public void payDebt(Player p, long amount) {
         Land land = store.of(p.getUniqueId());
         if (land == null || land.debt <= 0) {
             send(p, "no-debt", "<gray>갚을 빚이 없어요.");
@@ -301,14 +308,14 @@ public final class LandFeature implements Feature, Listener {
     }
 
     void sendDebt(Player p, Land land) {
-        p.sendMessage(Text.mm(msg("debt", "<gray>빚: <#ffd34d>%debt%</#ffd34d> <dark_gray>(/land 에서 갚기)")
+        p.sendMessage(Text.mm(msg("debt", "<gray>빚: <#ffd34d>%debt%</#ffd34d> <dark_gray>(로비의 이장님께 갚아요)")
                 .replace("%debt%", Economy.format(land.debt))));
     }
 
     boolean setHome(Player p) {
         Land land = store.of(p.getUniqueId());
         if (land == null) {
-            send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(잃어버렸으면 /land kit)");
+            send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(집터는 로비의 이장님께)");
             return false;
         }
         if (store.at(p.getLocation()) != land) {
@@ -325,7 +332,7 @@ public final class LandFeature implements Feature, Listener {
     void goHome(Player p) {
         Land land = store.of(p.getUniqueId());
         if (land == null) {
-            send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(잃어버렸으면 /land kit)");
+            send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(집터는 로비의 이장님께)");
             return;
         }
         Location home = land.home();
@@ -343,7 +350,7 @@ public final class LandFeature implements Feature, Listener {
     boolean trust(Player p, OfflinePlayer target) {
         Land land = store.of(p.getUniqueId());
         if (land == null) {
-            send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(잃어버렸으면 /land kit)");
+            send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(집터는 로비의 이장님께)");
             return false;
         }
         if (target.getUniqueId().equals(p.getUniqueId())) return false;
@@ -416,8 +423,14 @@ public final class LandFeature implements Feature, Listener {
         return it.getItemMeta().getPersistentDataContainer().has(coreKey, PersistentDataType.BYTE);
     }
 
+    /** 가방에 집터가 있는지 */
+    public boolean hasCoreItem(Player p) {
+        for (ItemStack it : p.getInventory().getContents()) if (isCoreItem(it)) return true;
+        return false;
+    }
+
     /** 집이 없는 사람에게 집터 주기 (가방이 꽉 차면 발밑에) */
-    void giveCore(Player p) {
+    public void giveCore(Player p) {
         var left = p.getInventory().addItem(coreItem());
         for (ItemStack it : left.values()) p.getWorld().dropItemNaturally(p.getLocation(), it);
     }
@@ -553,13 +566,14 @@ public final class LandFeature implements Feature, Listener {
         for (org.bukkit.block.Block b : e.getBlocks()) if (coreAt(b) != null) { e.setCancelled(true); return; }
     }
 
-    /** 처음 접속하면 집터 하나 */
+    /** 처음 접속하면 집터 하나 (이장님 기능이 켜져 있으면 이장님이 줘요) */
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
         Land own = store.of(p.getUniqueId());
         if (own != null) Bukkit.getScheduler().runTaskLater(plugin, () -> ensureCoreVisual(own), 40L);
         if (!giveOnFirstJoin || store.of(p.getUniqueId()) != null) return;
+        if (plugin.feature(com.htk.core.mayor.MayorFeature.class) != null) return;
         var pdc = p.getPersistentDataContainer();
         if (pdc.has(kitKey, PersistentDataType.BYTE)) return;
         pdc.set(kitKey, PersistentDataType.BYTE, (byte) 1);
@@ -567,10 +581,15 @@ public final class LandFeature implements Feature, Listener {
         send(p, "core-given", "<#f3c060>🏠 <gray>집터를 받았어요! 마음에 드는 곳에 설치하면 거기가 내 집이 돼요.");
     }
 
-    /** /land kit: 집이 없으면 집터 다시 받기 */
-    void kit(Player p) {
+    /** /land kit: 집이 없으면 집터 다시 받기 (이장님과 첫 대화를 마친 사람만) */
+    public void kit(Player p) {
         if (store.of(p.getUniqueId()) != null) {
             send(p, "already-have", "<gray>이미 집이 있어요. 집은 한 사람에 하나예요.");
+            return;
+        }
+        com.htk.core.mayor.MayorFeature mayor = plugin.feature(com.htk.core.mayor.MayorFeature.class);
+        if (mayor != null && !mayor.introDone(p)) {
+            send(p, "meet-mayor", "<gray>로비의 <#f3c060>이장님</#f3c060>께 먼저 인사해 주세요. 집터를 주실 거예요.");
             return;
         }
         for (ItemStack it : p.getInventory().getContents()) {

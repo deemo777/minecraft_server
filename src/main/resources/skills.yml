@@ -4,10 +4,11 @@
 #
 # 플레이어가 직접 놓은 원목·광석·수박·호박 등을 다시 캐면 경험치를 안 줘요 (무한 반복 방지)
 
-max-level: 99
+max-level: 50
 
 # 다음 레벨까지 필요한 경험치 = a + b × 레벨 + c × 레벨²
-#   (기본값: 1→2 는 93, 10→11 은 750, 33→34 는 4,637)
+#   (기본값: 1→2 는 93, 10→11 은 750, 33→34 는 4,637, 49→50 은 9,213)
+#   1 → 10 레벨 누적 약 4,000 · 1 → 30 약 44,500 · 1 → 50 약 172,700
 curve:
   a: 50
   b: 40
@@ -16,6 +17,49 @@ curve:
 level-up:
   title: "<#ffd34d><bold>%skill% 레벨 UP!"
   subtitle: "<white>Lv.%level%"
+
+# 레벨 효과 — 일단 아주 작게 (레벨 × 값). 0.0005 = 레벨당 0.05% → Lv.50 에 2.5%
+perks:
+  double-drop-per-level: 0.0005     # 농사·채광(광석)·벌목: 캔 것이 2배 / 낚시: 한 마리 더
+  combat-damage-per-level: 0.0005   # 전투: 몹에게 주는 피해 +%
+  sell-bonus-per-level: 0.0002      # 그 분야 상점(shops.yml 의 skill) 판매가 +% (Lv.50 = +1%)
+  show-message: true                # 보너스가 터지면 화면 아래에 알림
+
+# 칭호 — 레벨: 이름. 받으면 자동으로 달리고, /칭호 로 바꿀 수 있어요 (채팅·탭 목록 이름 앞)
+title-format: "<dark_gray>[</dark_gray>%title%<dark_gray>]</dark_gray> "
+title-unlocked: "<#ffd34d>🏅 <gray>새 칭호 <white>%title%</white><gray>을(를) 얻었어요! <dark_gray>(/칭호 로 바꾸기)"
+title-broadcast: "<#ffd34d>🏅 <white>%player%</white><gray>님이 <white>%title%</white> <gray>칭호를 얻었어요!"   # 비우면 다른 사람에게 안 알림
+titles:
+  farming:
+    10: "<#a8d672>새싹 농부"
+    20: "<#8fd16a>부지런한 농부"
+    30: "<#7acb52>솜씨 좋은 농부"
+    40: "<#5fae3c>베테랑 농부"
+    50: "<gradient:#ffd34d:#7acb52>전설의 농부</gradient>"
+  mining:
+    10: "<#b8b0a8>견습 광부"
+    20: "<#a8b4c0>성실한 광부"
+    30: "<#9fb4c8>숙련 광부"
+    40: "<#7fa8d0>베테랑 광부"
+    50: "<gradient:#ffd34d:#7fd8ff>전설의 광부</gradient>"
+  woodcutting:
+    10: "<#c8a87a>견습 나무꾼"
+    20: "<#c8a06a>튼튼한 나무꾼"
+    30: "<#b88a50>숙련 나무꾼"
+    40: "<#a0703a>베테랑 나무꾼"
+    50: "<gradient:#ffd34d:#c8a06a>전설의 나무꾼</gradient>"
+  fishing:
+    10: "<#9ccbe8>초보 낚시꾼"
+    20: "<#7ab8e0>꾸준한 낚시꾼"
+    30: "<#6aa8e0>노련한 낚시꾼"
+    40: "<#4a90d0>베테랑 낚시꾼"
+    50: "<gradient:#ffd34d:#6aa8e0>전설의 강태공</gradient>"
+  combat:
+    10: "<#e8a0a0>신참 모험가"
+    20: "<#e08080>용감한 모험가"
+    30: "<#d86060>노련한 전사"
+    40: "<#c84040>베테랑 전사"
+    50: "<gradient:#ffd34d:#ff6060>전설의 영웅</gradient>"
 
 # 이 작물들은 다 자랐을 때 캐야 경험치를 줘요
 mature-only: [WHEAT, CARROTS, POTATOES, BEETROOTS, NETHER_WART, COCOA, PITCHER_CROP]

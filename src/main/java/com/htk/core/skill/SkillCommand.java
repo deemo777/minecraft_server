@@ -42,6 +42,9 @@ final class SkillCommand implements TabExecutor {
                         .append(pr.xp).append("/").append(f.need(pr.level)).append(")</dark_gray>  ");
             }
             p.sendMessage(Text.mm(sb.toString().trim()));
+            net.kyori.adventure.text.Component prefix = f.prefix(p.getUniqueId());
+            if (!prefix.equals(net.kyori.adventure.text.Component.empty()))
+                p.sendMessage(Text.mm("<gray>칭호: ").append(prefix).append(Text.mm("<dark_gray>(/칭호 로 바꾸기)")));
             return true;
         }
         if (!sender.hasPermission("servercore.admin")) {

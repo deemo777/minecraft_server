@@ -80,6 +80,13 @@ public final class ServerCore extends JavaPlugin {
             land.enable();
         }
 
+        // 이장님: 첫 대화로 집터 주기 + 빚 갚기 창 (골드가 있어야 해요)
+        if (economy != null && getConfig().getBoolean("features.mayor", true)) {
+            com.htk.core.mayor.MayorFeature mayor = new com.htk.core.mayor.MayorFeature(this, economy.economy());
+            features.add(mayor);
+            mayor.enable();
+        }
+
         PluginCommand admin = getCommand("servercore");
         if (admin != null) admin.setExecutor(new CoreCommand(this));
 

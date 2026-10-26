@@ -73,14 +73,28 @@ final class SkillGui extends Gui {
             SkillStore.Progress pr = feature.progress(id, s);
             boolean max = pr.level >= feature.maxLevel();
             String name = "<#7acb52><bold>" + s.korean + "</bold> <white>Lv." + pr.level;
-            List<String> lore = pack ? List.of() : List.of(max ? "<gray>최고 레벨"
-                    : "<gray>경험치 <white>" + fmt(pr.xp) + "/" + fmt(feature.need(pr.level)));
+            List<String> lore = new java.util.ArrayList<>();
+            if (!pack) lore.add(max ? "<gray>최고 레벨" : "<gray>경험치 <white>" + fmt(pr.xp) + "/" + fmt(feature.need(pr.level)));
+            String cur = feature.currentTitleText(id, s);
+            lore.add("<gray>칭호: " + (cur == null ? "<dark_gray>없음" : "<white>" + cur));
+            var next = feature.nextTitle(id, s);
+            if (next != null) lore.add("<dark_gray>다음 칭호: Lv." + next.getKey() + " " + Text.plain(next.getValue()));
+            lore.add("");
+            if (s == Skill.COMBAT) lore.add("<gray>몹에게 주는 피해 <#7acb52>+" + pct(feature.combatBonus(id)));
+            else lore.add("<gray>" + (s == Skill.FISHING ? "한 마리 더 낚을" : "2배로 얻을") + " 확률 <#7acb52>"
+                    + pct(feature.doubleDropChance(id, s)));
+            String shopName = s == Skill.FARMING ? "농작물" : s == Skill.MINING ? "광물" : s == Skill.FISHING ? "생선" : null;
+            if (shopName != null) lore.add("<gray>" + shopName + " 가게 판매가 <#7acb52>+" + pct(feature.sellBonusOf(id, s)));
             inventory.setItem(Gui.slot(s.ordinal(), 0), Items.of(ICONS[s.ordinal()], 1, name, lore, null));
         }
         ItemStack back = pack
                 ? Items.of(Material.PAPER, 1, "", List.of(), Glyphs.model("arrow_left"))
                 : Items.of(Material.ARROW, 1, "<gray>메뉴로", List.of(), null);
         inventory.setItem(BACK_SLOT, Items.hideTooltip(back));
+    }
+
+    private static String pct(double v) {
+        return String.format(Locale.US, "%.2f%%", v * 100);
     }
 
     private static String fmt(long v) {

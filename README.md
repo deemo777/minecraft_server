@@ -17,7 +17,9 @@ Paper **26.3** / Java 25. 플레이어는 바닐라 클라이언트 + 서버 리
 | NPC 상점 | `/shopnpc create <fish/crops/ores>` 로 상점 주인(주민) 세우기 → 클릭하면 테마 상점. 주민 교환처럼 [아이템]→[골드] 줄이 왼쪽 5개·오른쪽 5개. 골드 칸 클릭 = 1개 팔고 골드 주머니 받기(Shift 전부). 품목·가격은 `shops.yml` |
 | 레벨링 | 농사·채광·벌목·낚시·전투. 경험치 표는 `skills.yml`, `/skill` 또는 메뉴의 내 얼굴 → 스킬 창, `/skill info` 채팅, `/skill set <플레이어> <분야> <레벨>` (OP) |
 | HUD | 왼쪽 위 얼굴·이름·골드·레벨 + 경험치 얻으면 위에 경험치 바. `/hud` 켜기/끄기, `/hud left·right·pos·reset` 으로 각자 위치 맞추기 (기본값 `hud.offset-x`) |
-| 내 집 땅 | 처음 접속하면 **집터**(작은 집 모형) 지급 → 설치한 청크가 바로 내 집(무료). 문이 놓은 사람 쪽을 보고, 지도도 그 방향 기준(위 = 놓을 때 바라본 방향). 집터 우클릭(또는 `/land`) → 청크 지도 창: 붙은 청크를 골라 한 칸씩 넓히기(최대 4, 집터에서 상하좌우 2칸 안, 넓힐 때마다 빚 1,000/2,000/3,000G, 빚을 다 갚아야 다음 확장). 집터는 못 부숨. 지도 창의 이웃 버튼 → 서버 사람 목록에서 클릭해 허가 ✔(전부 가능) 또는 `/land trust <이름>`, `/land kit·home·sethome·pay·show·info·abandon confirm`. 관리자 `/land bypass`, `/land delete <이름>`, `/land give <이름>`. 데이터 `lands.yml`, 설정 `config.yml` → `land` |
+| 이장님 | 로비에 `/mayornpc create` 로 세우기. 처음 말을 걸면 대화창(다음 ▶)을 넘기고 마지막에 **집터** 지급, 그 뒤로는 **빚 갚기 창**. 대사는 `config.yml` → `mayor` |
+| 칭호 | 분야마다 10레벨마다 칭호 (`skills.yml` → `titles`), `/칭호` 로 바꾸기 → 채팅·탭 목록 이름 앞에 |
+| 내 집 땅 | 이장님께 **집터**(작은 집 모형)를 받아 → 설치한 청크가 바로 내 집(집값은 빚). 문이 놓은 사람 쪽을 보고, 지도도 그 방향 기준(위 = 놓을 때 바라본 방향). 집터 우클릭(또는 `/land`) → 청크 지도 창: 붙은 청크를 골라 한 칸씩 넓히기(최대 4, 집터에서 상하좌우 2칸 안, 넓힐 때마다 빚, 빚을 다 갚아야 다음 확장, 빚은 이장님께 갚기). 집터는 못 부숨. 지도 창의 이웃 버튼 → 서버 사람 목록에서 클릭해 허가 ✔(전부 가능) 또는 `/land trust <이름>`, `/land kit·home·sethome·show·info·abandon confirm`. 관리자 `/land bypass`, `/land delete <이름>`, `/land give <이름>`. 데이터 `lands.yml`, 설정 `config.yml` → `land` |
 | 안내서 | 처음 접속하면 서버 안내서(책) 1권, `/guide` 로 다시 받기. 내용은 `guide.yml` |
 | 관리 | `/도감 reset <플레이어>`, `/코어 reload` (OP) |
 
@@ -74,6 +76,7 @@ src/main/java/com/htk/core
  ├─ skill/   SkillFeature, SkillStore, SkillCommand, SkillGui (레벨링·스킬 창, skills.yml)
  ├─ guide/   GuideFeature (서버 안내서 책, guide.yml)
  ├─ land/    LandFeature, LandStore, LandProtection, LandCommand, LandGui, MembersGui (내 집 땅, lands.yml)
+ ├─ mayor/   MayorFeature (이장님 NPC: 첫 대화 → 집터, 빚 갚기 창, 대화창 Dialog)
  ├─ hud/     HudFeature (보스바 HUD)
  └─ dogam/  DogamFeature (등록·보상), DogamGui (책 화면), CollectionRegistry, PlayerDataStore, DogamCommand
 

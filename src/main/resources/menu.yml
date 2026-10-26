@@ -6,8 +6,8 @@
 # 칸 번호: 줄 × 9 + 열   (0번 줄 0열 = 0번, 1번 줄 0열 = 9번 ...)
 #   열:      0  1  2 | 3  4  5 | 6  7  8
 #   0번 줄:  [0] 내 머리 (누르면 스킬 창)     [8] 닫기
-#   1~2줄 :  도감     |  워프   |  로비        도감 [9,10,11,18,19,20]   로비 [15,16,17,24,25,26]
-#   3~4줄 :  야생     | (1~4줄) |  마을로      야생 [27,28,29,36,37,38]   마을로 [33,34,35,42,43,44]
+#   1~2줄 :  도감     |  워프   |  상점        도감 [9,10,11,18,19,20]   상점 [15,16,17,24,25,26]
+#   3~4줄 :  집으로   | (1~4줄) |  마을로      집으로 [27,28,29,36,37,38] 마을로 [33,34,35,42,43,44]
 #                                                워프 [12,13,14,21,22,23,30,31,32,39,40,41]
 #
 # 버튼 항목
@@ -40,14 +40,6 @@ buttons:
       - ""
       - "<#f3c060>▶ 클릭해서 열기"
     command: "dogam"
-  lobby:
-    slots: [15, 16, 17, 24, 25, 26]
-    name: "<#f0b040><bold>🏛 로비</bold>"
-    lore:
-      - "<gray>로비로 이동해요."
-    teleport: lobby      # 지점 이름: 로비에서 /servercore setpoint lobby
-    teleport-title: "<#f0b040><bold>로비"
-    teleport-subtitle: ""
   warp:
     slots: [12, 13, 14, 21, 22, 23, 30, 31, 32, 39, 40, 41]
     name: "<#a07af0><bold>✦ 워프</bold>"
@@ -56,21 +48,29 @@ buttons:
       - ""
       - "<dark_gray>🔒 준비 중"
     coming-soon: true
-  home:
-    slots: [27, 28, 29, 36, 37, 38]
-    name: "<#6aa8e0><bold>🌲 야생</bold>"
-    lore:
-      - "<gray>야생으로 이동해요."
-    teleport: home       # 지점 이름 (야생에서 /servercore setpoint home). "@land" 로 바꾸면 각자 내 집터로
-    teleport-title: "<#6aa8e0><bold>야생"
-    teleport-subtitle: ""
   village:
     slots: [33, 34, 35, 42, 43, 44]
-    name: "<#e8709a><bold>🏘 마을로</bold>"
+    name: "<#6aa8e0><bold>🏠 마을로</bold>"
     lore:
-      - "<gray>마을 광장으로 이동해요."
-    teleport: village
-    teleport-title: "<#e8709a><bold>마을"
+      - "<gray>마을로 이동해요."
+    teleport: village       # @land = 내 집 (집이 없으면 집터 안내). 서버 지점으로 보내려면 지점 이름
+    teleport-title: "<#6aa8e0><bold>마을"
+    teleport-subtitle: ""
+  lobby:
+    slots: [15, 16, 17, 24, 25, 26]
+    name: "<#e8709a><bold>🏘 로비로</bold>"
+    lore:
+      - "<gray>로비로 이동해요."
+    teleport: lobby
+    teleport-title: "<#e8709a><bold>로비"
+    teleport-subtitle: ""
+  wild:
+    slots: [27, 28, 29, 36, 37, 38]
+    name: "<#e8709a><bold>🏘 야생으로</bold>"
+    lore:
+      - "<gray>야생으로 이동해요."
+    teleport: wild
+    teleport-title: "<#e8709a><bold>야생"
     teleport-subtitle: ""
   close:
     slots: [8]

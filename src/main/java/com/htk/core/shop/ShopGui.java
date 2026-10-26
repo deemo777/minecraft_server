@@ -96,13 +96,13 @@ public final class ShopGui extends Gui {
 
     /** 오른쪽 칸: 골드 (받는 금액) */
     private ItemStack goldIcon(Player player, ShopConfig.Item it) {
-        long price = it.sell() > 0 ? it.sell() : it.buy();
+        long price = it.sell() > 0 ? feature.sellPrice(player, shop, it, 1) : it.buy();
         List<String> lore = new ArrayList<>();
         if (it.sell() > 0) {
             int have = feature.count(player, it.material());
             lore.add(feature.msg("lore-sell", "<gray>클릭: 1개 팔기 <dark_gray>(Shift: 전부 %have%개 → %total%)")
                     .replace("%have%", String.valueOf(have))
-                    .replace("%total%", Economy.format(it.sell() * have)));
+                    .replace("%total%", Economy.format(feature.sellPrice(player, shop, it, have))));
         }
         ItemStack gold = Items.of(Material.GOLD_NUGGET, 1,
                 feature.msg("gold-name", "<#ffd34d><bold>%price%").replace("%price%", Economy.format(price)), lore,
@@ -147,7 +147,7 @@ public final class ShopGui extends Gui {
         boolean done = false;
         ShopConfig.Item sell = goldSlots.get(slot);
         if (sell != null) {
-            done = feature.sell(player, sell, toCursor);
+            done = feature.sell(player, shop, sell, toCursor);
         } else {
             ShopConfig.Item buy = itemSlots.get(slot);
             if (buy != null) done = feature.buy(player, buy, toCursor);

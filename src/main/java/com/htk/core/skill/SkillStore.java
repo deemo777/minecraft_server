@@ -21,6 +21,8 @@ public final class SkillStore {
 
     public static final class Data {
         final Map<Skill, Progress> skills = new EnumMap<>(Skill.class);
+        /** 달고 있는 칭호 ("분야:레벨", 없으면 빈 글자) */
+        volatile String title = "";
         volatile boolean dirty;
 
         public Progress get(Skill s) {
@@ -52,6 +54,7 @@ public final class SkillStore {
                 p.level = Math.max(1, yml.getInt(s.key() + ".level", 1));
                 p.xp = Math.max(0, yml.getLong(s.key() + ".xp", 0));
             }
+            d.title = yml.getString("title", "");
         }
         return d;
     }
@@ -69,6 +72,7 @@ public final class SkillStore {
             yml.set(s.key() + ".level", p.level);
             yml.set(s.key() + ".xp", p.xp);
         }
+        yml.set("title", d.title);
         try {
             yml.save(new File(folder, id + ".yml"));
             d.dirty = false;

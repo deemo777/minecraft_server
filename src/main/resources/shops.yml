@@ -10,7 +10,8 @@
 #   npc-name         상점 주인 머리 위 이름
 #   npc-profession   상점 주인 옷: fisherman, farmer, toolsmith, armorer, weaponsmith, butcher, librarian ... (none = 기본)
 #   items            품목 (적은 순서대로 칸에 놓여요)
-#     sell: 플레이어가 팔 때 받는 골드 (1개 값)
+#     sell: 플레이어가 팔 때 받는 골드 (1개 값) — 처음 값의 2배로 올림 (빚 기준에 맞춤)
+#     skill: (상점마다) 이 분야 레벨이 높을수록 판매가 보너스 (skills.yml → perks.sell-bonus-per-level)
 #     buy:  플레이어가 살 때 내는 골드 (1개 값) — 지금은 사들이기만 하는 상점이라 비워 둠
 #
 # 화면: 주민 교환처럼 [아이템] → [골드] 줄이 왼쪽 5개 + 오른쪽 5개 (10개 넘으면 페이지)
@@ -27,63 +28,66 @@ shops:
     theme: fish
     npc-name: "<#7ad1ff><bold>생선 가게 주인"
     npc-profession: fisherman
+    skill: fishing
     items:
-      cod:                 { material: COD, sell: 15 }
-      salmon:              { material: SALMON, sell: 25 }
-      tropical_fish:       { material: TROPICAL_FISH, sell: 60 }
-      pufferfish:          { material: PUFFERFISH, sell: 50 }
-      ink_sac:             { material: INK_SAC, sell: 8 }
-      glow_ink_sac:        { material: GLOW_INK_SAC, sell: 20 }
-      kelp:                { material: KELP, sell: 2 }
-      sea_pickle:          { material: SEA_PICKLE, sell: 10 }
-      prismarine_shard:    { material: PRISMARINE_SHARD, sell: 12 }
-      prismarine_crystals: { material: PRISMARINE_CRYSTALS, sell: 15 }
-      turtle_scute:        { material: TURTLE_SCUTE, sell: 80 }
-      nautilus_shell:      { material: NAUTILUS_SHELL, sell: 150 }
+      cod:                 { material: COD, sell: 30 }
+      salmon:              { material: SALMON, sell: 50 }
+      tropical_fish:       { material: TROPICAL_FISH, sell: 120 }
+      pufferfish:          { material: PUFFERFISH, sell: 100 }
+      ink_sac:             { material: INK_SAC, sell: 16 }
+      glow_ink_sac:        { material: GLOW_INK_SAC, sell: 40 }
+      kelp:                { material: KELP, sell: 4 }
+      sea_pickle:          { material: SEA_PICKLE, sell: 20 }
+      prismarine_shard:    { material: PRISMARINE_SHARD, sell: 24 }
+      prismarine_crystals: { material: PRISMARINE_CRYSTALS, sell: 30 }
+      turtle_scute:        { material: TURTLE_SCUTE, sell: 160 }
+      nautilus_shell:      { material: NAUTILUS_SHELL, sell: 300 }
 
   crops:
     title: "<#4f7d2a>농작물 가게"
     theme: crops
     npc-name: "<#8fd16a><bold>농작물 가게 주인"
     npc-profession: farmer
+    skill: farming
     items:
-      wheat:          { material: WHEAT, sell: 5 }
-      carrot:         { material: CARROT, sell: 4 }
-      potato:         { material: POTATO, sell: 4 }
-      beetroot:       { material: BEETROOT, sell: 5 }
-      pumpkin:        { material: PUMPKIN, sell: 12 }
-      melon_slice:    { material: MELON_SLICE, sell: 2 }
-      sugar_cane:     { material: SUGAR_CANE, sell: 3 }
-      cactus:         { material: CACTUS, sell: 3 }
-      bamboo:         { material: BAMBOO, sell: 1 }
-      cocoa_beans:    { material: COCOA_BEANS, sell: 6 }
-      sweet_berries:  { material: SWEET_BERRIES, sell: 3 }
-      glow_berries:   { material: GLOW_BERRIES, sell: 6 }
-      apple:          { material: APPLE, sell: 10 }
-      brown_mushroom: { material: BROWN_MUSHROOM, sell: 6 }
-      red_mushroom:   { material: RED_MUSHROOM, sell: 6 }
-      poisonous_potato: { material: POISONOUS_POTATO, sell: 8 }
-      egg:            { material: EGG, sell: 3 }
-      honeycomb:      { material: HONEYCOMB, sell: 15 }
+      wheat:          { material: WHEAT, sell: 10 }
+      carrot:         { material: CARROT, sell: 8 }
+      potato:         { material: POTATO, sell: 8 }
+      beetroot:       { material: BEETROOT, sell: 10 }
+      pumpkin:        { material: PUMPKIN, sell: 24 }
+      melon_slice:    { material: MELON_SLICE, sell: 4 }
+      sugar_cane:     { material: SUGAR_CANE, sell: 6 }
+      cactus:         { material: CACTUS, sell: 6 }
+      bamboo:         { material: BAMBOO, sell: 2 }
+      cocoa_beans:    { material: COCOA_BEANS, sell: 12 }
+      sweet_berries:  { material: SWEET_BERRIES, sell: 6 }
+      glow_berries:   { material: GLOW_BERRIES, sell: 12 }
+      apple:          { material: APPLE, sell: 20 }
+      brown_mushroom: { material: BROWN_MUSHROOM, sell: 12 }
+      red_mushroom:   { material: RED_MUSHROOM, sell: 12 }
+      poisonous_potato: { material: POISONOUS_POTATO, sell: 16 }
+      egg:            { material: EGG, sell: 6 }
+      honeycomb:      { material: HONEYCOMB, sell: 30 }
 
   ores:
     title: "<#5a5048>광물 가게"
     theme: ores
     npc-name: "<#c9c3d6><bold>광물 가게 주인"
     npc-profession: toolsmith
+    skill: mining
     items:
-      coal:            { material: COAL, sell: 4 }
-      raw_copper:      { material: RAW_COPPER, sell: 5 }
-      copper_ingot:    { material: COPPER_INGOT, sell: 7 }
-      raw_iron:        { material: RAW_IRON, sell: 12 }
-      iron_ingot:      { material: IRON_INGOT, sell: 15 }
-      raw_gold:        { material: RAW_GOLD, sell: 25 }
-      gold_ingot:      { material: GOLD_INGOT, sell: 30 }
-      redstone:        { material: REDSTONE, sell: 3 }
-      lapis_lazuli:    { material: LAPIS_LAZULI, sell: 6 }
-      quartz:          { material: QUARTZ, sell: 6 }
-      amethyst_shard:  { material: AMETHYST_SHARD, sell: 10 }
-      emerald:         { material: EMERALD, sell: 80 }
-      diamond:         { material: DIAMOND, sell: 150 }
-      netherite_scrap: { material: NETHERITE_SCRAP, sell: 600 }
-      flint:           { material: FLINT, sell: 2 }
+      coal:            { material: COAL, sell: 8 }
+      raw_copper:      { material: RAW_COPPER, sell: 10 }
+      copper_ingot:    { material: COPPER_INGOT, sell: 14 }
+      raw_iron:        { material: RAW_IRON, sell: 24 }
+      iron_ingot:      { material: IRON_INGOT, sell: 30 }
+      raw_gold:        { material: RAW_GOLD, sell: 50 }
+      gold_ingot:      { material: GOLD_INGOT, sell: 60 }
+      redstone:        { material: REDSTONE, sell: 6 }
+      lapis_lazuli:    { material: LAPIS_LAZULI, sell: 12 }
+      quartz:          { material: QUARTZ, sell: 12 }
+      amethyst_shard:  { material: AMETHYST_SHARD, sell: 20 }
+      emerald:         { material: EMERALD, sell: 160 }
+      diamond:         { material: DIAMOND, sell: 300 }
+      netherite_scrap: { material: NETHERITE_SCRAP, sell: 1200 }
+      flint:           { material: FLINT, sell: 4 }
