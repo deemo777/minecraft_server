@@ -1,21 +1,20 @@
-# 도감 설정 (대화창)
+# 도감 설정 (스타듀밸리 수집품 판)
 #
-# 등록 방법: 도감 칸을 클릭 → 내 인벤토리에 required 개수만큼 있으면 그만큼 가져가고 등록
+# 등록 방법: 도감에서 항목 칸을 클릭 → 내 가방에 required 개수만큼 있으면 그만큼 가져가고 등록
+# 한 페이지 = 9칸 × 5줄 = 45개, 맨 아래 줄 양 끝 화살표로 페이지 이동
 #
-# ⚠ 리소스팩 아이콘은 이 파일의 "항목 순서"로 번호가 정해져요.
-#   항목을 추가/삭제/순서 변경했다면 tools/build_pack.py 로 리소스팩을 다시 만들어 올리세요.
+# ⚠ 등록한 항목의 체크 표시는 리소스팩에 아이템별로 들어가요.
+#   항목을 추가/삭제했다면 tools/build_pack.py 로 리소스팩을 다시 만들어 올리세요.
 
-grid:
-  columns: 15      # 가로 칸 수
-  rows: 7          # 세로 줄 수 (가운데 줄 양 끝이 ◀ ▶ 버튼)
-  button-width: 20 # 칸 너비 (높이는 마인크래프트가 20으로 고정)
+# 도감에 보이는 순서
+#   creative : 아래 categories 순서대로 묶고(나무 → 땅과 돌 → … → 음반), 같은 묶음 안에서는 크리에이티브 인벤토리 순서
+#              (순서 목록은 플러그인 안의 creative_order.txt, 마인크래프트 26.3에서 미리 뽑아 둠)
+#              묶음별로 창이 나뉘지 않고 이어서 페이지로 넘겨요
+#   file     : 이 파일에 적힌 순서 그대로
+order: creative
 
-# 개수가 1인 항목에도 숫자를 표시할지
-show-count-when-one: true
-
-title: "<#cdbf8e>도감 진행도 (%found%/%total%)"
-page-format: "<#8a8466>%page% / %pages%"
-close-label: "<gray>닫기"
+# 맨 위 나무판에 쓰이는 제목
+title: "<#6b4226>도감 진행도 (%found%/%total%)"
 
 messages:
   registered: "<gold>[도감]</gold> <white>등록 완료:</white> %entry% <gray>(%found%/%total%)</gray>"
@@ -25,68 +24,1470 @@ messages:
   tooltip-registered: "<#8fd16a>✔ 등록 완료"
   tooltip-unregistered: "<#e06c6c>미등록 <dark_gray>· <gray>필요 <white>%required%개</white> <dark_gray>(보유 %have%개)"
   tooltip-click: "<#f2a65a>▶ 클릭해서 등록"
-  prev-page: "<white>◀ 이전 페이지"
-  next-page: "<white>다음 페이지 ▶"
+  prev-page: "<#f3c060>◀ 이전 페이지"
+  next-page: "<#f3c060>다음 페이지 ▶"
+  no-more-page: "<gray>더 넘길 페이지가 없어요"
 
+# 자연에서 얻을 수 있는 바닐라 아이템 (어렵게 얻는 것 1개, 나머지 10개, 양동이는 겹쳐지지 않아서 1개)
+# 묶음(카테고리)의 순서를 바꾸면 도감에 보이는 묶음 순서도 바뀌어요. 항목 이름(예: wheat)은 등록 기록에 쓰여서 바꾸면 안 돼요.
 categories:
-  crops:
-    name: "<#8fd16a>작물"
-    complete-rewards:
-      - "give %player% golden_hoe 1"
+
+  trees:
+    name: "<#c08a52>나무"
     entries:
-      wheat:
-        name: "<yellow>밀"
-        material: WHEAT
+      oak_log:
+        name: "<white>참나무 원목"
+        material: OAK_LOG
         required: 10
-        description:
-          - "<gray>가장 기본적인 작물"
+      spruce_log:
+        name: "<white>가문비나무 원목"
+        material: SPRUCE_LOG
+        required: 10
+      birch_log:
+        name: "<white>자작나무 원목"
+        material: BIRCH_LOG
+        required: 10
+      jungle_log:
+        name: "<white>정글 나무 원목"
+        material: JUNGLE_LOG
+        required: 10
+      acacia_log:
+        name: "<white>아카시아 나무 원목"
+        material: ACACIA_LOG
+        required: 10
+      dark_oak_log:
+        name: "<white>짙은 참나무 원목"
+        material: DARK_OAK_LOG
+        required: 10
+      mangrove_log:
+        name: "<white>맹그로브 나무 원목"
+        material: MANGROVE_LOG
+        required: 10
+      cherry_log:
+        name: "<white>벚나무 원목"
+        material: CHERRY_LOG
+        required: 10
+      pale_oak_log:
+        name: "<white>창백한 참나무 원목"
+        material: PALE_OAK_LOG
+        required: 10
+      poplar_log:
+        name: "<white>포플러 원목"
+        material: POPLAR_LOG
+        required: 10
+      mangrove_roots:
+        name: "<white>맹그로브 뿌리"
+        material: MANGROVE_ROOTS
+        required: 10
+      muddy_mangrove_roots:
+        name: "<white>진흙투성이 맹그로브 뿌리"
+        material: MUDDY_MANGROVE_ROOTS
+        required: 10
+      oak_leaves:
+        name: "<white>참나무 잎"
+        material: OAK_LEAVES
+        required: 10
+      spruce_leaves:
+        name: "<white>가문비나무 잎"
+        material: SPRUCE_LEAVES
+        required: 10
+      birch_leaves:
+        name: "<white>자작나무 잎"
+        material: BIRCH_LEAVES
+        required: 10
+      jungle_leaves:
+        name: "<white>정글 나무 잎"
+        material: JUNGLE_LEAVES
+        required: 10
+      acacia_leaves:
+        name: "<white>아카시아 나무 잎"
+        material: ACACIA_LEAVES
+        required: 10
+      dark_oak_leaves:
+        name: "<white>짙은 참나무 잎"
+        material: DARK_OAK_LEAVES
+        required: 10
+      mangrove_leaves:
+        name: "<white>맹그로브 나무 잎"
+        material: MANGROVE_LEAVES
+        required: 10
+      cherry_leaves:
+        name: "<white>벚나무 잎"
+        material: CHERRY_LEAVES
+        required: 10
+      pale_oak_leaves:
+        name: "<white>창백한 참나무 잎"
+        material: PALE_OAK_LEAVES
+        required: 10
+      azalea_leaves:
+        name: "<white>진달래 잎"
+        material: AZALEA_LEAVES
+        required: 10
+      flowering_azalea_leaves:
+        name: "<white>꽃 핀 진달래 잎"
+        material: FLOWERING_AZALEA_LEAVES
+        required: 10
+      oak_sapling:
+        name: "<white>참나무 묘목"
+        material: OAK_SAPLING
+        required: 10
+      spruce_sapling:
+        name: "<white>가문비나무 묘목"
+        material: SPRUCE_SAPLING
+        required: 10
+      birch_sapling:
+        name: "<white>자작나무 묘목"
+        material: BIRCH_SAPLING
+        required: 10
+      jungle_sapling:
+        name: "<white>정글 나무 묘목"
+        material: JUNGLE_SAPLING
+        required: 10
+      acacia_sapling:
+        name: "<white>아카시아 나무 묘목"
+        material: ACACIA_SAPLING
+        required: 10
+      dark_oak_sapling:
+        name: "<white>짙은 참나무 묘목"
+        material: DARK_OAK_SAPLING
+        required: 10
+      mangrove_propagule:
+        name: "<white>맹그로브 주아"
+        material: MANGROVE_PROPAGULE
+        required: 10
+      cherry_sapling:
+        name: "<white>벚나무 묘목"
+        material: CHERRY_SAPLING
+        required: 10
+      pale_oak_sapling:
+        name: "<white>창백한 참나무 묘목"
+        material: PALE_OAK_SAPLING
+        required: 10
+      poplar_sapling:
+        name: "<white>포플러 묘목"
+        material: POPLAR_SAPLING
+        required: 10
+      stick:
+        name: "<white>막대기"
+        material: STICK
+        required: 10
+      resin_clump:
+        name: "<white>송진 덩어리"
+        material: RESIN_CLUMP
+        required: 10
+      creaking_heart:
+        name: "<gold>삐걱이의 심장"
+        material: CREAKING_HEART
+        required: 1
+
+  ground:
+    name: "<#b0a090>땅과 돌"
+    entries:
+      stone:
+        name: "<white>돌"
+        material: STONE
+        required: 10
+      cobblestone:
+        name: "<white>조약돌"
+        material: COBBLESTONE
+        required: 10
+      granite:
+        name: "<white>화강암"
+        material: GRANITE
+        required: 10
+      diorite:
+        name: "<white>섬록암"
+        material: DIORITE
+        required: 10
+      andesite:
+        name: "<white>안산암"
+        material: ANDESITE
+        required: 10
+      cobbled_deepslate:
+        name: "<white>심층암 조약돌"
+        material: COBBLED_DEEPSLATE
+        required: 10
+      tuff:
+        name: "<white>응회암"
+        material: TUFF
+        required: 10
+      sandstone:
+        name: "<white>사암"
+        material: SANDSTONE
+        required: 10
+      red_sandstone:
+        name: "<white>붉은 사암"
+        material: RED_SANDSTONE
+        required: 10
+      cinnabar:
+        name: "<white>진사"
+        material: CINNABAR
+        required: 10
+      sulfur:
+        name: "<white>유황"
+        material: SULFUR
+        required: 10
+      terracotta:
+        name: "<white>테라코타"
+        material: TERRACOTTA
+        required: 10
+      white_terracotta:
+        name: "<white>하얀색 테라코타"
+        material: WHITE_TERRACOTTA
+        required: 10
+      light_gray_terracotta:
+        name: "<white>회백색 테라코타"
+        material: LIGHT_GRAY_TERRACOTTA
+        required: 10
+      brown_terracotta:
+        name: "<white>갈색 테라코타"
+        material: BROWN_TERRACOTTA
+        required: 10
+      red_terracotta:
+        name: "<white>빨간색 테라코타"
+        material: RED_TERRACOTTA
+        required: 10
+      orange_terracotta:
+        name: "<white>주황색 테라코타"
+        material: ORANGE_TERRACOTTA
+        required: 10
+      yellow_terracotta:
+        name: "<white>노란색 테라코타"
+        material: YELLOW_TERRACOTTA
+        required: 10
+      grass_block:
+        name: "<white>잔디 블록"
+        material: GRASS_BLOCK
+        required: 10
+      podzol:
+        name: "<white>회백토"
+        material: PODZOL
+        required: 10
+      mycelium:
+        name: "<white>균사체"
+        material: MYCELIUM
+        required: 10
+      dirt:
+        name: "<white>흙"
+        material: DIRT
+        required: 10
+      coarse_dirt:
+        name: "<white>거친 흙"
+        material: COARSE_DIRT
+        required: 10
+      rooted_dirt:
+        name: "<white>뿌리 내린 흙"
+        material: ROOTED_DIRT
+        required: 10
+      mud:
+        name: "<white>진흙"
+        material: MUD
+        required: 10
+      gravel:
+        name: "<white>자갈"
+        material: GRAVEL
+        required: 10
+      sand:
+        name: "<white>모래"
+        material: SAND
+        required: 10
+      red_sand:
+        name: "<white>붉은 모래"
+        material: RED_SAND
+        required: 10
+      ice:
+        name: "<white>얼음"
+        material: ICE
+        required: 10
+      packed_ice:
+        name: "<white>단단한 얼음"
+        material: PACKED_ICE
+        required: 10
+      blue_ice:
+        name: "<white>푸른 얼음"
+        material: BLUE_ICE
+        required: 10
+      calcite:
+        name: "<white>방해석"
+        material: CALCITE
+        required: 10
+      dripstone_block:
+        name: "<white>점적석 블록"
+        material: DRIPSTONE_BLOCK
+        required: 10
+      pointed_dripstone:
+        name: "<white>뾰족한 점적석"
+        material: POINTED_DRIPSTONE
+        required: 10
+      sulfur_spike:
+        name: "<white>유황 가시"
+        material: SULFUR_SPIKE
+        required: 10
+      potent_sulfur:
+        name: "<gold>강한 유황"
+        material: POTENT_SULFUR
+        required: 1
+      magma_block:
+        name: "<white>마그마 블록"
+        material: MAGMA_BLOCK
+        required: 10
+      obsidian:
+        name: "<white>흑요석"
+        material: OBSIDIAN
+        required: 10
+      sculk:
+        name: "<white>스컬크"
+        material: SCULK
+        required: 10
+      sculk_vein:
+        name: "<white>스컬크 맥"
+        material: SCULK_VEIN
+        required: 10
+      sculk_catalyst:
+        name: "<gold>스컬크 촉매"
+        material: SCULK_CATALYST
+        required: 1
+      sculk_shrieker:
+        name: "<gold>스컬크 비명체"
+        material: SCULK_SHRIEKER
+        required: 1
+      sculk_sensor:
+        name: "<white>스컬크 감지체"
+        material: SCULK_SENSOR
+        required: 10
+      snowball:
+        name: "<white>눈덩이"
+        material: SNOWBALL
+        required: 10
+      amethyst_shard:
+        name: "<white>자수정 조각"
+        material: AMETHYST_SHARD
+        required: 10
+      flint:
+        name: "<white>부싯돌"
+        material: FLINT
+        required: 10
+      clay_ball:
+        name: "<white>점토 공"
+        material: CLAY_BALL
+        required: 10
+
+  ores:
+    name: "<#9fd3e8>광물"
+    entries:
+      redstone:
+        name: "<white>레드스톤 가루"
+        material: REDSTONE
+        required: 10
+      coal:
+        name: "<white>석탄"
+        material: COAL
+        required: 10
+      emerald:
+        name: "<white>에메랄드"
+        material: EMERALD
+        required: 10
+      lapis_lazuli:
+        name: "<white>청금석"
+        material: LAPIS_LAZULI
+        required: 10
+      raw_copper:
+        name: "<white>구리 원석"
+        material: RAW_COPPER
+        required: 10
+      raw_iron:
+        name: "<white>철 원석"
+        material: RAW_IRON
+        required: 10
+      raw_gold:
+        name: "<white>금 원석"
+        material: RAW_GOLD
+        required: 10
+      diamond:
+        name: "<white>다이아몬드"
+        material: DIAMOND
+        required: 10
+      gold_nugget:
+        name: "<white>금 조각"
+        material: GOLD_NUGGET
+        required: 10
+
+  flowers:
+    name: "<#f2a0c0>꽃과 풀"
+    entries:
+      moss_block:
+        name: "<white>이끼 블록"
+        material: MOSS_BLOCK
+        required: 10
+      pale_moss_block:
+        name: "<white>창백한 이끼 블록"
+        material: PALE_MOSS_BLOCK
+        required: 10
+      pale_hanging_moss:
+        name: "<white>창백한 매달린 이끼"
+        material: PALE_HANGING_MOSS
+        required: 10
+      azalea:
+        name: "<white>진달래"
+        material: AZALEA
+        required: 10
+      flowering_azalea:
+        name: "<white>꽃 핀 진달래"
+        material: FLOWERING_AZALEA
+        required: 10
+      short_grass:
+        name: "<white>잔디"
+        material: SHORT_GRASS
+        required: 10
+      fern:
+        name: "<white>고사리"
+        material: FERN
+        required: 10
+      short_dry_grass:
+        name: "<white>짧은 마른 풀"
+        material: SHORT_DRY_GRASS
+        required: 10
+      bush:
+        name: "<white>덤불"
+        material: BUSH
+        required: 10
+      red_shrub:
+        name: "<white>붉은 관목"
+        material: RED_SHRUB
+        required: 10
+      dead_bush:
+        name: "<white>마른 덤불"
+        material: DEAD_BUSH
+        required: 10
+      dandelion:
+        name: "<white>민들레"
+        material: DANDELION
+        required: 10
+      poppy:
+        name: "<white>양귀비"
+        material: POPPY
+        required: 10
+      blue_orchid:
+        name: "<white>파란 난초"
+        material: BLUE_ORCHID
+        required: 10
+      allium:
+        name: "<white>파꽃"
+        material: ALLIUM
+        required: 10
+      azure_bluet:
+        name: "<white>선애기별꽃"
+        material: AZURE_BLUET
+        required: 10
+      red_tulip:
+        name: "<white>빨간색 튤립"
+        material: RED_TULIP
+        required: 10
+      orange_tulip:
+        name: "<white>주황색 튤립"
+        material: ORANGE_TULIP
+        required: 10
+      white_tulip:
+        name: "<white>하얀색 튤립"
+        material: WHITE_TULIP
+        required: 10
+      pink_tulip:
+        name: "<white>분홍색 튤립"
+        material: PINK_TULIP
+        required: 10
+      oxeye_daisy:
+        name: "<white>데이지"
+        material: OXEYE_DAISY
+        required: 10
+      cornflower:
+        name: "<white>수레국화"
+        material: CORNFLOWER
+        required: 10
+      lily_of_the_valley:
+        name: "<white>은방울꽃"
+        material: LILY_OF_THE_VALLEY
+        required: 10
+      cactus_flower:
+        name: "<white>선인장 꽃"
+        material: CACTUS_FLOWER
+        required: 10
+      closed_eyeblossom:
+        name: "<white>닫힌 눈꽃"
+        material: CLOSED_EYEBLOSSOM
+        required: 10
+      open_eyeblossom:
+        name: "<white>핀 눈꽃"
+        material: OPEN_EYEBLOSSOM
+        required: 10
+      wither_rose:
+        name: "<gold>위더 장미"
+        material: WITHER_ROSE
+        required: 1
+      pink_petals:
+        name: "<white>분홍 꽃잎"
+        material: PINK_PETALS
+        required: 10
+      wildflowers:
+        name: "<white>들꽃"
+        material: WILDFLOWERS
+        required: 10
+      leaf_litter:
+        name: "<white>낙엽"
+        material: LEAF_LITTER
+        required: 10
+      spore_blossom:
+        name: "<gold>포자 꽃"
+        material: SPORE_BLOSSOM
+        required: 1
+      firefly_bush:
+        name: "<white>반딧불이 덤불"
+        material: FIREFLY_BUSH
+        required: 10
+      vine:
+        name: "<white>덩굴"
+        material: VINE
+        required: 10
+      glow_lichen:
+        name: "<white>발광 이끼"
+        material: GLOW_LICHEN
+        required: 10
+      hanging_roots:
+        name: "<white>매달린 뿌리"
+        material: HANGING_ROOTS
+        required: 10
+      tall_grass:
+        name: "<white>긴 잔디"
+        material: TALL_GRASS
+        required: 10
+      large_fern:
+        name: "<white>큰 고사리"
+        material: LARGE_FERN
+        required: 10
+      tall_dry_grass:
+        name: "<white>긴 마른 풀"
+        material: TALL_DRY_GRASS
+        required: 10
+      sunflower:
+        name: "<white>해바라기"
+        material: SUNFLOWER
+        required: 10
+      lilac:
+        name: "<white>라일락"
+        material: LILAC
+        required: 10
+      rose_bush:
+        name: "<white>장미 덤불"
+        material: ROSE_BUSH
+        required: 10
+      peony:
+        name: "<white>모란"
+        material: PEONY
+        required: 10
+      big_dripleaf:
+        name: "<white>큰 흘림잎"
+        material: BIG_DRIPLEAF
+        required: 10
+      small_dripleaf:
+        name: "<white>작은 흘림잎"
+        material: SMALL_DRIPLEAF
+        required: 10
+      lily_pad:
+        name: "<white>수련잎"
+        material: LILY_PAD
+        required: 10
+
+  crops:
+    name: "<#8fd16a>농작물"
+    entries:
+      brown_mushroom:
+        name: "<white>갈색 버섯"
+        material: BROWN_MUSHROOM
+        required: 10
+      red_mushroom:
+        name: "<white>빨간 버섯"
+        material: RED_MUSHROOM
+        required: 10
+      shelf_mushroom:
+        name: "<white>선반 버섯"
+        material: SHELF_MUSHROOM
+        required: 10
+      bamboo:
+        name: "<white>대나무"
+        material: BAMBOO
+        required: 10
+      sugar_cane:
+        name: "<white>사탕수수"
+        material: SUGAR_CANE
+        required: 10
+      cactus:
+        name: "<white>선인장"
+        material: CACTUS
+        required: 10
+      wheat_seeds:
+        name: "<white>밀 씨앗"
+        material: WHEAT_SEEDS
+        required: 10
+      cocoa_beans:
+        name: "<white>코코아 콩"
+        material: COCOA_BEANS
+        required: 10
+      beetroot_seeds:
+        name: "<white>비트 씨앗"
+        material: BEETROOT_SEEDS
+        required: 10
+      torchflower_seeds:
+        name: "<white>횃불꽃 씨앗"
+        material: TORCHFLOWER_SEEDS
+        required: 10
+      pitcher_pod:
+        name: "<white>낭상엽 꼬투리"
+        material: PITCHER_POD
+        required: 10
+      glow_berries:
+        name: "<white>발광 열매"
+        material: GLOW_BERRIES
+        required: 10
+      sweet_berries:
+        name: "<white>달콤한 열매"
+        material: SWEET_BERRIES
+        required: 10
+      pumpkin:
+        name: "<white>호박"
+        material: PUMPKIN
+        required: 10
+      apple:
+        name: "<white>사과"
+        material: APPLE
+        required: 10
+      melon_slice:
+        name: "<white>수박 조각"
+        material: MELON_SLICE
+        required: 10
       carrot:
-        name: "<gold>당근"
+        name: "<white>당근"
         material: CARROT
         required: 10
       potato:
-        name: "<#d4a85a>감자"
+        name: "<white>감자"
         material: POTATO
         required: 10
+      poisonous_potato:
+        name: "<white>독감자"
+        material: POISONOUS_POTATO
+        required: 10
       beetroot:
-        name: "<red>비트"
+        name: "<white>비트"
         material: BEETROOT
         required: 10
-      pumpkin:
-        name: "<gold>호박"
-        material: PUMPKIN
-        required: 5
-        description:
-          - "<gray>가을의 상징"
-      melon:
-        name: "<green>수박"
-        material: MELON_SLICE
+      wheat:
+        name: "<white>밀"
+        material: WHEAT
         required: 10
 
-  fish:
-    name: "<#6fa8dc>물고기"
-    complete-rewards:
-      - "give %player% fishing_rod 1"
+  animals:
+    name: "<#f0d08a>동물"
     entries:
+      white_wool:
+        name: "<white>하얀색 양털"
+        material: WHITE_WOOL
+        required: 10
+      light_gray_wool:
+        name: "<white>회백색 양털"
+        material: LIGHT_GRAY_WOOL
+        required: 10
+      gray_wool:
+        name: "<white>회색 양털"
+        material: GRAY_WOOL
+        required: 10
+      black_wool:
+        name: "<white>검은색 양털"
+        material: BLACK_WOOL
+        required: 10
+      brown_wool:
+        name: "<white>갈색 양털"
+        material: BROWN_WOOL
+        required: 10
+      pink_wool:
+        name: "<white>분홍색 양털"
+        material: PINK_WOOL
+        required: 10
+      sniffer_egg:
+        name: "<gold>스니퍼 알"
+        material: SNIFFER_EGG
+        required: 1
+      ochre_froglight:
+        name: "<gold>황토색 개구리불"
+        material: OCHRE_FROGLIGHT
+        required: 1
+      verdant_froglight:
+        name: "<gold>신록색 개구리불"
+        material: VERDANT_FROGLIGHT
+        required: 1
+      pearlescent_froglight:
+        name: "<gold>진줏빛 개구리불"
+        material: PEARLESCENT_FROGLIGHT
+        required: 1
+      goat_horn:
+        name: "<gold>염소 뿔"
+        material: GOAT_HORN
+        required: 1
+      egg:
+        name: "<white>달걀"
+        material: EGG
+        required: 10
+      brown_egg:
+        name: "<white>갈색 달걀"
+        material: BROWN_EGG
+        required: 10
+      blue_egg:
+        name: "<white>파란 달걀"
+        material: BLUE_EGG
+        required: 10
+      beef:
+        name: "<white>생 소고기"
+        material: BEEF
+        required: 10
+      porkchop:
+        name: "<white>생 돼지고기"
+        material: PORKCHOP
+        required: 10
+      mutton:
+        name: "<white>생 양고기"
+        material: MUTTON
+        required: 10
+      chicken:
+        name: "<white>생 닭고기"
+        material: CHICKEN
+        required: 10
+      rabbit:
+        name: "<white>생 토끼고기"
+        material: RABBIT
+        required: 10
+      feather:
+        name: "<white>깃털"
+        material: FEATHER
+        required: 10
+      leather:
+        name: "<white>가죽"
+        material: LEATHER
+        required: 10
+      rabbit_hide:
+        name: "<white>토끼 가죽"
+        material: RABBIT_HIDE
+        required: 10
+      honeycomb:
+        name: "<white>벌집 조각"
+        material: HONEYCOMB
+        required: 10
+      armadillo_scute:
+        name: "<white>아르마딜로 인갑"
+        material: ARMADILLO_SCUTE
+        required: 10
+      rabbit_foot:
+        name: "<white>토끼발"
+        material: RABBIT_FOOT
+        required: 10
+
+  sea:
+    name: "<#6fa8dc>바다와 낚시"
+    entries:
+      turtle_egg:
+        name: "<gold>거북 알"
+        material: TURTLE_EGG
+        required: 1
+      seagrass:
+        name: "<white>해초"
+        material: SEAGRASS
+        required: 10
+      sea_pickle:
+        name: "<white>바다 피클"
+        material: SEA_PICKLE
+        required: 10
+      kelp:
+        name: "<white>켈프"
+        material: KELP
+        required: 10
+      tube_coral_block:
+        name: "<white>관 산호 블록"
+        material: TUBE_CORAL_BLOCK
+        required: 10
+      brain_coral_block:
+        name: "<white>뇌 산호 블록"
+        material: BRAIN_CORAL_BLOCK
+        required: 10
+      bubble_coral_block:
+        name: "<white>거품 산호 블록"
+        material: BUBBLE_CORAL_BLOCK
+        required: 10
+      fire_coral_block:
+        name: "<white>불 산호 블록"
+        material: FIRE_CORAL_BLOCK
+        required: 10
+      horn_coral_block:
+        name: "<white>뿔 산호 블록"
+        material: HORN_CORAL_BLOCK
+        required: 10
+      tube_coral:
+        name: "<white>관 산호"
+        material: TUBE_CORAL
+        required: 10
+      brain_coral:
+        name: "<white>뇌 산호"
+        material: BRAIN_CORAL
+        required: 10
+      bubble_coral:
+        name: "<white>거품 산호"
+        material: BUBBLE_CORAL
+        required: 10
+      fire_coral:
+        name: "<white>불 산호"
+        material: FIRE_CORAL
+        required: 10
+      horn_coral:
+        name: "<white>뿔 산호"
+        material: HORN_CORAL
+        required: 10
+      wet_sponge:
+        name: "<gold>젖은 스펀지"
+        material: WET_SPONGE
+        required: 1
+      trident:
+        name: "<gold>삼지창"
+        material: TRIDENT
+        required: 1
       cod:
-        name: "<white>대구"
+        name: "<white>생대구"
         material: COD
-        required: 1
+        required: 10
       salmon:
-        name: "<#f08a6b>연어"
+        name: "<white>생연어"
         material: SALMON
-        required: 1
-        description:
-          - "<gray>강을 거슬러 올라가요"
+        required: 10
       tropical_fish:
-        name: "<yellow>열대어"
+        name: "<white>열대어"
         material: TROPICAL_FISH
-        required: 1
+        required: 10
       pufferfish:
-        name: "<yellow>복어"
+        name: "<white>복어"
         material: PUFFERFISH
+        required: 10
+      ink_sac:
+        name: "<white>먹물 주머니"
+        material: INK_SAC
+        required: 10
+      glow_ink_sac:
+        name: "<white>발광 먹물 주머니"
+        material: GLOW_INK_SAC
+        required: 10
+      turtle_scute:
+        name: "<white>거북 인갑"
+        material: TURTLE_SCUTE
+        required: 10
+      prismarine_shard:
+        name: "<white>프리즈머린 조각"
+        material: PRISMARINE_SHARD
+        required: 10
+      prismarine_crystals:
+        name: "<white>프리즈머린 수정"
+        material: PRISMARINE_CRYSTALS
+        required: 10
+      nautilus_shell:
+        name: "<gold>앵무조개 껍데기"
+        material: NAUTILUS_SHELL
         required: 1
-        description:
-          - "<gray>먹으면 큰일 나요"
-        rewards:
-          - "give %player% emerald 1"
+      heart_of_the_sea:
+        name: "<gold>바다의 심장"
+        material: HEART_OF_THE_SEA
+        required: 1
+
+  buckets:
+    name: "<#7ec8f0>양동이"
+    entries:
+      water_bucket:
+        name: "<white>물 양동이"
+        material: WATER_BUCKET
+        required: 1
+      cod_bucket:
+        name: "<white>대구 양동이"
+        material: COD_BUCKET
+        required: 1
+      salmon_bucket:
+        name: "<white>연어 양동이"
+        material: SALMON_BUCKET
+        required: 1
+      tropical_fish_bucket:
+        name: "<white>열대어 양동이"
+        material: TROPICAL_FISH_BUCKET
+        required: 1
+      pufferfish_bucket:
+        name: "<white>복어 양동이"
+        material: PUFFERFISH_BUCKET
+        required: 1
+      axolotl_bucket:
+        name: "<white>아홀로틀 양동이"
+        material: AXOLOTL_BUCKET
+        required: 1
+      tadpole_bucket:
+        name: "<white>올챙이 양동이"
+        material: TADPOLE_BUCKET
+        required: 1
+      lava_bucket:
+        name: "<white>용암 양동이"
+        material: LAVA_BUCKET
+        required: 1
+      powder_snow_bucket:
+        name: "<white>가루눈 양동이"
+        material: POWDER_SNOW_BUCKET
+        required: 1
+      milk_bucket:
+        name: "<white>우유 양동이"
+        material: MILK_BUCKET
+        required: 1
+
+  monsters:
+    name: "<#c080e0>몬스터 전리품"
+    entries:
+      skeleton_skull:
+        name: "<gold>스켈레톤 해골"
+        material: SKELETON_SKULL
+        required: 1
+      zombie_head:
+        name: "<gold>좀비 머리"
+        material: ZOMBIE_HEAD
+        required: 1
+      creeper_head:
+        name: "<gold>크리퍼 머리"
+        material: CREEPER_HEAD
+        required: 1
+      string:
+        name: "<white>실"
+        material: STRING
+        required: 10
+      ender_pearl:
+        name: "<white>엔더 진주"
+        material: ENDER_PEARL
+        required: 10
+      totem_of_undying:
+        name: "<gold>불사의 토템"
+        material: TOTEM_OF_UNDYING
+        required: 1
+      arrow:
+        name: "<white>화살"
+        material: ARROW
+        required: 10
+      rotten_flesh:
+        name: "<white>썩은 살점"
+        material: ROTTEN_FLESH
+        required: 10
+      spider_eye:
+        name: "<white>거미 눈"
+        material: SPIDER_EYE
+        required: 10
+      ominous_bottle:
+        name: "<gold>불길한 병"
+        material: OMINOUS_BOTTLE
+        required: 1
+      bone:
+        name: "<white>뼈"
+        material: BONE
+        required: 10
+      slime_ball:
+        name: "<white>슬라임볼"
+        material: SLIME_BALL
+        required: 10
+      breeze_rod:
+        name: "<white>브리즈 막대기"
+        material: BREEZE_ROD
+        required: 10
+      heavy_core:
+        name: "<gold>무거운 코어"
+        material: HEAVY_CORE
+        required: 1
+      echo_shard:
+        name: "<gold>메아리 조각"
+        material: ECHO_SHARD
+        required: 1
+      disc_fragment_5:
+        name: "<gold>음반 조각"
+        material: DISC_FRAGMENT_5
+        required: 1
+      gunpowder:
+        name: "<white>화약"
+        material: GUNPOWDER
+        required: 10
+      phantom_membrane:
+        name: "<white>팬텀 막"
+        material: PHANTOM_MEMBRANE
+        required: 10
+      trial_key:
+        name: "<white>시련 열쇠"
+        material: TRIAL_KEY
+        required: 10
+      ominous_trial_key:
+        name: "<gold>불길한 시련 열쇠"
+        material: OMINOUS_TRIAL_KEY
+        required: 1
+
+  nether:
+    name: "<#e06c6c>네더 (지옥)"
+    entries:
+      crimson_stem:
+        name: "<white>진홍빛 자루"
+        material: CRIMSON_STEM
+        required: 10
+      warped_stem:
+        name: "<white>뒤틀린 자루"
+        material: WARPED_STEM
+        required: 10
+      netherrack:
+        name: "<white>네더랙"
+        material: NETHERRACK
+        required: 10
+      basalt:
+        name: "<white>현무암"
+        material: BASALT
+        required: 10
+      blackstone:
+        name: "<white>흑암"
+        material: BLACKSTONE
+        required: 10
+      gilded_blackstone:
+        name: "<gold>금박 흑암"
+        material: GILDED_BLACKSTONE
+        required: 1
+      crying_obsidian:
+        name: "<white>우는 흑요석"
+        material: CRYING_OBSIDIAN
+        required: 10
+      crimson_nylium:
+        name: "<white>진홍빛 균사"
+        material: CRIMSON_NYLIUM
+        required: 10
+      warped_nylium:
+        name: "<white>뒤틀린 균사"
+        material: WARPED_NYLIUM
+        required: 10
+      soul_sand:
+        name: "<white>영혼 모래"
+        material: SOUL_SAND
+        required: 10
+      soul_soil:
+        name: "<white>영혼 흙"
+        material: SOUL_SOIL
+        required: 10
+      ancient_debris:
+        name: "<gold>고대 잔해"
+        material: ANCIENT_DEBRIS
+        required: 1
+      nether_wart_block:
+        name: "<white>네더 사마귀 블록"
+        material: NETHER_WART_BLOCK
+        required: 10
+      warped_wart_block:
+        name: "<white>뒤틀린 사마귀 블록"
+        material: WARPED_WART_BLOCK
+        required: 10
+      shroomlight:
+        name: "<white>버섯불"
+        material: SHROOMLIGHT
+        required: 10
+      crimson_fungus:
+        name: "<white>진홍빛 균"
+        material: CRIMSON_FUNGUS
+        required: 10
+      warped_fungus:
+        name: "<white>뒤틀린 균"
+        material: WARPED_FUNGUS
+        required: 10
+      crimson_roots:
+        name: "<white>진홍빛 뿌리"
+        material: CRIMSON_ROOTS
+        required: 10
+      warped_roots:
+        name: "<white>뒤틀린 뿌리"
+        material: WARPED_ROOTS
+        required: 10
+      nether_sprouts:
+        name: "<white>네더 새싹"
+        material: NETHER_SPROUTS
+        required: 10
+      weeping_vines:
+        name: "<white>늘어진 덩굴"
+        material: WEEPING_VINES
+        required: 10
+      twisting_vines:
+        name: "<white>휘어진 덩굴"
+        material: TWISTING_VINES
+        required: 10
+      dried_ghast:
+        name: "<gold>말라붙은 가스트"
+        material: DRIED_GHAST
+        required: 1
+      nether_wart:
+        name: "<white>네더 사마귀"
+        material: NETHER_WART
+        required: 10
+      wither_skeleton_skull:
+        name: "<gold>위더 스켈레톤 해골"
+        material: WITHER_SKELETON_SKULL
+        required: 1
+      piglin_head:
+        name: "<gold>피글린 머리"
+        material: PIGLIN_HEAD
+        required: 1
+      quartz:
+        name: "<white>네더 석영"
+        material: QUARTZ
+        required: 10
+      blaze_rod:
+        name: "<white>블레이즈 막대기"
+        material: BLAZE_ROD
+        required: 10
+      nether_star:
+        name: "<gold>네더의 별"
+        material: NETHER_STAR
+        required: 1
+      glowstone_dust:
+        name: "<white>발광석 가루"
+        material: GLOWSTONE_DUST
+        required: 10
+      magma_cream:
+        name: "<white>마그마 크림"
+        material: MAGMA_CREAM
+        required: 10
+      ghast_tear:
+        name: "<white>가스트 눈물"
+        material: GHAST_TEAR
+        required: 10
+
+  end:
+    name: "<#d8c8ff>엔드"
+    entries:
+      end_stone:
+        name: "<white>엔드 돌"
+        material: END_STONE
+        required: 10
+      purpur_block:
+        name: "<white>퍼퍼 블록"
+        material: PURPUR_BLOCK
+        required: 10
+      chorus_flower:
+        name: "<gold>후렴화"
+        material: CHORUS_FLOWER
+        required: 1
+      end_rod:
+        name: "<white>엔드 막대기"
+        material: END_ROD
+        required: 10
+      dragon_head:
+        name: "<gold>드래곤 머리"
+        material: DRAGON_HEAD
+        required: 1
+      dragon_egg:
+        name: "<gold>드래곤 알"
+        material: DRAGON_EGG
+        required: 1
+      elytra:
+        name: "<gold>겉날개"
+        material: ELYTRA
+        required: 1
+      chorus_fruit:
+        name: "<white>후렴과"
+        material: CHORUS_FRUIT
+        required: 10
+      shulker_shell:
+        name: "<gold>셜커 껍데기"
+        material: SHULKER_SHELL
+        required: 1
+      dragon_breath:
+        name: "<gold>드래곤의 숨결"
+        material: DRAGON_BREATH
+        required: 1
+
+  treasure:
+    name: "<gold>보물"
+    entries:
+      name_tag:
+        name: "<gold>이름표"
+        material: NAME_TAG
+        required: 1
+      saddle:
+        name: "<gold>안장"
+        material: SADDLE
+        required: 1
+      iron_horse_armor:
+        name: "<gold>철 말 갑옷"
+        material: IRON_HORSE_ARMOR
+        required: 1
+      golden_horse_armor:
+        name: "<gold>황금 말 갑옷"
+        material: GOLDEN_HORSE_ARMOR
+        required: 1
+      diamond_horse_armor:
+        name: "<gold>다이아몬드 말 갑옷"
+        material: DIAMOND_HORSE_ARMOR
+        required: 1
+      enchanted_golden_apple:
+        name: "<gold>마법이 부여된 황금 사과"
+        material: ENCHANTED_GOLDEN_APPLE
+        required: 1
+      netherite_upgrade_smithing_template:
+        name: "<gold>네더라이트 강화 형판"
+        material: NETHERITE_UPGRADE_SMITHING_TEMPLATE
+        required: 1
+      sentry_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 보초"
+        material: SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      vex_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 벡스"
+        material: VEX_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      wild_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 야생"
+        material: WILD_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      coast_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 해안"
+        material: COAST_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      dune_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 모래 언덕"
+        material: DUNE_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      wayfinder_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 길잡이"
+        material: WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      raiser_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 양육자"
+        material: RAISER_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      shaper_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 형성자"
+        material: SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      host_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 주인"
+        material: HOST_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      ward_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 감시"
+        material: WARD_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      silence_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 고요"
+        material: SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      tide_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 조류"
+        material: TIDE_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      snout_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 주둥이"
+        material: SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      rib_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 갈비뼈"
+        material: RIB_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      eye_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 눈"
+        material: EYE_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      spire_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 첨탑"
+        material: SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      flow_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 흐름"
+        material: FLOW_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+      bolt_armor_trim_smithing_template:
+        name: "<gold>갑옷 장식 형판: 볼트"
+        material: BOLT_ARMOR_TRIM_SMITHING_TEMPLATE
+        required: 1
+
+  sherds:
+    name: "<#d08a5a>도자기 조각"
+    entries:
+      angler_pottery_sherd:
+        name: "<gold>도자기 조각: 낚시꾼"
+        material: ANGLER_POTTERY_SHERD
+        required: 1
+      archer_pottery_sherd:
+        name: "<gold>도자기 조각: 궁수"
+        material: ARCHER_POTTERY_SHERD
+        required: 1
+      arms_up_pottery_sherd:
+        name: "<gold>도자기 조각: 만세"
+        material: ARMS_UP_POTTERY_SHERD
+        required: 1
+      blade_pottery_sherd:
+        name: "<gold>도자기 조각: 칼날"
+        material: BLADE_POTTERY_SHERD
+        required: 1
+      brewer_pottery_sherd:
+        name: "<gold>도자기 조각: 양조자"
+        material: BREWER_POTTERY_SHERD
+        required: 1
+      burn_pottery_sherd:
+        name: "<gold>도자기 조각: 화염"
+        material: BURN_POTTERY_SHERD
+        required: 1
+      danger_pottery_sherd:
+        name: "<gold>도자기 조각: 위험"
+        material: DANGER_POTTERY_SHERD
+        required: 1
+      explorer_pottery_sherd:
+        name: "<gold>도자기 조각: 탐험가"
+        material: EXPLORER_POTTERY_SHERD
+        required: 1
+      flow_pottery_sherd:
+        name: "<gold>도자기 조각: 흐름"
+        material: FLOW_POTTERY_SHERD
+        required: 1
+      friend_pottery_sherd:
+        name: "<gold>도자기 조각: 친구"
+        material: FRIEND_POTTERY_SHERD
+        required: 1
+      guster_pottery_sherd:
+        name: "<gold>도자기 조각: 돌풍"
+        material: GUSTER_POTTERY_SHERD
+        required: 1
+      heart_pottery_sherd:
+        name: "<gold>도자기 조각: 하트"
+        material: HEART_POTTERY_SHERD
+        required: 1
+      heartbreak_pottery_sherd:
+        name: "<gold>도자기 조각: 상심"
+        material: HEARTBREAK_POTTERY_SHERD
+        required: 1
+      howl_pottery_sherd:
+        name: "<gold>도자기 조각: 울부짖음"
+        material: HOWL_POTTERY_SHERD
+        required: 1
+      miner_pottery_sherd:
+        name: "<gold>도자기 조각: 광부"
+        material: MINER_POTTERY_SHERD
+        required: 1
+      mourner_pottery_sherd:
+        name: "<gold>도자기 조각: 애도자"
+        material: MOURNER_POTTERY_SHERD
+        required: 1
+      plenty_pottery_sherd:
+        name: "<gold>도자기 조각: 풍요"
+        material: PLENTY_POTTERY_SHERD
+        required: 1
+      prize_pottery_sherd:
+        name: "<gold>도자기 조각: 보물"
+        material: PRIZE_POTTERY_SHERD
+        required: 1
+      scrape_pottery_sherd:
+        name: "<gold>도자기 조각: 긁기"
+        material: SCRAPE_POTTERY_SHERD
+        required: 1
+      sheaf_pottery_sherd:
+        name: "<gold>도자기 조각: 곡식 단"
+        material: SHEAF_POTTERY_SHERD
+        required: 1
+      shelter_pottery_sherd:
+        name: "<gold>도자기 조각: 피난처"
+        material: SHELTER_POTTERY_SHERD
+        required: 1
+      skull_pottery_sherd:
+        name: "<gold>도자기 조각: 해골"
+        material: SKULL_POTTERY_SHERD
+        required: 1
+      snort_pottery_sherd:
+        name: "<gold>도자기 조각: 콧김"
+        material: SNORT_POTTERY_SHERD
+        required: 1
+
+  discs:
+    name: "<#7ad1c0>음반"
+    entries:
+      music_disc_13:
+        name: "<gold>음반 - 13"
+        material: MUSIC_DISC_13
+        required: 1
+      music_disc_cat:
+        name: "<gold>음반 - Cat"
+        material: MUSIC_DISC_CAT
+        required: 1
+      music_disc_blocks:
+        name: "<gold>음반 - Blocks"
+        material: MUSIC_DISC_BLOCKS
+        required: 1
+      music_disc_chirp:
+        name: "<gold>음반 - Chirp"
+        material: MUSIC_DISC_CHIRP
+        required: 1
+      music_disc_far:
+        name: "<gold>음반 - Far"
+        material: MUSIC_DISC_FAR
+        required: 1
+      music_disc_mall:
+        name: "<gold>음반 - Mall"
+        material: MUSIC_DISC_MALL
+        required: 1
+      music_disc_mellohi:
+        name: "<gold>음반 - Mellohi"
+        material: MUSIC_DISC_MELLOHI
+        required: 1
+      music_disc_stal:
+        name: "<gold>음반 - Stal"
+        material: MUSIC_DISC_STAL
+        required: 1
+      music_disc_strad:
+        name: "<gold>음반 - Strad"
+        material: MUSIC_DISC_STRAD
+        required: 1
+      music_disc_ward:
+        name: "<gold>음반 - Ward"
+        material: MUSIC_DISC_WARD
+        required: 1
+      music_disc_11:
+        name: "<gold>음반 - 11"
+        material: MUSIC_DISC_11
+        required: 1
+      music_disc_creator_music_box:
+        name: "<gold>음반 - Creator Music Box"
+        material: MUSIC_DISC_CREATOR_MUSIC_BOX
+        required: 1
+      music_disc_wait:
+        name: "<gold>음반 - Wait"
+        material: MUSIC_DISC_WAIT
+        required: 1
+      music_disc_creator:
+        name: "<gold>음반 - Creator"
+        material: MUSIC_DISC_CREATOR
+        required: 1
+      music_disc_precipice:
+        name: "<gold>음반 - Precipice"
+        material: MUSIC_DISC_PRECIPICE
+        required: 1
+      music_disc_otherside:
+        name: "<gold>음반 - Otherside"
+        material: MUSIC_DISC_OTHERSIDE
+        required: 1
+      music_disc_relic:
+        name: "<gold>음반 - Relic"
+        material: MUSIC_DISC_RELIC
+        required: 1
+      music_disc_pigstep:
+        name: "<gold>음반 - Pigstep"
+        material: MUSIC_DISC_PIGSTEP
+        required: 1
+      music_disc_tears:
+        name: "<gold>음반 - Tears"
+        material: MUSIC_DISC_TEARS
+        required: 1
+      music_disc_lava_chicken:
+        name: "<gold>음반 - Lava Chicken"
+        material: MUSIC_DISC_LAVA_CHICKEN
+        required: 1
+      music_disc_bounce:
+        name: "<gold>음반 - Bounce"
+        material: MUSIC_DISC_BOUNCE
+        required: 1

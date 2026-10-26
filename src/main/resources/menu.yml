@@ -1,40 +1,78 @@
-# 마을 메뉴 (대화창)
-# G 키, /메뉴, Shift + F 로 열려요.
+# 마을 메뉴 (Shift + F, /메뉴)
 #
-# buttons 항목
-#   label        버튼 글자 (MiniMessage)
-#   tooltip      마우스를 올렸을 때 설명 (여러 줄 가능)
+# 메뉴 그림(칠판 간판, 큰 버튼 5개)은 리소스팩 배경이고,
+# 여기서는 "어느 칸을 누르면 무엇을 할지"와 마우스를 올렸을 때 설명을 정해요.
+#
+# 칸 번호: 줄 × 9 + 열   (0번 줄 0열 = 0번, 1번 줄 0열 = 9번 ...)
+#   열:      0  1  2 | 3  4  5 | 6  7  8
+#   0번 줄:  [0] 내 머리 (누르면 스킬 창)     [8] 닫기
+#   1~2줄 :  도감     |  워프   |  상점        도감 [9,10,11,18,19,20]   상점 [15,16,17,24,25,26]
+#   3~4줄 :  집으로   | (1~4줄) |  마을로      집으로 [27,28,29,36,37,38] 마을로 [33,34,35,42,43,44]
+#                                                워프 [12,13,14,21,22,23,30,31,32,39,40,41]
+#
+# 버튼 항목
+#   slots        누를 수 있는 칸 번호들
+#   name / lore  마우스를 올렸을 때 보이는 이름과 설명 (%player%, %dogam_found%, %dogam_total% 사용 가능)
 #   command      누르면 실행할 명령어 (앞에 / 빼고)
+#   teleport     누르면 이동할 지점 이름. "@land" 면 각자 내 집 (/land).
+#                그 밖의 지점은 게임에서 /servercore setpoint <이름> 으로 지금 서 있는 곳을 저장
+#                (권한 없이 누구나 이동돼요. 지점 목록: /servercore points)
+#                누르면 화면에 3, 2, 1 을 센 뒤 이동해요 (초는 config.yml 의 teleport.countdown-seconds)
+#   teleport-title / teleport-subtitle   도착했을 때 화면 가운데에 크게 뜨는 글자
 #   coming-soon  true면 "준비 중" 안내만
+#   close        true면 메뉴 닫기
 #
-# ※ G 키 메뉴는 서버가 켜질 때 이 파일로 만들어져요. 고친 뒤에는 서버를 재시작하세요.
-#   (/메뉴, Shift + F 는 /코어 reload 만으로 바로 반영)
+# ⚠ 버튼 그림 자체(그림, 이름 띠)는 tools/make_art.py 의 MENU_TILES 에서 바꿔요. 칸을 바꾸면 그쪽도 같이.
 
-title: "<#cdbf8e><bold>🌾 마을 메뉴</bold>"
-# 버튼 한 줄에 몇 개씩
-columns: 2
-# 버튼 너비 (1~1024)
-button-width: 120
+head-slot: 0
+head-command: "skill"     # 내 얼굴을 누르면 실행할 명령어 (앞에 / 빼고) — 스킬 창
+head-name: "<#f3c060><bold>%player%</bold>"
+head-lore:
+  - "<gray>📖 도감 <white>%dogam_found%</white><dark_gray>/</dark_gray><white>%dogam_total%</white>"
 
 buttons:
-  - label: "<#f9d77e>📖 도감"
-    tooltip:
-      - "<white>모은 작물과 물고기를 도감에 등록해요."
+  dogam:
+    slots: [9, 10, 11, 18, 19, 20]
+    name: "<#6cbf4e><bold>📖 도감</bold>"
+    lore:
+      - "<gray>모은 작물과 물고기를 도감에 등록해요."
+      - "<gray>진행도 <white>%dogam_found%/%dogam_total%</white>"
+      - ""
+      - "<#f3c060>▶ 클릭해서 열기"
     command: "dogam"
-  - label: "<#8fd16a>🛒 상점"
-    tooltip:
+  shop:
+    slots: [15, 16, 17, 24, 25, 26]
+    name: "<#f0b040><bold>🛒 상점</bold>"
+    lore:
       - "<gray>작물과 물고기를 팔고 씨앗과 도구를 사요."
-      - "<dark_gray>준비 중"
+      - ""
+      - "<dark_gray>🔒 준비 중"
     coming-soon: true
-  - label: "<#9fd3e8>🏠 집으로"
-    tooltip:
-      - "<gray>내 집으로 이동해요."
-      - "<dark_gray>준비 중"
+  warp:
+    slots: [12, 13, 14, 21, 22, 23, 30, 31, 32, 39, 40, 41]
+    name: "<#a07af0><bold>✦ 워프</bold>"
+    lore:
+      - "<gray>마을 곳곳으로 순간이동해요."
+      - ""
+      - "<dark_gray>🔒 준비 중"
     coming-soon: true
-  - label: "<#6fa8dc>🎣 낚시 대회"
-    tooltip:
-      - "<gray>진행 중인 낚시 대회와 순위를 봐요."
-      - "<dark_gray>준비 중"
-    coming-soon: true
-
-close-label: "<gray>닫기"
+  home:
+    slots: [27, 28, 29, 36, 37, 38]
+    name: "<#6aa8e0><bold>🏠 집으로</bold>"
+    lore:
+      - "<gray>집으로 이동해요."
+    teleport: home       # @land = 내 집 (집이 없으면 집터 안내). 서버 지점으로 보내려면 지점 이름
+    teleport-title: "<#6aa8e0><bold>집"
+    teleport-subtitle: ""
+  village:
+    slots: [33, 34, 35, 42, 43, 44]
+    name: "<#e8709a><bold>🏘 마을로</bold>"
+    lore:
+      - "<gray>마을 광장으로 이동해요."
+    teleport: village
+    teleport-title: "<#e8709a><bold>마을"
+    teleport-subtitle: ""
+  close:
+    slots: [8]
+    name: "<#e06c6c>닫기"
+    close: true

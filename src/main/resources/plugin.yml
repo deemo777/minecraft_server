@@ -2,7 +2,7 @@ name: ServerCore
 version: '${version}'
 main: com.htk.core.ServerCore
 api-version: '1.21'
-description: 서버 전용 기능 모음 (대화창 메뉴, 도감)
+description: 서버 전용 기능 모음 (메뉴, 도감, 점프 패드, 도약, 골드, 상점, 레벨링, HUD, 집 땅, 안내서)
 
 commands:
   menu:
@@ -12,9 +12,41 @@ commands:
     description: 도감을 엽니다
     usage: /<command> [페이지] | reset <플레이어>
     aliases: [도감, collection]
+  money:
+    description: 골드 보기 / 골드 주머니 꺼내기
+    usage: /<command> [금액] | give|take|set <플레이어> <금액>
+    aliases: [돈, gold]
+    permission: servercore.money
+  shop:
+    description: 상점 열기 (관리자)
+    usage: /<command> <상점> [플레이어]
+    permission: servercore.admin
+  shopnpc:
+    description: 상점 주인 NPC 세우기/없애기 (관리자)
+    usage: /<command> create <상점> | remove
+    permission: servercore.admin
+  skill:
+    description: 스킬 창 열기 / 레벨 설정 (관리자)
+    usage: /<command> [info] | set <플레이어> <분야> <레벨> | reset <플레이어>
+    aliases: [skills, 스킬, 레벨]
+  hud:
+    description: HUD 켜기/끄기, 위치 맞추기
+    usage: /<command> [on|off] | left [칸] | right [칸] | pos <숫자> | reset
+  guide:
+    description: 서버 안내서(책) 받기
+    aliases: [가이드, 안내서]
+  land:
+    description: 내 집 땅 (집터, 지도 창, 넓히기·빚 갚기·이웃 허가)
+    usage: /<command> [kit|home|sethome|pay [금액]|trust <이름>|untrust <이름>|show|info|abandon confirm]
+    aliases: [home, house]
+  jumppad:
+    description: 점프 패드 아이템 받기
+    usage: /<command> [개수] [플레이어]
+    aliases: [점프패드]
+    permission: servercore.admin
   servercore:
     description: ServerCore 관리 명령어
-    usage: /<command> reload
+    usage: /<command> reload | setpoint <이름> | delpoint <이름> | points
     aliases: [코어]
 
 permissions:
@@ -23,6 +55,12 @@ permissions:
     default: true
   servercore.dogam:
     description: 도감 열기
+    default: true
+  servercore.money:
+    description: /money 쓰기
+    default: true
+  servercore.longjump:
+    description: 달리면서 점프하면 도약
     default: true
   servercore.admin:
     description: 관리 명령어 (reload, 도감 reset)

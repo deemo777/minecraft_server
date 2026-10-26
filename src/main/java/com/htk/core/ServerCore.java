@@ -1,8 +1,18 @@
 package com.htk.core;
 
 import com.htk.core.common.Feature;
+import com.htk.core.common.GuiListener;
+import com.htk.core.common.Placeholders;
+import com.htk.core.common.Points;
 import com.htk.core.common.Text;
 import com.htk.core.dogam.DogamFeature;
+import com.htk.core.economy.EconomyFeature;
+import com.htk.core.shop.ShopFeature;
+import com.htk.core.skill.SkillFeature;
+import com.htk.core.hud.HudFeature;
+import com.htk.core.jumppad.JumpPadFeature;
+import com.htk.core.land.LandFeature;
+import com.htk.core.longjump.LongJumpFeature;
 import com.htk.core.menu.MenuFeature;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -11,22 +21,64 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class ServerCore extends JavaPlugin {
 
     private final List<Feature> features = new ArrayList<>();
+    private Points points;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         saveIfMissing("menu.yml");
         saveIfMissing("dogam.yml");
+        saveIfMissing("shops.yml");
+        saveIfMissing("skills.yml");
+        saveIfMissing("guide.yml");
 
+        points = new Points(getDataFolder(), getLogger());
+        getServer().getPluginManager().registerEvents(new GuiListener(), this);
+
+        EconomyFeature economy = null;
+        if (getConfig().getBoolean("features.economy", true)) {
+            economy = new EconomyFeature(this);
+            features.add(economy);
+        }
         if (getConfig().getBoolean("features.dogam", true)) features.add(new DogamFeature(this));
         if (getConfig().getBoolean("features.menu", true)) features.add(new MenuFeature(this));
+        if (getConfig().getBoolean("features.jumppad", true)) features.add(new JumpPadFeature(this));
+        if (getConfig().getBoolean("features.longjump", true)) features.add(new LongJumpFeature(this));
+        if (getConfig().getBoolean("features.guide", true)) features.add(new com.htk.core.guide.GuideFeature(this));
+        SkillFeature skills = null;
+        if (getConfig().getBoolean("features.skills", true)) {
+            skills = new SkillFeature(this);
+            features.add(skills);
+        }
         for (Feature f : features) f.enable();
+        // 상점은 골드가 있어야 해요 (골드 기능이 켜진 다음에)
+        if (economy != null && getConfig().getBoolean("features.shop", true)) {
+            ShopFeature shop = new ShopFeature(this, economy);
+            features.add(shop);
+            shop.enable();
+        }
+        // HUD는 레벨과 골드가 있어야 해요
+        if (skills != null && economy != null && getConfig().getBoolean("features.hud", true)) {
+            HudFeature hud = new HudFeature(this, skills, economy.economy());
+            features.add(hud);
+            hud.enable();
+        }
+
+        // 집 땅은 골드(빚 갚기)가 있어야 해요
+        if (economy != null && getConfig().getBoolean("features.land", true)) {
+            LandFeature land = new LandFeature(this, economy.economy());
+            features.add(land);
+            land.enable();
+        }
 
         PluginCommand admin = getCommand("servercore");
         if (admin != null) admin.setExecutor(new CoreCommand(this));
@@ -37,10 +89,12 @@ public final class ServerCore extends JavaPlugin {
     @Override
     public void onDisable() {
         for (Feature f : features) f.disable();
+        Placeholders.clear();
     }
 
     public void reloadAll() {
         reloadConfig();
+        points.reload();
         for (Feature f : features) f.reload();
     }
 
@@ -53,6 +107,17 @@ public final class ServerCore extends JavaPlugin {
 
     // ---------- 도우미 ----------
 
+    /** 켜져 있는 기능 찾기 (꺼져 있으면 null) */
+    public <T extends Feature> T feature(Class<T> type) {
+        for (Feature f : features) if (type.isInstance(f)) return type.cast(f);
+        return null;
+    }
+
+    /** 이름 붙인 위치 (points.yml) */
+    public Points points() {
+        return points;
+    }
+
     public boolean resourcePackEnabled() {
         return getConfig().getBoolean("resourcepack.enabled", true);
     }
@@ -63,6 +128,17 @@ public final class ServerCore extends JavaPlugin {
 
     public YamlConfiguration loadYaml(String fileName) {
         return YamlConfiguration.loadConfiguration(new File(getDataFolder(), fileName));
+    }
+
+    /** jar 안에 들어 있는 기본 설정 파일 (서버 파일이 예전 형식일 때 대신 씀) */
+    public YamlConfiguration loadDefaultYaml(String fileName) {
+        var in = getResource(fileName);
+        if (in == null) return new YamlConfiguration();
+        try (Reader r = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+            return YamlConfiguration.loadConfiguration(r);
+        } catch (Exception e) {
+            return new YamlConfiguration();
+        }
     }
 
     private void saveIfMissing(String fileName) {

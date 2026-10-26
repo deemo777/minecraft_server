@@ -2,6 +2,7 @@ package com.htk.core.dogam;
 
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
+import com.htk.core.common.Placeholders;
 import com.htk.core.common.Text;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
@@ -20,12 +21,13 @@ import org.bukkit.inventory.PlayerInventory;
 import java.time.Duration;
 import java.util.List;
 
-/** 도감 기능: 대화창 열기 → 칸 클릭 → 인벤토리에서 필요한 개수 가져가고 등록 → 보상 */
+/** 도감 기능: 책 화면 열기 → 칸 클릭 → 가방에서 필요한 개수 가져가고 등록 → 보상 */
 public final class DogamFeature implements Feature, Listener {
 
     private final ServerCore plugin;
     private YamlConfiguration config;
     private CollectionRegistry registry;
+    private java.util.Map<org.bukkit.Material, Integer> creativeOrder;   // 한 번만 계산
     private PlayerDataStore store;
 
     public DogamFeature(ServerCore plugin) {
@@ -47,6 +49,10 @@ public final class DogamFeature implements Feature, Listener {
             cmd.setTabCompleter(executor);
         }
 
+        // 메뉴 등에서 쓰는 치환 문구
+        Placeholders.register("dogam_found", p -> String.valueOf(foundTotal(p)));
+        Placeholders.register("dogam_total", p -> String.valueOf(registry.all().size()));
+
         for (Player p : Bukkit.getOnlinePlayers()) store.get(p.getUniqueId());
         Bukkit.getScheduler().runTaskTimer(plugin, store::saveAllDirty, 20L * 300, 20L * 300); // 5분마다 저장
     }
@@ -64,6 +70,11 @@ public final class DogamFeature implements Feature, Listener {
     private void loadConfig() {
         config = plugin.loadYaml("dogam.yml");
         registry = CollectionRegistry.load(config, plugin.getLogger());
+        // order: creative → 크리에이티브 인벤토리 순서, file → dogam.yml 에 적힌 순서
+        if (!"file".equalsIgnoreCase(config.getString("order", "creative"))) {
+            if (creativeOrder == null) creativeOrder = CreativeOrder.load(plugin);
+            registry.sortBy(creativeOrder);
+        }
     }
 
     @EventHandler
@@ -83,31 +94,35 @@ public final class DogamFeature implements Feature, Listener {
             player.sendMessage(Text.mm(plugin.msg("no-permission")));
             return;
         }
-        player.showDialog(new DogamDialog(this, player, page).build());
+        new DogamGui(this, player, page).open(player);
+    }
+
+    /** 클릭 처리 중에는 창을 바로 바꾸면 꼬일 수 있어서 다음 틱에 */
+    public void openLater(Player player, int page) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) open(player, page);
+        });
     }
 
     // ---------- 칸 클릭 ----------
 
-    /** 도감 칸을 눌렀을 때. 처리 후 같은 페이지를 다시 띄워요. */
     public void click(Player player, CollectionRegistry.Entry entry, int page) {
         PlayerDataStore.PlayerData data = store.get(player.getUniqueId());
         if (data.has(entry.id())) {
             player.sendMessage(Text.mm(msg("already-registered").replace("%entry%", entry.name())));
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.4f, 0.8f);
-        } else {
-            int have = count(player, entry.material());
-            if (have >= entry.required()) {
-                take(player, entry.material(), entry.required());
-                register(player, entry);
-            } else {
-                player.sendMessage(Text.mm(msg("not-enough")
-                        .replace("%entry%", entry.name())
-                        .replace("%required%", String.valueOf(entry.required()))
-                        .replace("%have%", String.valueOf(have))));
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
-            }
+            return;
         }
-        open(player, page);
+        int have = count(player, entry.material());
+        if (have < entry.required()) {
+            player.sendMessage(Text.mm(msg("not-enough")
+                    .replace("%entry%", entry.name())
+                    .replace("%required%", String.valueOf(entry.required()))
+                    .replace("%have%", String.valueOf(have))));
+            return;
+        }
+        take(player, entry.material(), entry.required());
+        register(player, entry);
+        openLater(player, page); // 진행도·체크가 바뀌었으니 같은 페이지 새로 그리기
     }
 
     private void register(Player player, CollectionRegistry.Entry entry) {
@@ -120,7 +135,7 @@ public final class DogamFeature implements Feature, Listener {
                 .replace("%found%", String.valueOf(found))
                 .replace("%total%", String.valueOf(total))));
         player.showTitle(Title.title(
-                Text.mm("<#cdbf8e>도감 등록!"), Text.mm(entry.name()),
+                Text.mm("<#f3c060>도감 등록!"), Text.mm(entry.name()),
                 Title.Times.times(Duration.ofMillis(200), Duration.ofMillis(1200), Duration.ofMillis(300))));
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.4f);
         runRewards(player, entry.rewards());
@@ -139,7 +154,7 @@ public final class DogamFeature implements Feature, Listener {
         }
     }
 
-    // ---------- 인벤토리 (가방 36칸만, 갑옷·왼손 제외) ----------
+    // ---------- 가방 (36칸만, 갑옷·왼손 제외) ----------
 
     public int count(Player player, Material material) {
         int n = 0;

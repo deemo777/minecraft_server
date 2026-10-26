@@ -61,7 +61,11 @@ public final class PlayerDataStore {
         File file = new File(folder, uuid + ".yml");
         if (file.exists()) {
             YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-            data.found.addAll(yml.getStringList("found"));
+            for (String id : yml.getStringList("found")) {
+                // 예전 형식 "묶음:항목" → "항목" (묶음을 옮겨도 기록이 유지되게 바뀜)
+                int colon = id.indexOf(':');
+                data.found.add(colon >= 0 ? id.substring(colon + 1) : id);
+            }
         }
         return data;
     }

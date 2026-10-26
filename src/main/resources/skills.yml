@@ -1,0 +1,125 @@
+# 레벨링: 농사(farming) · 채광(mining) · 벌목(woodcutting) · 낚시(fishing) · 전투(combat)
+# 바꾼 뒤에는 /servercore reload
+# 관리자: /skill set <플레이어> <분야> <레벨>, /skill reset <플레이어>,  내 레벨: /skill
+#
+# 플레이어가 직접 놓은 원목·광석·수박·호박 등을 다시 캐면 경험치를 안 줘요 (무한 반복 방지)
+
+max-level: 99
+
+# 다음 레벨까지 필요한 경험치 = a + b × 레벨 + c × 레벨²
+#   (기본값: 1→2 는 93, 10→11 은 750, 33→34 는 4,637)
+curve:
+  a: 50
+  b: 40
+  c: 3
+
+level-up:
+  title: "<#ffd34d><bold>%skill% 레벨 UP!"
+  subtitle: "<white>Lv.%level%"
+
+# 이 작물들은 다 자랐을 때 캐야 경험치를 줘요
+mature-only: [WHEAT, CARROTS, POTATOES, BEETROOTS, NETHER_WART, COCOA, PITCHER_CROP]
+
+# 낚시: 아래 표에 없는 걸 낚으면 / 전투: 표에 없는 적대 몹을 잡으면
+default-fish-xp: 3
+default-monster-xp: 3
+
+# 경험치 표 (블록·아이템·몹 이름: 경험치)
+sources:
+  farming:            # 캐는 블록 (WHEAT 처럼 블록 이름), 우클릭으로 따는 열매 포함
+    WHEAT: 3
+    CARROTS: 3
+    POTATOES: 3
+    BEETROOTS: 3
+    NETHER_WART: 3
+    COCOA: 4
+    PITCHER_CROP: 8
+    MELON: 4
+    PUMPKIN: 4
+    SUGAR_CANE: 1
+    CACTUS: 1
+    BAMBOO: 1
+    SWEET_BERRY_BUSH: 2
+    CAVE_VINES: 2
+    CAVE_VINES_PLANT: 2
+    BROWN_MUSHROOM: 2
+    RED_MUSHROOM: 2
+  mining:
+    STONE: 1
+    DEEPSLATE: 1
+    COAL_ORE: 4
+    DEEPSLATE_COAL_ORE: 5
+    COPPER_ORE: 4
+    DEEPSLATE_COPPER_ORE: 5
+    IRON_ORE: 6
+    DEEPSLATE_IRON_ORE: 7
+    GOLD_ORE: 10
+    DEEPSLATE_GOLD_ORE: 11
+    NETHER_GOLD_ORE: 6
+    REDSTONE_ORE: 6
+    DEEPSLATE_REDSTONE_ORE: 7
+    LAPIS_ORE: 8
+    DEEPSLATE_LAPIS_ORE: 9
+    NETHER_QUARTZ_ORE: 5
+    EMERALD_ORE: 25
+    DEEPSLATE_EMERALD_ORE: 25
+    DIAMOND_ORE: 30
+    DEEPSLATE_DIAMOND_ORE: 32
+    ANCIENT_DEBRIS: 60
+    AMETHYST_CLUSTER: 5
+  woodcutting:
+    OAK_LOG: 3
+    SPRUCE_LOG: 3
+    BIRCH_LOG: 3
+    JUNGLE_LOG: 3
+    ACACIA_LOG: 3
+    DARK_OAK_LOG: 3
+    MANGROVE_LOG: 3
+    CHERRY_LOG: 3
+    PALE_OAK_LOG: 3
+    POPLAR_LOG: 3
+    CRIMSON_STEM: 4
+    WARPED_STEM: 4
+  fishing:            # 낚은 아이템 이름
+    COD: 5
+    SALMON: 6
+    TROPICAL_FISH: 12
+    PUFFERFISH: 10
+    NAUTILUS_SHELL: 25
+    NAME_TAG: 20
+    SADDLE: 20
+    ENCHANTED_BOOK: 20
+    BOW: 15
+    FISHING_ROD: 10
+  combat:             # 몹 이름
+    ZOMBIE: 5
+    HUSK: 5
+    DROWNED: 6
+    SKELETON: 6
+    STRAY: 6
+    BOGGED: 6
+    SPIDER: 5
+    CAVE_SPIDER: 6
+    CREEPER: 7
+    ENDERMAN: 12
+    WITCH: 12
+    SLIME: 3
+    MAGMA_CUBE: 4
+    PHANTOM: 8
+    PILLAGER: 10
+    VINDICATOR: 14
+    EVOKER: 25
+    RAVAGER: 40
+    BLAZE: 12
+    GHAST: 15
+    WITHER_SKELETON: 15
+    PIGLIN_BRUTE: 20
+    HOGLIN: 10
+    ZOGLIN: 12
+    GUARDIAN: 10
+    ELDER_GUARDIAN: 80
+    SHULKER: 12
+    BREEZE: 15
+    WARDEN: 200
+    WITHER: 300
+    ENDER_DRAGON: 500

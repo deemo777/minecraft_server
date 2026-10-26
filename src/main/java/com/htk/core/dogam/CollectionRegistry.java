@@ -47,7 +47,12 @@ public final class CollectionRegistry {
                         log.warning("dogam.yml " + catId + "." + entryId + " : 알 수 없는 아이템 '" + matName + "' (건너뜀)");
                         continue;
                     }
-                    Entry entry = new Entry(myIndex, catId + ":" + entryId, catId,
+                    // id = 항목 이름만 (묶음을 옮겨도 등록 기록이 유지되게)
+                    if (reg.byId.containsKey(entryId)) {
+                        log.warning("dogam.yml " + catId + "." + entryId + " : 같은 항목 이름이 이미 있어요 (건너뜀)");
+                        continue;
+                    }
+                    Entry entry = new Entry(myIndex, entryId, catId,
                             e.getString("name", entryId), mat,
                             Math.max(1, e.getInt("required", 1)),
                             e.getStringList("description"), e.getStringList("rewards"));
@@ -63,7 +68,21 @@ public final class CollectionRegistry {
         return reg;
     }
 
-    /** 모든 항목 (dogam.yml 순서) */
+    /**
+     * 화면에 보이는 순서를 바꿔요 (등록 기록은 항목 id로 저장돼서 순서와 상관없어요).
+     * 1) dogam.yml 의 묶음(카테고리) 순서  2) 같은 묶음 안에서는 order(크리에이티브 순서)
+     * order 에 없는 아이템은 그 묶음의 맨 뒤에, dogam.yml 순서대로.
+     */
+    public void sortBy(Map<Material, Integer> order) {
+        if (order.isEmpty()) return;
+        Map<String, Integer> catIndex = new HashMap<>();
+        for (String id : categories.keySet()) catIndex.put(id, catIndex.size());
+        all.sort(Comparator
+                .<Entry>comparingInt(e -> catIndex.getOrDefault(e.categoryId(), Integer.MAX_VALUE))
+                .thenComparingInt(e -> order.getOrDefault(e.material(), Integer.MAX_VALUE)));
+    }
+
+    /** 모든 항목 (화면 순서) */
     public List<Entry> all() { return all; }
     public Collection<Category> categories() { return categories.values(); }
     public Category category(String id) { return categories.get(id); }

@@ -1,0 +1,168 @@
+# 서버 안내서 (글이 쓰인 책)
+#   처음 접속하면 1권, /guide (/가이드, /안내서) 로 언제든 다시 받아요.
+#   바꾼 뒤에는 /servercore reload (이미 받은 책은 그대로라 /guide 로 새로 받아야 해요)
+#
+# 쓰는 법
+#   - pages 한 칸 = 책 한 쪽. 한 쪽에 대략 14줄, 한 줄에 한글 11~12글자 정도 들어가요 (넘치면 잘려요)
+#   - 글자 색은 MiniMessage: <#6b4226>갈색</#6b4226>, <dark_green>, <dark_blue>, <dark_red>, <bold> ...
+#     (책 바탕이 밝아서 진한 색이 잘 보여요)
+#   - %player% = 받는 사람 이름
+
+title: "<#6b4226>서버 안내서"
+author: "마을 관리소"
+give-on-first-join: true
+
+messages:
+  given: "<#f3c060>📖 <gray>서버 안내서를 받았어요. 손에 들고 우클릭해서 읽어 보세요!"
+  first-join: "<#f3c060>📖 <gray>서버 안내서를 받았어요! 손에 들고 우클릭해서 먼저 읽어 주세요. <dark_gray>(다시 받기: /guide)"
+
+pages:
+  - |
+    <#6b4226><bold>🌾 어서 오세요!</bold></#6b4226>
+
+    %player%님, 마을에 오신 걸 환영해요.
+    이 책에는 서버를 즐기는 방법이 적혀 있어요.
+
+    <dark_gray>1. 처음 설정
+    2. 마을 메뉴
+    3. 화면 정보 (HUD)
+    4. 내 집 (집터)
+    5. 골드·레벨·도감
+    6. 이동, 명령어</dark_gray>
+  - |
+    <#6b4226><bold>1. 처음 설정</bold></#6b4226>
+
+    접속할 때 서버 리소스팩을 받을지 물어보면 꼭 <dark_green>"예"</dark_green>를 눌러 주세요.
+
+    메뉴·도감·집 그림은 리소스팩으로 보여요.
+  - |
+    <#6b4226><bold>1. 처음 설정</bold></#6b4226>
+
+    <dark_gray>리소스팩을 못 받았다면</dark_gray>
+
+    멀티플레이 화면
+    → 서버 선택
+    → 편집
+    → 서버 리소스팩 "사용"
+    → 다시 접속
+  - |
+    <#6b4226><bold>2. 마을 메뉴</bold></#6b4226>
+
+    <dark_green>Shift + F</dark_green> 또는 <dark_green>/menu</dark_green>
+
+    · 도감: 모은 것 등록
+    · 집으로: 내 집터로
+    · 마을로: 마을 광장
+    · 내 얼굴: 스킬 창
+
+    이동 버튼은 3초를 센 뒤 이동해요.
+  - |
+    <#6b4226><bold>3. 화면 정보 (HUD)</bold></#6b4226>
+
+    왼쪽 위에 얼굴, 이름, 골드, 레벨이 보여요.
+
+    경험치를 얻으면 위쪽에 경험치 바가 잠깐 떠요.
+
+    <dark_green>/hud</dark_green>
+    켜기·끄기
+  - |
+    <#6b4226><bold>3. HUD 위치 맞추기</bold></#6b4226>
+
+    화면 끝에 안 맞으면:
+
+    <dark_green>/hud left</dark_green> 왼쪽으로
+    <dark_green>/hud right</dark_green> 오른쪽으로
+    <dark_gray>뒤에 숫자를 쓰면 그만큼 (예: /hud left 30)</dark_gray>
+    <dark_green>/hud reset</dark_green> 처음 위치로
+
+    한 번 맞추면 계속 기억해요.
+  - |
+    <#6b4226><bold>4. 내 집 - 집터</bold></#6b4226>
+
+    처음 접속하면 <dark_green>집터</dark_green>(작은 집 모형)를 받아요.
+
+    설치하면 그 자리의 청크(16x16)가 바로 내 집이 돼요. (무료)
+
+    문은 설치한 사람 쪽을 봐요.
+  - |
+    <#6b4226><bold>4. 내 집 - 집터</bold></#6b4226>
+
+    · 집은 한 사람에 하나
+    · 집터는 부서지지 않아요
+    · 잃어버렸다면
+      <dark_green>/land kit</dark_green>
+    · 다른 곳으로 옮기기
+      <dark_green>/land abandon confirm</dark_green>
+      <dark_gray>(집터를 돌려받아요)</dark_gray>
+  - |
+    <#6b4226><bold>4. 내 집 - 넓히기</bold></#6b4226>
+
+    집터를 <dark_green>우클릭</dark_green>하면 집 지도가 열려요. (또는 /land)
+
+    지도의 위쪽은 집터를 놓을 때 바라본 방향이에요.
+
+    <dark_green>노란 +</dark_green>를 누르면 그쪽으로 한 칸 넓어져요.
+  - |
+    <#6b4226><bold>4. 내 집 - 넓히기</bold></#6b4226>
+
+    · 최대 4칸
+    · 집터에서 상하좌우 2칸 안까지
+    · 넓히면 <dark_red>빚</dark_red>이 생겨요
+    · 빚을 다 갚아야 다음 확장
+    · 빚 갚기: 지도의 금화
+    · 테두리 보기: 망원경
+  - |
+    <#6b4226><bold>4. 내 집 - 이웃</bold></#6b4226>
+
+    내 땅은 나와 <dark_green>이웃</dark_green>만 만질 수 있어요.
+
+    집 지도 → 이웃 버튼
+    → 사람 얼굴 클릭 → 허가 ✔
+
+    다시 누르면 취소돼요.
+  - |
+    <#6b4226><bold>5. 골드와 상점</bold></#6b4226>
+
+    처음 1,000G를 받아요.
+
+    <dark_green>/money</dark_green> 내 골드
+    <dark_green>/money 100</dark_green>
+    100G를 주머니로 꺼내기
+
+    주머니를 들고 우클릭하면 다시 넣어져요. 친구에게 던져 줄 수도 있어요.
+  - |
+    <#6b4226><bold>5. 레벨과 도감</bold></#6b4226>
+
+    마을의 상점 주인을 클릭하면 물건을 팔 수 있어요.
+
+    농사·채광·벌목·낚시·전투를 하면 경험치가 쌓여요.
+    <dark_green>/skill</dark_green> 스킬 창
+  - |
+    <#6b4226><bold>5. 도감</bold></#6b4226>
+
+    메뉴 → 도감에서 칸을 클릭하면 가방에 있는 물건을 등록해요.
+
+    <dark_gray>직접 놓은 블록을 다시 캐면 경험치가 없어요.</dark_gray>
+
+    다 모아 보세요!
+  - |
+    <#6b4226><bold>6. 이동</bold></#6b4226>
+
+    <dark_green>도약</dark_green>
+    마을에서 달리면서 점프하면 멀리 뛰어요. (5초마다)
+
+    <dark_green>점프 패드</dark_green>
+    밟으면 앞으로 높이 튕겨요.
+  - |
+    <#6b4226><bold>6. 명령어 모음</bold></#6b4226>
+
+    /menu  마을 메뉴
+    /guide  이 안내서
+    /hud  화면 정보
+    /land  집 지도
+    /land kit  집터 받기
+    /money  골드
+    /skill  스킬 창
+    /dogam  도감
+
+    <#6b4226>즐거운 시간 보내세요! 🌾</#6b4226>

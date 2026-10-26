@@ -1,34 +1,40 @@
 package com.htk.core.menu;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /** menu.yml 읽기 */
-public record MenuConfig(String title, int columns, int buttonWidth, List<Button> buttons, String closeLabel) {
+public record MenuConfig(int headSlot, String headName, List<String> headLore, String headCommand,
+                         Map<Integer, Button> bySlot, List<Button> buttons) {
 
-    public record Button(String label, List<String> tooltip, String command, boolean comingSoon) {}
+    public record Button(String id, List<Integer> slots, String name, List<String> lore,
+                         String command, String teleport, String teleportTitle, String teleportSubtitle,
+                         boolean comingSoon, boolean close) {}
 
+    /** buttons가 예전(2.0 대화창) 형식이면 null */
     public static MenuConfig load(YamlConfiguration yml) {
+        ConfigurationSection sec = yml.getConfigurationSection("buttons");
+        if (sec == null) return null;
+
         List<Button> buttons = new ArrayList<>();
-        for (Map<?, ?> map : yml.getMapList("buttons")) {
-            Object tip = map.get("tooltip");
-            List<String> tooltip = new ArrayList<>();
-            if (tip instanceof List<?> l) for (Object o : l) tooltip.add(String.valueOf(o));
-            else if (tip != null) tooltip.add(String.valueOf(tip));
-            buttons.add(new Button(
-                    String.valueOf(map.containsKey("label") ? map.get("label") : "버튼"),
-                    tooltip,
-                    map.containsKey("command") ? String.valueOf(map.get("command")) : "",
-                    Boolean.TRUE.equals(map.get("coming-soon"))));
+        Map<Integer, Button> bySlot = new HashMap<>();
+        for (String id : sec.getKeys(false)) {
+            ConfigurationSection b = sec.getConfigurationSection(id);
+            if (b == null) continue;
+            List<Integer> slots = b.getIntegerList("slots");
+            Button button = new Button(id, slots,
+                    b.getString("name", id), b.getStringList("lore"),
+                    b.getString("command", ""), b.getString("teleport", ""),
+                    b.getString("teleport-title", ""), b.getString("teleport-subtitle", ""),
+                    b.getBoolean("coming-soon", false), b.getBoolean("close", false));
+            buttons.add(button);
+            for (int s : slots) if (s >= 0 && s < 45) bySlot.put(s, button);
         }
-        return new MenuConfig(
-                yml.getString("title", "메뉴"),
-                Math.max(1, yml.getInt("columns", 2)),
-                Math.max(1, Math.min(1024, yml.getInt("button-width", 120))),
-                List.copyOf(buttons),
-                yml.getString("close-label", "닫기"));
+        return new MenuConfig(yml.getInt("head-slot", 0),
+                yml.getString("head-name", "%player%"), yml.getStringList("head-lore"),
+                yml.getString("head-command", "skill"),
+                Map.copyOf(bySlot), List.copyOf(buttons));
     }
 }
