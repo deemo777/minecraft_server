@@ -57,6 +57,14 @@ final class LandStore {
                     land.chunks.add(Land.key(Integer.parseInt(p[0].trim()), Integer.parseInt(p[1].trim())));
                 }
                 if (land.chunks.isEmpty()) continue;
+                for (String c : s.getStringList("plot")) {
+                    String[] p = c.split(",");
+                    land.plot.add(Land.key(Integer.parseInt(p[0].trim()), Integer.parseInt(p[1].trim())));
+                }
+                if (!land.plot.isEmpty() && (!LandLayout.isSquare(land.plot) || !land.plot.containsAll(land.chunks))) {
+                    log.warning("Invalid fixed plot for " + id + "; keeping all existing chunks as legacy land.");
+                    land.plot.clear();
+                }
                 land.debt = s.getLong("debt", 0);
                 if (s.isConfigurationSection("core")) {
                     land.hasCore = true;
@@ -89,6 +97,9 @@ final class LandStore {
             List<String> cs = new ArrayList<>();
             for (long k : land.chunks) cs.add(Land.cx(k) + "," + Land.cz(k));
             yml.set(p + "chunks", cs);
+            List<String> footprint = new ArrayList<>();
+            for (long k : land.plot) footprint.add(Land.cx(k) + "," + Land.cz(k));
+            if (!footprint.isEmpty()) yml.set(p + "plot", footprint);
             if (land.hasCore) {
                 yml.set(p + "core.x", land.coreX);
                 yml.set(p + "core.y", land.coreY);
@@ -115,7 +126,7 @@ final class LandStore {
     private void put(Land land) {
         byOwner.put(land.owner, land);
         Map<Long, Land> m = index.computeIfAbsent(land.world, w -> new HashMap<>());
-        for (long k : land.chunks) m.put(k, land);
+        for (long k : land.reservedChunks()) m.put(k, land);
     }
 
     Land of(UUID owner) {
@@ -140,9 +151,10 @@ final class LandStore {
         return at(b.getWorld().getName(), b.getX() >> 4, b.getZ() >> 4);
     }
 
-    Land create(UUID owner, String name, String world, int cx, int cz, Location home) {
+    Land create(UUID owner, String name, String world, int cx, int cz, Location home, Collection<Long> plot) {
         Land land = new Land(owner, name, world);
         land.chunks.add(Land.key(cx, cz));
+        land.plot.addAll(plot);
         land.setHome(home);
         put(land);
         save();
@@ -150,8 +162,13 @@ final class LandStore {
     }
 
     void addChunk(Land land, int cx, int cz) {
+        addChunk(land, cx, cz, 0);
+    }
+
+    void addChunk(Land land, int cx, int cz, long addedDebt) {
         long k = Land.key(cx, cz);
-        land.chunks.add(k);
+        if (!land.chunks.add(k)) return;
+        land.debt += Math.max(0, addedDebt);
         index.computeIfAbsent(land.world, w -> new HashMap<>()).put(k, land);
         save();
     }
@@ -160,14 +177,33 @@ final class LandStore {
         long k = Land.key(cx, cz);
         if (!land.chunks.remove(k)) return;
         Map<Long, Land> m = index.get(land.world);
-        if (m != null) m.remove(k);
+        if (m != null && !land.plot.contains(k)) m.remove(k);
         save();
     }
 
     void remove(Land land) {
         byOwner.remove(land.owner);
         Map<Long, Land> m = index.get(land.world);
-        if (m != null) for (long k : land.chunks) m.remove(k);
+        if (m != null) for (long k : land.reservedChunks()) m.remove(k);
         save();
+    }
+
+    void reserve(Land land, Collection<Long> plot) {
+        land.plot.addAll(plot);
+        Map<Long, Land> m = index.computeIfAbsent(land.world, w -> new HashMap<>());
+        for (long k : land.plot) m.put(k, land);
+    }
+
+    boolean backupBeforeMigration() {
+        if (!file.isFile()) return true;
+        File backup = new File(file.getParentFile(), "lands-before-fixed-plot-" + System.currentTimeMillis() + ".yml");
+        try {
+            java.nio.file.Files.copy(file.toPath(), backup.toPath());
+            log.info("집 부지 전환 전 데이터 백업: " + backup.getName());
+            return true;
+        } catch (IOException e) {
+            log.warning("집 부지 백업 실패로 자동 전환을 건너뜁니다: " + e.getMessage());
+            return false;
+        }
     }
 }

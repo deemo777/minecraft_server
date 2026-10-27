@@ -15,7 +15,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 /**
- * /land                       집 지도 창 (넓히기·이웃) — 집터를 우클릭해도 열려요
+ * /land                       집 지도 창 (청크 해방·이웃) — 집터를 우클릭해도 열려요
  * /land kit                   집터 다시 받기 (집이 없을 때)
  * /land home                  집으로 이동
  * /land sethome               지금 자리를 집 스폰으로
@@ -24,7 +24,7 @@ import java.util.UUID;
  * /land untrust <이름>        허가 취소
  * /land show                  내 땅 테두리 보기
  * /land abandon confirm       집 땅 포기
- * /land confirm · cancel · preview   넓히기 확인 · 취소 · 경계 다시 보기 (지도에서 + 를 누른 뒤, 채팅 버튼)
+ * /land confirm · cancel · preview   청크 해방 확인 · 취소 · 경계 다시 보기 (지도에서 + 를 누른 뒤, 채팅 버튼)
  * 관리자: /land bypass (남의 땅도 만지기 켜기/끄기), /land delete <이름>, /land give <이름> (집터 주기)
  *   /land zone pos1 · pos2         집 구역 네모의 두 모서리 (지금 서 있는 청크)
  *   /land zone add · remove        네모 안(없으면 지금 청크)을 집 구역에 넣기 · 빼기

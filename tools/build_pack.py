@@ -408,6 +408,8 @@ def main():
         json.dump({"pack": {"description": "ServerCore - 스타듀밸리 메뉴·도감", "min_format": fmt, "max_format": fmt}},
                   f, ensure_ascii=False, indent=2)
 
+    from make_blacksmith_art import install_blacksmith_assets
+    install_blacksmith_assets(pack)
     zip_path = os.path.join(args.out, "servercore_pack.zip")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
         for root, _dirs, files in os.walk(pack):

@@ -72,13 +72,17 @@ final class LandProtection implements Listener {
     /** 막아야 하면 true (막으면서 가끔 안내) */
     private boolean deny(Player p, Location where) {
         Land land = store.at(where);
-        if (f.canBuild(p, land)) return false;
+        if (f.canBuildAt(p, land, where)) return false;
         long now = System.currentTimeMillis();
         Long last = lastWarn.get(p.getUniqueId());
         if (last == null || now - last > 1500) {
             lastWarn.put(p.getUniqueId(), now);
-            p.sendActionBar(Text.mm(f.msg("denied", "<red>%owner%님의 집이에요. 허가가 있어야 해요.")
-                    .replace("%owner%", land.ownerName)));
+            if (land.trusts(p.getUniqueId()) && !land.has(where.getBlockX() >> 4, where.getBlockZ() >> 4)) {
+                p.sendActionBar(Text.mm(f.msg("locked-denied", "<red>아직 잠긴 집 부지예요. 빚을 갚고 지도에서 순서대로 해방해 주세요.")));
+            } else {
+                p.sendActionBar(Text.mm(f.msg("denied", "<red>%owner%님의 집이에요. 허가가 있어야 해요.")
+                        .replace("%owner%", land.ownerName)));
+            }
         }
         return true;
     }
@@ -226,7 +230,9 @@ final class LandProtection implements Listener {
 
     /** 같은 땅(또는 둘 다 야생)이면 괜찮음 */
     private boolean sameOwner(Location a, Location b) {
-        return store.at(a) == store.at(b);
+        Land first = store.at(a), second = store.at(b);
+        return first == second && (first == null || first.has(a.getBlockX() >> 4, a.getBlockZ() >> 4)
+                == first.has(b.getBlockX() >> 4, b.getBlockZ() >> 4));
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
@@ -312,6 +318,6 @@ final class LandProtection implements Listener {
     public void onGrow(StructureGrowEvent e) {
         Land from = store.at(e.getLocation());
         List<BlockState> blocks = e.getBlocks();
-        blocks.removeIf(s -> store.at(s.getLocation()) != from);
+        blocks.removeIf(s -> !sameOwner(e.getLocation(), s.getLocation()));
     }
 }

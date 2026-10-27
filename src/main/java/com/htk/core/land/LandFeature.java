@@ -49,9 +49,9 @@ import java.util.UUID;
 /**
  * 내 집 땅 (동물의 숲 방식)
  *   - 집터 블록(로비의 이장님과 첫 대화를 마치면 받음)을 설치하면 그 청크가 바로 내 집 (처음 땅 값은 빚으로, 기본 0G)
- *   - 집터를 우클릭하면 집 지도 창 (넓히기·이웃). 집터는 아무도 못 부숴요
+ *   - 집터를 우클릭하면 집 지도 창 (청크 해방·이웃). 집터는 아무도 못 부숴요
  *   - 빚은 로비의 이장님께 갚아요 (MayorFeature)
- *   - 붙어 있는 청크를 골라 한 칸씩 넓혀요 (최대 4청크). 넓히면 땅은 바로 생기고 그만큼 빚이 생겨요
+ *   - 설치 시 2x2 부지 4청크를 예약하고, 집터 청크만 먼저 사용해요. 나머지는 고정 순서로 해방해요
  *   - 빚을 다 갚아야 다음 확장을 할 수 있어요
  *   - 이웃(허가한 사람)은 내 땅에서 전부 할 수 있고, 나머지 사람은 아무것도 못 해요
  * 설정: config.yml → land
@@ -70,7 +70,6 @@ public final class LandFeature implements Feature, Listener {
     /** 집을 지을 수 있는 월드: 마을(village) 하나로 고정 */
     public static final String HOME_WORLD = "village";
     private int maxChunks = 4;
-    private int maxRange = 2;
     private long firstCost = 0;
     private List<Long> expandCosts = List.of(1000L, 2000L, 3000L);
     private boolean protectExplosions = true;
@@ -94,6 +93,7 @@ public final class LandFeature implements Feature, Listener {
     @Override
     public void enable() {
         loadConfig();
+        migrateFixedPlots();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getServer().getPluginManager().registerEvents(new LandProtection(this), plugin);
         PluginCommand cmd = plugin.getCommand("land");
@@ -117,14 +117,13 @@ public final class LandFeature implements Feature, Listener {
 
     private void loadConfig() {
         var cfg = plugin.getConfig();
-        maxChunks = Math.max(1, cfg.getInt("land.max-chunks", 4));
-        maxRange = Math.max(1, Math.min(LandGui.RANGE, cfg.getInt("land.max-range", 2)));
+        maxChunks = 4; // Fixed 2x2 footprint; the old max-chunks setting no longer changes it.
         firstCost = Math.max(0, cfg.getLong("land.first-cost", 0));
         if (cfg.isList("land.expand-costs")) {
             List<Long> l = new ArrayList<>();
             for (Object o : cfg.getList("land.expand-costs")) {
                 try {
-                    l.add(Long.parseLong(String.valueOf(o).trim()));
+                    l.add(Math.max(0, Long.parseLong(String.valueOf(o).trim())));
                 } catch (NumberFormatException ignored) { }
             }
             if (!l.isEmpty()) expandCosts = l;
@@ -189,6 +188,11 @@ public final class LandFeature implements Feature, Listener {
         return land == null || land.trusts(p.getUniqueId()) || bypass.contains(p.getUniqueId());
     }
 
+    boolean canBuildAt(Player p, Land land, Location where) {
+        if (bypass.contains(p.getUniqueId())) return true;
+        return canBuild(p, land) && (land == null || land.has(where.getBlockX() >> 4, where.getBlockZ() >> 4));
+    }
+
     boolean toggleBypass(Player p) {
         if (!bypass.remove(p.getUniqueId())) {
             bypass.add(p.getUniqueId());
@@ -197,22 +201,51 @@ public final class LandFeature implements Feature, Listener {
         return false;
     }
 
-    /** 다음 확장 때 생기는 빚 (더 못 넓히면 -1) */
+    /** 다음 확장 때 생기는 빚 (더 못 해방하면 -1) */
     long nextExpandCost(Land land) {
         int n = land.size();                 // 지금 청크 수 = 몇 번째 확장인지 (1 → 첫 확장)
-        if (n >= maxChunks) return -1;
+        if (!land.fixedPlot() || land.nextLockedChunk() == null || n >= maxChunks) return -1;
         return expandCosts.get(Math.min(n - 1, expandCosts.size() - 1));
     }
 
     long firstCost() { return firstCost; }
 
-    /** 내 땅에 붙어 있어서 넓힐 수 있는 청크인지 */
+    /** 내 땅에 붙어 있어서 해방할 수 있는 청크인지 */
     boolean canExpandTo(Land land, int cx, int cz) {
-        if (land.has(cx, cz) || store.at(land.world, cx, cz) != null) return false;
-        if (!zones.allows(cx, cz)) return false;                 // 집 구역 밖 (공용지)
-        long core = land.firstChunk();             // 집터 청크에서 상하좌우 maxRange 칸까지만
-        if (Math.abs(cx - Land.cx(core)) > maxRange || Math.abs(cz - Land.cz(core)) > maxRange) return false;
-        return land.has(cx + 1, cz) || land.has(cx - 1, cz) || land.has(cx, cz + 1) || land.has(cx, cz - 1);
+        Long next = land.nextLockedChunk();
+        return next != null && next == Land.key(cx, cz) && store.at(land.world, cx, cz) == land
+                && zones.allows(cx, cz);
+    }
+
+    /** Preserve old unlocked chunks and debts. Never shrink or overwrite irregular legacy land. */
+    private void migrateFixedPlots() {
+        boolean needsMigration = store.all().stream().anyMatch(land -> !land.fixedPlot());
+        if (!needsMigration || !store.backupBeforeMigration()) return;
+        for (Land land : store.all()) {
+            if (land.fixedPlot() || !land.world.equalsIgnoreCase(HOME_WORLD)) continue;
+            long core = land.hasCore ? Land.key(land.coreX >> 4, land.coreZ >> 4) : land.firstChunk();
+            int cx = Land.cx(core), cz = Land.cz(core);
+            boolean converted = false;
+            for (int[] offset : new int[][]{{0, 0}, {-1, 0}, {0, -1}, {-1, -1}}) {
+                var plot = LandLayout.square(cx + offset[0], cz + offset[1], core);
+                if (!plot.containsAll(land.chunks)) continue;
+                boolean available = true;
+                for (long chunk : plot) {
+                    Land owner = store.at(land.world, Land.cx(chunk), Land.cz(chunk));
+                    if ((owner != null && owner != land) || !zones.allows(Land.cx(chunk), Land.cz(chunk))) {
+                        available = false;
+                        break;
+                    }
+                }
+                if (!available) continue;
+                store.reserve(land, plot);
+                converted = true;
+                break;
+            }
+            if (!converted) plugin.getLogger().warning(land.ownerName
+                    + "님의 기존 땅은 2x2로 안전하게 전환할 수 없어 그대로 보존합니다. 추가 해방은 관리자 확인이 필요합니다.");
+        }
+        store.save();
     }
 
     // ---------------- 하는 일 ----------------
@@ -238,10 +271,22 @@ public final class LandFeature implements Feature, Listener {
             return false;
         }
         int cx = core.getX() >> 4, cz = core.getZ() >> 4;
+        long coreChunk = Land.key(cx, cz);
+        var footprint = LandLayout.square(cx, cz, coreChunk);
+        for (long chunk : footprint) {
+            if (!zones.allows(Land.cx(chunk), Land.cz(chunk))) {
+                send(p, "plot-outside-zone", "<red>2×2 집 부지 전체가 집 구역 안에 들어와야 해요.");
+                return false;
+            }
+            if (store.at(HOME_WORLD, Land.cx(chunk), Land.cz(chunk)) != null) {
+                send(p, "plot-taken", "<red>2×2 집 부지가 다른 집의 부지와 겹쳐요. 다른 자리에 설치해 주세요.");
+                return false;
+            }
+        }
         // 집 스폰: 집터 바로 위 (플레이어가 옆 청크에 서서 놓았을 수도 있어서)
         Location home = core.getLocation().add(0.5, 1, 0.5);
         home.setYaw(p.getLocation().getYaw());
-        Land land = store.create(p.getUniqueId(), p.getName(), l.getWorld().getName(), cx, cz, home);
+        Land land = store.create(p.getUniqueId(), p.getName(), l.getWorld().getName(), cx, cz, home, footprint);
         land.hasCore = true;
         land.coreX = core.getX();
         land.coreY = core.getY();
@@ -253,6 +298,7 @@ public final class LandFeature implements Feature, Listener {
         Bukkit.getScheduler().runTask(plugin, () -> placeCoreVisual(land));
         p.sendMessage(Text.mm(msg("claimed", "<#7acb52>🏠 여기를 내 집으로 정했어요! <gray>집터를 우클릭하면 집 지도가 열려요.")));
         if (land.debt > 0) sendDebt(p, land);
+        p.sendMessage(Text.mm("<gray>2×2 부지 4청크를 확보했어요. <white>집터 청크만 사용 가능<gray>하며, 빚을 갚고 나머지를 한 칸씩 해방해요."));
         showBorder(p, land);
         return true;
     }
@@ -262,24 +308,22 @@ public final class LandFeature implements Feature, Listener {
         Land land = store.of(p.getUniqueId());
         if (land == null) return false;
         if (land.debt > 0) {
-            p.sendMessage(Text.mm(msg("pay-first", "<red>빚 %debt%을 먼저 갚아야 넓힐 수 있어요.")
+            p.sendMessage(Text.mm(msg("pay-first", "<red>빚 %debt%을 먼저 갚아야 해방할 수 있어요.")
                     .replace("%debt%", Economy.format(land.debt))));
             return false;
         }
         long cost = nextExpandCost(land);
         if (cost < 0) {
-            p.sendMessage(Text.mm(msg("max", "<gray>더 이상 넓힐 수 없어요. (최대 %max%청크)")
+            p.sendMessage(Text.mm(msg("max", "<gray>더 이상 해방할 수 없어요. (최대 %max%청크)")
                     .replace("%max%", String.valueOf(maxChunks))));
             return false;
         }
         if (!canExpandTo(land, cx, cz)) {
-            send(p, "not-adjacent", "<red>내 땅에 붙어 있고, 집터에서 상하좌우 2칸 안의 빈 청크만 넓힐 수 있어요.");
+            send(p, "not-next-unlock", "<red>미리 확보한 2×2 부지에서 다음 순서의 잠긴 청크만 해방할 수 있어요.");
             return false;
         }
-        store.addChunk(land, cx, cz);
-        land.debt += cost;
-        store.save();
-        p.sendMessage(Text.mm(msg("expanded", "<#7acb52>🏠 땅을 넓혔어요! <gray>(%size%/%max%청크)")
+        store.addChunk(land, cx, cz, cost);
+        p.sendMessage(Text.mm(msg("expanded", "<#7acb52>🏠 청크를 해방했어요! <gray>(%size%/%max%청크)")
                 .replace("%size%", String.valueOf(land.size())).replace("%max%", String.valueOf(maxChunks))));
         sendDebt(p, land);
         showBorder(p, land);
@@ -308,7 +352,7 @@ public final class LandFeature implements Feature, Listener {
         land.debt -= pay;
         store.save();
         if (land.debt <= 0) {
-            p.sendMessage(Text.mm(msg("paid-off", "<#ffd34d>🎉 빚을 다 갚았어요! <gray>(%paid% 냄) 이제 땅을 더 넓힐 수 있어요.")
+            p.sendMessage(Text.mm(msg("paid-off", "<#ffd34d>🎉 빚을 다 갚았어요! <gray>(%paid% 냄) 이제 땅을 더 해방할 수 있어요.")
                     .replace("%paid%", Economy.format(pay))));
         } else {
             p.sendMessage(Text.mm(msg("paid", "<gray>%paid%을 갚았어요. 남은 빚 <#ffd34d>%debt%")
@@ -327,7 +371,7 @@ public final class LandFeature implements Feature, Listener {
             send(p, "no-land", "<gray>아직 집이 없어요. <#f3c060>집터</#f3c060>를 설치하면 거기가 내 집이 돼요. <dark_gray>(집터는 로비의 이장님께)");
             return false;
         }
-        if (store.at(p.getLocation()) != land) {
+        if (store.at(p.getLocation()) != land || !land.has(p.getLocation().getBlockX() >> 4, p.getLocation().getBlockZ() >> 4)) {
             send(p, "sethome-outside", "<red>내 땅 안에서만 집 스폰을 정할 수 있어요.");
             return false;
         }
@@ -629,29 +673,34 @@ public final class LandFeature implements Feature, Listener {
     /** 내 땅 테두리를 빛나는 선으로 (초록, 15초) */
     void showBorder(Player p, Land land) {
         World w = Bukkit.getWorld(land.world);
-        if (!border.show(p, w, List.of(new BorderDisplay.Layer(land.chunks, BorderDisplay.Style.MINE)), 15))
+        List<BorderDisplay.Layer> layers = new ArrayList<>();
+        Set<Long> locked = new HashSet<>(land.reservedChunks());
+        locked.removeAll(land.chunks);
+        if (!locked.isEmpty()) layers.add(new BorderDisplay.Layer(locked, BorderDisplay.Style.ZONE));
+        layers.add(new BorderDisplay.Layer(land.chunks, BorderDisplay.Style.MINE));
+        if (!border.show(p, w, layers, 15))
             send(p, "border-far", "<gray>내 땅 근처(같은 월드)에서 보면 테두리가 보여요.");
     }
 
-    // ---------------- 넓히기: 경계 보여주고 확인받기 ----------------
+    // ---------------- 청크 해방: 경계 보여주고 확인받기 ----------------
 
     private record PendingExpand(int cx, int cz, long cost, org.bukkit.scheduler.BukkitTask timeout) {}
 
     private final Map<UUID, PendingExpand> pending = new HashMap<>();
     private static final int CONFIRM_SECONDS = 30;
 
-    /** 지도에서 넓힐 칸을 눌렀을 때: 창을 닫고 경계(초록 내 땅 + 노랑 넓힐 곳)를 보여주고 채팅 버튼으로 확인 */
+    /** 지도에서 해방할 칸을 눌렀을 때: 창을 닫고 경계(초록 내 땅 + 노랑 해방할 곳)를 보여주고 채팅 버튼으로 확인 */
     void requestExpand(Player p, int cx, int cz) {
         Land land = store.of(p.getUniqueId());
         if (land == null) return;
         if (land.debt > 0) {
-            p.sendMessage(Text.mm(msg("pay-first", "<red>빚 %debt%을 먼저 갚아야 넓힐 수 있어요.")
+            p.sendMessage(Text.mm(msg("pay-first", "<red>빚 %debt%을 먼저 갚아야 해방할 수 있어요.")
                     .replace("%debt%", Economy.format(land.debt))));
             return;
         }
         long cost = nextExpandCost(land);
         if (cost < 0 || !canExpandTo(land, cx, cz)) {
-            send(p, "not-adjacent", "<red>내 땅에 붙어 있고, 집터에서 상하좌우 2칸 안의 집 구역 청크만 넓힐 수 있어요.");
+            send(p, "not-next-unlock", "<red>예약한 2×2 부지에서 다음 순서의 청크만 해방할 수 있어요.");
             return;
         }
         cancelPending(p, false);
@@ -659,7 +708,7 @@ public final class LandFeature implements Feature, Listener {
         var timeout = Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (pending.remove(p.getUniqueId()) != null && p.isOnline()) {
                 border.clear(p);
-                send(p, "expand-timeout", "<gray>넓히기를 취소했어요. <dark_gray>(시간 초과)");
+                send(p, "expand-timeout", "<gray>청크 해방를 취소했어요. <dark_gray>(시간 초과)");
             }
         }, CONFIRM_SECONDS * 20L);
         pending.put(p.getUniqueId(), new PendingExpand(cx, cz, cost, timeout));
@@ -671,7 +720,7 @@ public final class LandFeature implements Feature, Listener {
         PendingExpand pe = pending.get(p.getUniqueId());
         Land land = store.of(p.getUniqueId());
         if (pe == null || land == null) {
-            send(p, "expand-none", "<gray>넓히려는 곳이 없어요. 집 지도에서 넓힐 칸을 눌러 주세요.");
+            send(p, "expand-none", "<gray>해방하려는 곳이 없어요. 집 지도에서 해방할 칸을 눌러 주세요.");
             return;
         }
         World w = Bukkit.getWorld(land.world);
@@ -681,27 +730,27 @@ public final class LandFeature implements Feature, Listener {
                 CONFIRM_SECONDS);
         String cost = Economy.format(pe.cost());
         p.showTitle(net.kyori.adventure.title.Title.title(
-                Text.mm(msg("expand-title", "<#ffd34d>이쪽으로 넓힐까요?")),
+                Text.mm(msg("expand-title", "<#ffd34d>이쪽으로 해방할까요?")),
                 Text.mm(msg("expand-subtitle", "<gray>노란 선 안 · 빚 <#ffd34d>+%cost%</#ffd34d> · %seconds%초 안에 선택")
                         .replace("%cost%", cost).replace("%seconds%", String.valueOf(CONFIRM_SECONDS))),
                 net.kyori.adventure.title.Title.Times.times(java.time.Duration.ofMillis(200),
                         java.time.Duration.ofSeconds(4), java.time.Duration.ofMillis(500))));
         if (!drawn) send(p, "border-far", "<gray>내 땅 근처(같은 월드)에서 보면 테두리가 보여요.");
-        Component yes = Text.mm(msg("btn-expand-yes", "<#7acb52><bold>[✔ 넓히기]</bold>"))
+        Component yes = Text.mm(msg("btn-expand-yes", "<#7acb52><bold>[✔ 청크 해방]</bold>"))
                 .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Text.mm("<gray>빚 <#ffd34d>+" + cost)))
                 .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/land confirm"));
         Component no = Text.mm(msg("btn-expand-no", "<#e07a6a><bold>[✖ 취소]</bold>"))
                 .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/land cancel"));
         Component again = Text.mm(msg("btn-expand-again", "<gray>[↻ 다시 보기]"))
                 .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/land preview"));
-        p.sendMessage(Text.mm(msg("expand-ask", "<#ffd34d>🏠 노란 선 안으로 넓힐까요? <gray>(빚 +%cost%)").replace("%cost%", cost)));
+        p.sendMessage(Text.mm(msg("expand-ask", "<#ffd34d>🏠 노란 선 안으로 해방할까요? <gray>(빚 +%cost%)").replace("%cost%", cost)));
         p.sendMessage(yes.append(Component.text("   ")).append(no).append(Component.text("   ")).append(again));
     }
 
     void confirmExpand(Player p) {
         PendingExpand pe = pending.remove(p.getUniqueId());
         if (pe == null) {
-            send(p, "expand-none", "<gray>넓히려는 곳이 없어요. 집 지도에서 넓힐 칸을 눌러 주세요.");
+            send(p, "expand-none", "<gray>해방하려는 곳이 없어요. 집 지도에서 해방할 칸을 눌러 주세요.");
             return;
         }
         pe.timeout().cancel();
@@ -714,7 +763,7 @@ public final class LandFeature implements Feature, Listener {
         if (pe == null) return;
         pe.timeout().cancel();
         border.clear(p);
-        if (tell) send(p, "expand-cancel", "<gray>넓히기를 취소했어요.");
+        if (tell) send(p, "expand-cancel", "<gray>청크 해방를 취소했어요.");
     }
 
     // ---------------- 집 구역 (관리자) ----------------
@@ -754,7 +803,11 @@ public final class LandFeature implements Feature, Listener {
         }
         int cx = l.getBlockX() >> 4, cz = l.getBlockZ() >> 4;
         Land other = store.at(l);
-        if (other != null) {
+        if (!land.fixedPlot() || !land.plot.contains(Land.key(cx, cz)) || land.has(cx, cz)) {
+            admin.sendMessage(Text.mm("<red>이 집의 2×2 부지 안에 있는 잠긴 청크에서만 해방할 수 있어요."));
+            return;
+        }
+        if (other != null && other != land) {
             admin.sendMessage(Text.mm("<red>이미 " + other.ownerName + "님의 땅이에요."));
             return;
         }

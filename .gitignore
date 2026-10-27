@@ -2,3 +2,16 @@
 build/
 .idea/
 *.iml
+
+# Secrets and live server data (keep out of the source repository)
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.ppk
+/world/
+/world_*/
+/plugins/
+__pycache__/
+*.pyc

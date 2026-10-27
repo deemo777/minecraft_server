@@ -49,7 +49,12 @@ public final class ServerCore extends JavaPlugin {
         if (getConfig().getBoolean("features.jumppad", true)) features.add(new JumpPadFeature(this));
         if (getConfig().getBoolean("features.longjump", true)) features.add(new LongJumpFeature(this));
         if (getConfig().getBoolean("features.guide", true)) features.add(new com.htk.core.guide.GuideFeature(this));
-        if (getConfig().getBoolean("features.tools", true)) features.add(new com.htk.core.tools.VillageToolFeature(this));
+        if (getConfig().getBoolean("features.tools", true)) {
+            var tools = new com.htk.core.tools.VillageToolFeature(this);
+            features.add(tools);
+            if (getConfig().getBoolean("features.blacksmith", true))
+                features.add(new com.htk.core.tools.BlacksmithFeature(this, tools));
+        }
         SkillFeature skills = null;
         if (getConfig().getBoolean("features.skills", true)) {
             skills = new SkillFeature(this);

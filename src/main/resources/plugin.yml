@@ -5,6 +5,16 @@ api-version: '1.21'
 description: 서버 전용 기능 모음 (메뉴, 도감, 점프 패드, 도약, 골드, 상점, 레벨링·칭호, HUD, 집 땅, 이장님, 안내서)
 
 commands:
+  blacksmithnpc:
+    description: 대장장이 NPC 생성 및 제거
+    usage: /<command> create|remove
+    aliases: [대장장이]
+    permission: servercore.admin
+  enhance:
+    description: 강화 화면 열기 및 전용 재료 지급 (관리자)
+    usage: /<command> [플레이어] | material <종류> <1~64> [플레이어]
+    aliases: [강화]
+    permission: servercore.admin
   menu:
     description: 마을 메뉴를 엽니다
     aliases: [메뉴]

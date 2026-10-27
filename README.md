@@ -1,5 +1,9 @@
 # ServerCore 3 — 스타듀밸리풍 마을 서버 플러그인
 
+## oci 서버 주소 접속 명령어
+ssh -i <개인키_파일경로> ubuntu@<퍼블릭_IP주소>
+
+
 Paper **26.3** / Java 25. 플레이어는 바닐라 클라이언트 + 서버 리소스팩.
 상자 GUI 제목 자리에 리소스팩 배경 그림을 깔아서 꾸미는 방식이라, 다른 화면(Esc 메뉴 등)에는 영향이 없어요.
 지금 할 일·설계 중인 것은 `진행상황.md`. 지금 버전은 `build.gradle.kts` 의 `version`, 바뀐 내용은 `CHANGELOG.md`.
@@ -53,9 +57,8 @@ Paper **26.3** / Java 25. 플레이어는 바닐라 클라이언트 + 서버 리
 - 데이터 `lands.yml`, 설정 `config.yml` → `land`
 
 ### 마을 도구 (만드는 중 — 설계는 `강화도구_설계.md`)
-- 곡괭이·도끼·괭이·낚싯대·물뿌리개(아이템만, 물 주기 농사는 나중에). 바탕은 다이아 도구라 캐기·내구도는 바닐라 그대로
-- 모양은 테라리아 느낌 픽셀 도구를 입체로 (`tools/make_tool_models.py`). 지금은 곡괭이·도끼·괭이·물뿌리개 +0 (낚싯대는 바닐라 모양)
-- 판타지 이름이 5강마다 바뀜 (곡괭이: 돌울림 → 깊은 메아리 → 드워프의 맥박 → 용암심장 → 별을 캐는 자, 아스트라) + `+7`, 설명에 별(강화 단계 20칸), 인챈트 테이블·모루·숫돌에 못 올림 (`tools.yml` → `allow-enchant`)
+- 곡괭이·도끼·괭이·낚싯대. 바탕은 네더라이트 도구라 캐기·내구도는 바닐라 그대로
+- 이름 `마을 곡괭이 +7`, 설명에 별(강화 단계 20칸), 인챈트 테이블·모루·숫돌에 못 올림 (`tools.yml` → `allow-enchant`)
 - 모양: 리소스팩 3D 모델 `servercore:village_pickaxe` 등, 강화 단계로 **5강마다** 모양이 바뀜 (모델 파일 자리 `tools/models/`)
 - 지금은 관리자 명령어로만 받아요 (`/villagetool`). 강화·능력·수리·대장장이 NPC 는 아직
 - 설정 `tools.yml`
@@ -151,7 +154,7 @@ Paper **26.3** / Java 25. 플레이어는 바닐라 클라이언트 + 서버 리
 | `/land admin setdebt <이름> <금액>` | 빚 정하기 |
 | `/도감 reset <플레이어>` | 도감 기록 지우기 |
 | `/점프패드 [개수] [플레이어]` (`/jumppad`) | 점프 패드 아이템 받기 |
-| `/마을도구 give <종류> [단계] [플레이어]` (`/villagetool`) | 마을 도구 주기 (종류: pickaxe axe hoe fishing_rod watering_can 또는 곡괭이 도끼 괭이 낚싯대 물뿌리개) |
+| `/마을도구 give <종류> [단계] [플레이어]` (`/villagetool`) | 마을 도구 주기 (종류: pickaxe axe hoe fishing_rod 또는 곡괭이 도끼 괭이 낚싯대) |
 | `/마을도구 level <단계>` | 손에 든 마을 도구의 강화 단계 바꾸기 (모양 확인용) |
 
 ## 처음 서버 세팅 체크리스트
@@ -231,7 +234,6 @@ tools/
  ├─ make_creative_order.py  크리에이티브 인벤토리 순서 뽑기 → src/main/resources/creative_order.txt
  │                          (마인크래프트 업데이트로 순서가 바뀌었을 때만: --jar <버전 jar>, 그다음 플러그인 빌드)
  ├─ build_pack.py  리소스팩 만들기 (폰트, 아이템별 체크 모델, 마을 도구 모델, zip, SHA-1)
- ├─ make_tool_models.py  마을 도구 3D 모델 만들기 (테라리아 느낌 픽셀 → 입체, --preview 로 미리보기) → models/
  ├─ models/        마을 도구 3D 모델 자리 (<도구>_<단계>.json, textures/) — 규칙은 models/README.md
  └─ art/           그림
 ```

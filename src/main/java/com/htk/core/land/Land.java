@@ -16,6 +16,8 @@ public final class Land {
     final String world;
     /** 청크 키 (Land.key). 처음 정한 청크가 맨 앞 */
     final LinkedHashSet<Long> chunks = new LinkedHashSet<>();
+    /** Reserved footprint, including locked chunks. Empty only for legacy irregular land. */
+    final LinkedHashSet<Long> plot = new LinkedHashSet<>();
     final Set<UUID> members = new LinkedHashSet<>();
     long debt;
     /** 집터 블록 위치 (없으면 hasCore=false) */
@@ -37,6 +39,13 @@ public final class Land {
     public String world() { return world; }
     public long debt() { return debt; }
     public int size() { return chunks.size(); }
+    public boolean fixedPlot() { return plot.size() == 4; }
+    public Set<Long> reservedChunks() { return plot.isEmpty() ? chunks : plot; }
+    public boolean reserves(int cx, int cz) { return reservedChunks().contains(key(cx, cz)); }
+    Long nextLockedChunk() {
+        for (long chunk : plot) if (!chunks.contains(chunk)) return chunk;
+        return null;
+    }
     public Set<UUID> members() { return members; }
 
     public long firstChunk() {

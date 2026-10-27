@@ -57,8 +57,8 @@ class Model:
                 'fixed':{'rotation':[0,180,0],'translation':[0,-1,0],'scale':[.55]*3},
                 'thirdperson_righthand':{'rotation':[0,-90,0],'translation':[0,1.5,1],'scale':[.69]*3},
                 'thirdperson_lefthand':{'rotation':[0,90,0],'translation':[0,1.5,1],'scale':[.69]*3},
-                'firstperson_righthand':{'rotation':[0,-35,-20],'translation':[1,1,-1],'scale':[.64]*3},
-                'firstperson_lefthand':{'rotation':[0,35,20],'translation':[1,1,-1],'scale':[.64]*3},
+                'firstperson_righthand':{'rotation':[-5,-20,0] if can else [-12,-12,-20],'translation':[1,-.3,-1] if can else [.6,.5,-2],'scale':[.75 if can else .58]*3},
+                'firstperson_lefthand':{'rotation':[-5,20,0] if can else [-12,12,20],'translation':[1,-.3,-1] if can else [.6,.5,-2],'scale':[.75 if can else .58]*3},
                 'head':{'rotation':[0,180,0],'translation':[0,9,0],'scale':[.6]*3}}}
         points=[]
         for e in self.elements:
@@ -217,10 +217,10 @@ def jewel(m,x,y,r,color='azure',z=8):
 
 def shaft(m,k,accent):
     # Octagonal shaft, fine diagonal leather winding and sculpted end fittings.
-    wood='bark' if k<2 else 'navy'
+    wood='bark' if k<2 or m.tool=='village_axe' else 'navy'
     m.box((8,5.5,8),(1.03,26.5,1.03),wood)
     m.box((8,5.5,8),(.87,26.5,.87),wood+'hi',45,axis='y')
-    for y in np.arange(-5.8,5.4,.85):
+    for y in np.arange(-5.8,5.4,1.3 if m.tool=='village_axe' else .85):
         for sign in (-1,1):
             m.box((8,y,8+sign*.65),(1.35,.2,.2),'leather',-22.5,label='leather winding')
     metal='copper' if k<2 else 'gold'
@@ -232,15 +232,23 @@ def shaft(m,k,accent):
     if k>=1: jewel(m,8,-7.5,.5,accent)
     for sign in (-1,1):
         m.box((8,9,8+sign*.7),(.3,4.5,.17),accent,label='handle inlay')
-    if k>=2:
+    if k>=2 and m.tool=='village_pickaxe':
         tube(m,cubic((7.4,6),(5.2,8),(10.7,10),(8.6,12)),.95,'goldhi',.11)
         for y in (7,9.8,12.6):
             m.box((8,y,6.75),(.3,.5,.2),'pearl',45)
+    if m.tool=='village_axe' and k>=1:
+        for y in (7.5,10.2,13):
+            m.box((8.2,y,8),(2.2,.35,1.5),'barkhi',-22.5,label='carved wooden haft')
+            for z in (7,9): m.box((8,y,z),(.5,.55,.3),'gold',45,label='bronze haft stud')
 
 
 def socket(m,k,accent,cy=20):
     # Elegant layered teardrop collar, narrow at the handle and broad at the head.
     shape=path((8,cy+3),[((10.7,cy+1),(10,cy-1),(8,cy-3)),((6,cy-1),(5.3,cy+1),(8,cy+3))])
+    if m.tool=='village_axe':
+        shape=[(6,cy+2),(10,cy+2),(10.2,cy-.5),(8,cy-2.5),(5.8,cy-.5)]
+    elif m.tool=='village_pickaxe':
+        shape=[(8,cy+2.7),(10,cy+1),(10,cy-1),(8,cy-2.7),(6,cy-1),(6,cy+1)]
     sculpt(m,shape,'gold' if k>=2 else 'copper','goldhi' if k>=2 else 'silverhi',3.5,step=.18,label='head socket')
     jewel(m,8,cy,1 if k<2 else 1.35,accent)
 
@@ -260,14 +268,15 @@ def fine_make(tool,tier):
     metal=('silverlo','silver','navy','navy','silver')[k]
     if tool!='village_watering_can': shaft(m,k,accent)
     if tool=='village_pickaxe':
-        # Thin swept wings join a heavier center; the silhouette has no straight slab.
+        # Raised central head and shallow monotonic taper: no drooping bird wings.
         scale=(.68,.74,.95,1.02,1.12)[k]
+        m.box((8,19.7,8),(1.15,6.4,1.15),'navy',label='pick head neck')
         for sign in (-1,1):
-            pts=ribbon((8,21),(8+sign*4,24),(8+sign*9,24),(8+sign*11.5,20),lambda t: (1.5 if k>=2 else 1.05)*(1-t)**.75+.05)
+            pts=ribbon((8,23.5),(8+sign*4.2,23.6),(8+sign*9.2,22.5),(8+sign*11.5,20.3),lambda t: (1.35 if k>=2 else 1.0)*(1-t)**.75+.05)
             pts=[(8+(x-8)*scale,21+(y-21)*scale) for x,y in pts]
             sculpt(m,pts,metal,'silverhi' if k<2 else accent+'hi',2.8 if k>=2 else 1.9,label='swept pick wing')
             if k>=1:
-                line=cubic((8+sign*2*scale,21+1.4*scale),(8+sign*5*scale,21+2.8*scale),(8+sign*8.5*scale,21+2.3*scale),(8+sign*10.3*scale,21+.2*scale))
+                line=cubic((8+sign*1.6*scale,21+2.55*scale),(8+sign*5*scale,21+2.5*scale),(8+sign*8.5*scale,21+1.5*scale),(8+sign*10.4*scale,21+.15*scale))
                 tube(m,line,1.6,'goldhi',.1)
             if k>=2:
                 leaf3d(m,8+sign*7*scale,22.5,8,.48,accent)
@@ -275,13 +284,11 @@ def fine_make(tool,tier):
             for x,y in ((2,23.8),(5,24.3),(11,24.3),(14,23.8)):
                 sculpt(m,[(x-.4,y),(x,y+1.5),(x+.45,y+.3)],'cinder','fire',1.2,step=.17,label='flame crest')
         if k==4:
-            for sign in (-1,1):
-                pts=ribbon((8,22),(8+sign*1,25),(8+sign*3,26),(8+sign*4.2,27),lambda t:.65*(1-t)+.04)
-                sculpt(m,pts,'gold','goldhi',1.7,label='crown wing')
-                leaf3d(m,8+sign*9,20,8,.6,'amethyst')
-            fine_halo(m,8,22,8,2.6)
+            sculpt(m,[(6.9,24),(8,27.8),(9.1,24)],'gold','goldhi',1.7,label='central crystal crest')
+            for sign in (-1,1): leaf3d(m,8+sign*9,21.7,8,.6,'amethyst')
+            fine_halo(m,8,23.8,8,2.1)
             for z in (5.5,10.5): jewel(m,8,25.7,.45,'amethyst',z)
-        socket(m,k,accent,21)
+        socket(m,k,accent,21+2.5*scale)
     elif tool=='village_axe':
         for sign in ((-1,1) if k==4 else (-1,)):
             scale=(.65,.72,.96,1.04,1.05)[k]
@@ -372,45 +379,79 @@ def flower(m,x,y,z,r):
 
 
 def fine_can(m,k,accent):
-    # Rounded lathed vessel. Each horizontal ring has an octagonal cross section.
-    r=(3.5,3.7,4.1,4.3,4.6)[k]
-    for y in np.arange(4.5,13,.22):
-        t=(y-4.5)/8.5
-        radius=r*(.65+.35*math.sin(math.pi*t))
-        for turn in (0,45):
-            m.box((8,y,8),(radius*1.58,.23,radius*1.58),'silverlo' if k==0 else 'azure' if k<3 else 'amethyst' if k==3 else 'ivory',turn,axis='y',label='rounded vessel')
-    # Foot, neck and little domed cap.
-    for y,radius in ((4.1,r*.7),(4.4,r*.83),(12.9,r*.72),(13.2,r*.65),(13.5,r*.5),(13.8,r*.34)):
-        for turn in (0,45): m.box((8,y,8),(radius*1.6,.2,radius*1.6),'copper' if k<2 else 'goldhi',turn,axis='y')
-    jewel(m,8,14.5,.55,accent)
-    # Curved spout in XY, with a real round-ish bore at the end.
-    pts=cubic((11,7),(17,7),(17,13),(19,14))
-    for i,(x,y) in enumerate(pts[::2]):
-        radius=.7-.3*i/31
-        m.box((x,y,8),(radius*2,.27,radius*2),'gold' if k>=2 else 'silver',label='curved spout')
-    for z in (7.2,8,8.8):
-        m.box((19,14,z),(1.8,.25,.35),'goldhi')
-    for x in (18.25,19.75): m.box((x,14,8),(.3,.25,1.8),'goldhi')
-    # An elegant loop handle, behind the vessel instead of a flat painted arch.
-    for a in np.linspace(0,2*math.pi,72):
-        m.box((8,9.5+math.cos(a)*3.7,13+math.sin(a)*2),(.6,.35,.35),'copper' if k<2 else 'gold',label='curved rear handle')
-    if k:
-        jewel(m,8,9,3.5 if k==4 else 1.7,accent,z=5.1)
-    else: jewel(m,8,9,.7,accent,z=5.2)
-    if k>=2:
-        for sign in (-1,1):
-            line=cubic((8+sign*.7,6),(8+sign*4,7),(8+sign*4,11),(8+sign*.7,12))
-            tube(m,line,3.65,'goldhi',.12)
-        for z in (4.2,11.8):
-            leaf3d(m,5,9,z,.6,'jade');leaf3d(m,11,9,z,.6,'jade')
-    if k>=3:
-        flower(m,8,11,3.6,.85)
+    # Gardening watering can: low tank, open carrying handle, straight long spout,
+    # perforated shower rose. No teapot lid, wings or suspended halo.
+    b=m.box
+    width=6.4+k*.25
+    for y in np.arange(5.1,11.7,.24):
+        t=(y-5.1)/6.6
+        bevel=min(1,t*6,(1-t)*6)
+        b((8,y,8),(width-.8+bevel*.8,.25,4.5+bevel*.6),'azure' if k<3 else 'navy',label='water tank')
+    for y in (5.1,11.7):
+        b((8,y,8),(width+.15,.3,5.3),'gold',label='tank rim')
+    # Open fill opening on the top, clear of the carrying arch.
+    b((8,12,8),(2.3,.3,2.3),'goldhi')
+    b((8,12.17,8),(1.65,.12,1.65),'ink',label='fill opening')
+    handle=path((4.6,11.5),[
+        ((4,15.4),(4.8,17),(7.7,17)),
+        ((10.7,17),(11.5,15.3),(11.2,11.5))])
+    for x,y in handle[::2]:
+        b((x,y,8),(.48,.48,.85),'gold' if k<2 else 'goldhi',label='carrying arch')
+    b((7.7,16.9,8),(2.3,.65,1.05),'leather',label='handle grip')
+    # Rear grip joins the left side, unlike the ornamental teapot handle.
+    for a in np.linspace(-math.pi*.65,math.pi*.65,36):
+        b((4.2-1.65*math.cos(a),8.3+2.35*math.sin(a),8),(.4,.45,.7),'gold',label='rear grip')
+    # A long, gently rising tube rather than a tall swan-neck spout.
+    for i in range(36):
+        t=i/35;x=11+t*8.3;y=7.1+t*5.2;r=1.05-.48*t
+        b((x,y,8),(.42,r*1.5,r*1.6),'azure' if i<10 else 'gold',label='straight spout')
+    b((19.6,12.8,8),(.7,3.35,3.9),'goldhi',-45,label='shower rose')
+    # Dark holes on the outer slanted face of the shower rose.
+    for side in (-1,0,1):
+        for zoff in (-1.1,0,1.1):
+            b((19.92+side*.63,13.12-side*.63,8+zoff),(.18,.34,.34),'ink',-45,label='rose hole')
+    for sign in (-1,1):
+        z=8+sign*2.65
+        # A little water drop emblem, not a giant jewellery panel.
+        drop=path((8,10.4),[((8.3,9.8),(9.1,9),(8.8,8.2)),((8.3,7.3),(7,7.8),(7.2,8.6)),((7.3,9.2),(7.8,9.9),(8,10.4))])
+        sculpt(m,drop,'azurehi','pearl',.35,z,step=.17,label='water drop emblem')
+        if k>=1:
+            for x in (5.2,10.8): b((x,8.4,z),(.25,4.8,.3),'goldhi',label='tank reinforcement')
+        if k>=2:
+            for y in (6.3,10.5): b((8,y,z),(width-.5,.23,.26),'goldhi',label='enamel stripe')
+        if k>=3:
+            for x in (6.2,9.8):
+                b((x,8.5,z+sign*.2),(.45,.45,.2),'jadehi',45,label='small enamel flower')
     if k==4:
-        for sign in (-1,1):
-            wing=ribbon((8+sign*3.6,11),(8+sign*7,12),(8+sign*6,15),(8+sign*7,17),lambda t:.7*(1-t)+.03)
-            sculpt(m,wing,'ivory','goldhi',1.2,label='ewer wing')
-        fine_halo(m,8,16,8,2.5)
-        for z in (5.3,10.7): jewel(m,8,17,.7,'amethyst',z)
+        for z in (5.2,10.8):
+            for x in (5.4,10.6):
+                leaf3d(m,x,8.5,z,.32,'jade')
+
+
+def palette_for(tool):
+    colors=dict(COLORS)
+    if tool=='village_axe':
+        colors.update({'gold':'#967a4c','goldhi':'#dbc997','goldlo':'#63563e',
+            'copper':'#8b7256','bark':'#554032','barkhi':'#8b6850','barklo':'#322f2c',
+            'navy':'#345247','navyhi':'#587d65','navylo':'#253a37',
+            'jade':'#23866c','jadehi':'#8ad0a0','jadelo':'#245448',
+            'rose':'#a16b49','rosehi':'#e3ae7a','roselo':'#665044',
+            'silver':'#829c94','silverhi':'#d7e5d7','silverlo':'#536e67',
+            'leather':'#392e2b'})
+    elif tool=='village_hoe':
+        colors.update({'gold':'#688d58','goldhi':'#c5dc9a','goldlo':'#46623e',
+            'navy':'#304937','navyhi':'#567c4e','navylo':'#233832',
+            'jade':'#6aaa3e','jadehi':'#cbf489','jadelo':'#3c6841',
+            'azure':'#83c34b','azurehi':'#e3ffb2','azurelo':'#4e7c43',
+            'silver':'#94bf7a','silverhi':'#e4f4ca','silverlo':'#507652',
+            'rose':'#b77cc2','rosehi':'#ebc4ee','roselo':'#72567e',
+            'leather':'#493746'})
+    elif tool=='village_watering_can':
+        colors.update({'azure':'#4097ad','azurehi':'#a3e0df','azurelo':'#326374',
+            'navy':'#315974','navyhi':'#5389a1','navylo':'#243c54',
+            'gold':'#b4b9b2','goldhi':'#eee5c8','goldlo':'#7b9095',
+            'leather':'#665344','jade':'#4ba88b','jadehi':'#afd9ab'})
+    return colors
 
 
 make=fine_make
@@ -446,7 +487,7 @@ def render(m,angles=(18,-35,-25),size=(280,300),zoom=7.3):
             r=e['rotation'];o=np.array(r['origin']);pts=(pts-o)@matrix(r['axis'],r['angle']).T+o
         pts=(pts-np.array([8,10,8]))@view.T
         pts[:,0]=w/2+(pts[:,0]-center[0])*zoom;pts[:,1]=h/2-(pts[:,1]-center[1])*zoom
-        rgb=np.array(tuple(bytes.fromhex(COLORS[key][1:])))
+        rgb=np.array(tuple(bytes.fromhex(palette_for(m.tool)[key][1:])))
         for face,shade in faces:
             q=pts[face];light=1 if e.get('light_emission') else shade
             color=np.array([*np.minimum(255,rgb*light).astype(int),255],dtype=np.uint8)
@@ -486,6 +527,10 @@ def main():
                 assert all(-16<=a<b<=32 for a,b in zip(e['from'],e['to']))
                 if 'rotation' in e: assert e['rotation']['angle'] in (-45,-22.5,0,22.5,45)
             (out/(name+'.json')).write_text(json.dumps(data,separators=(',',':')),encoding='utf-8')
+            palette=Image.new('RGBA',(64,64));palette_draw=ImageDraw.Draw(palette)
+            for idx,key in enumerate(KEYS):
+                x,y=(idx%8)*8,(idx//8)*8
+                palette_draw.rectangle((x,y,x+7,y+7),fill=palette_for(tool)[key])
             palette.save(tex/(name+'.png'));print(name,len(data['elements']),'solid parts')
             if args.preview:
                 args.preview_dir.mkdir(parents=True,exist_ok=True)

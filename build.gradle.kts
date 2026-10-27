@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "3.13.0"
+version = "3.15.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -30,4 +30,32 @@ tasks.processResources {
     filesMatching("plugin.yml") {
         expand("version" to project.version)
     }
+}
+
+sourceSets.test {
+    compileClasspath += sourceSets.main.get().compileClasspath
+    runtimeClasspath += sourceSets.main.get().compileClasspath
+}
+
+val verifyLandRules by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.land.LandRulesTest")
+}
+
+tasks.check { dependsOn(verifyLandRules) }
+
+val verifyEnhancementRules by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.tools.UpgradeRulesTest")
+}
+tasks.check { dependsOn(verifyEnhancementRules) }
+
+// Tests use a dependency-free assertion runner via verifyLandRules, rather than JUnit.
+tasks.test { failOnNoDiscoveredTests = false }
+
+// Windows native console encoding may differ from Gradle's UTF-8 output decoder.
+tasks.withType<JavaExec>().configureEach {
+    jvmArgs("-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8")
 }

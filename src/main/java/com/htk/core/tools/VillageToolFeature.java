@@ -40,7 +40,7 @@ import java.util.List;
  *     (리소스팩이 0/5/10/15/20 으로 모델을 골라요, ⚠ tools/build_pack.py 의 TOOL_TIERS 와 약속)
  *   - 인챈트 금지 (tools.yml allow-enchant): 인챈트 테이블·모루·숫돌에 못 올려요
  *   - 관리자: /villagetool give <종류> [단계] [플레이어], /villagetool level <단계> (손에 든 도구)
- * 강화·능력·수리·대장장이 NPC 는 설계가 정해지면 여기에 더해요.
+ * 대장장이·재료 드롭·확률 강화는 BlacksmithFeature가 담당해요. 특수 능력·수리는 아직 없어요.
  * 설정: tools.yml
  */
 public final class VillageToolFeature implements Feature, Listener {

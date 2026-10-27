@@ -21,7 +21,7 @@ import java.util.Map;
  * 집 지도 창 (6줄 상자)
  *   0~4줄 2~6열: 청크 지도 5x5 (한 칸 = 청크 하나, 가운데 = 집터 청크)
  *       지도의 위 = 집터를 놓을 때 바라본 방향 (집 문은 아래쪽을 봐요). 북쪽 고정이 아니에요
- *       내 집 🚪 / 내 땅 🌱 / 넓힐 수 있는 곳 + / 남의 집 = 주인 얼굴 / 공용지(집 구역 밖) = 회색
+ *       내 집 🚪 / 내 땅 🌱 / 해방할 수 있는 곳 + / 남의 집 = 주인 얼굴 / 공용지(집 구역 밖) = 회색
  *       + 를 누르면 창이 닫히고 경계를 보여준 뒤 채팅 버튼으로 확인 (LandFeature.requestExpand)
  *       지금 서 있는 곳: 빈 칸이면 나침반, 무언가 있으면 반짝이 + "(지금 여기)"
  *   5줄: 0열 ◀ 메뉴로, 3열 빚 (보기만, 갚기는 로비의 이장님께), 4열 이웃, 5열 테두리 보기
@@ -34,7 +34,7 @@ final class LandGui extends Gui {
     static final int RANGE = 2, MAP_COL = 2;
 
     private final LandFeature f;
-    private final Map<Integer, long[]> cells = new HashMap<>();   // 칸 → {청크x, 청크z} (넓히기)
+    private final Map<Integer, long[]> cells = new HashMap<>();   // 칸 → {청크x, 청크z} (청크 해방)
 
     LandGui(LandFeature f, Player p) {
         this.f = f;
@@ -50,7 +50,7 @@ final class LandGui extends Gui {
                 : Text.mm("<dark_gray>" + titleText);
         create(6, title);
 
-        // 지도 가운데 = 집터 청크 (넓힐 수 있는 범위가 집터에서 상하좌우 RANGE 칸이라 지도 안에 다 들어와요)
+        // 지도 가운데 = 집터 청크 (해방할 수 있는 범위가 집터에서 상하좌우 RANGE 칸이라 지도 안에 다 들어와요)
         Location here = p.getLocation();
         String world = mine != null ? mine.world : here.getWorld().getName();
         long center = mine != null ? mine.firstChunk() : Land.key(here.getBlockX() >> 4, here.getBlockZ() >> 4);
@@ -69,34 +69,35 @@ final class LandGui extends Gui {
                 ItemStack item = null;
                 if (owner != null && owner == mine) {
                     boolean first = mine.firstChunk() == Land.key(cx, cz);
+                    if (!mine.has(cx, cz)) {
+                        boolean next = f.canExpandTo(mine, cx, cz);
+                        boolean ready = next && mine.debt <= 0 && nextCost >= 0;
+                        String name = ready
+                                ? "<#7acb52><bold>+ 다음 청크 해방</bold> <#ffd34d>(빚 +" + Economy.format(nextCost) + ")"
+                                : next ? "<yellow>다음 해방 청크 <gray>· 현재 빚부터 갚아 주세요"
+                                : "<gray>잠긴 내 부지 <dark_gray>· 앞 청크부터 순서대로 해방해요";
+                        item = Items.of(ready ? Material.LIME_STAINED_GLASS_PANE : Material.YELLOW_STAINED_GLASS_PANE,
+                                1, name, List.of("<gray>2×2 부지로 미리 확보되어 있어요.", "<gray>해방 전에는 주인과 이웃도 건축할 수 없어요."),
+                                pack ? Glyphs.model(ready ? "land_plus" : "land_plus_off") : null);
+                        if (ready) cells.put(slot, new long[]{cx, cz});
+                    } else {
                     item = Items.of(first ? Material.LODESTONE : Material.GRASS_BLOCK, 1,
                             (first ? f.msg("cell-home", "<#7acb52><bold>🏠 내 집</bold>") : f.msg("cell-mine", "<#7acb52>내 땅"))
                                     + (isHere ? f.msg("cell-here-suffix", " <gray>(지금 여기)") : ""),
                             List.of(), first && pack ? Glyphs.model("house_core") : null);
+                    }
                 } else if (owner != null) {
                     item = Items.head(Bukkit.getOfflinePlayer(owner.owner),
                             f.msg("cell-other", "<#e07a6a>%owner%님의 집").replace("%owner%", owner.ownerName),
                             List.of(), null);
-                } else if (mine != null && nextCost >= 0 && f.canExpandTo(mine, cx, cz)) {
-                    if (mine.debt > 0) {
-                        item = Items.of(Material.YELLOW_STAINED_GLASS_PANE, 1,
-                                f.msg("cell-locked", "<gray>빚을 다 갚으면 여기로 넓힐 수 있어요"), List.of(),
-                                pack ? Glyphs.model("land_plus_off") : null);
-                    } else {
-                        item = Items.of(Material.LIME_STAINED_GLASS_PANE, 1,
-                                f.msg("cell-expand", "<#7acb52><bold>+ 여기로 넓히기</bold> <#ffd34d>(빚 +%cost%)")
-                                        .replace("%cost%", Economy.format(nextCost)), List.of(),
-                                pack ? Glyphs.model("land_plus") : null);
-                        cells.put(slot, new long[]{cx, cz});
-                    }
-                } else if (mine != null && !f.inZone(cx, cz)) {
+                } else if (mine != null && (!mine.reserves(cx, cz) || !f.inZone(cx, cz))) {
                     item = Items.of(Material.GRAY_STAINED_GLASS_PANE, 1,
                             f.msg("cell-public", "<gray>공용지 <dark_gray>· 집을 지을 수 없어요"), List.of(), null);
                 }
                 if (item == null && isHere) {
                     item = Items.of(Material.COMPASS, 1, f.msg("cell-here", "<white>📍 지금 여기"), List.of(), null);
                 } else if (item != null && isHere) {
-                    // 내 땅·남의 집·넓힐 곳 위에 서 있으면: 반짝이 + 이름 뒤에 (지금 여기)
+                    // 내 땅·남의 집·해방할 곳 위에 서 있으면: 반짝이 + 이름 뒤에 (지금 여기)
                     Items.glint(item);
                     if (owner == null || owner != mine) {
                         var meta = item.getItemMeta();
