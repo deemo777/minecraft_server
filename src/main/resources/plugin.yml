@@ -7,7 +7,7 @@ description: 서버 전용 기능 모음 (메뉴, 도감, 점프 패드, 도약,
 commands:
   cookienpc:
     description: 무료 얼굴 쿠키 NPC 생성 및 제거
-    usage: /<command> create|remove
+    usage: /<command> create|remove|face
     aliases: [쿠키npc]
     permission: servercore.admin
   blacksmithnpc:

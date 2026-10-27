@@ -22,12 +22,13 @@ import java.util.*;
 /** 무료 얼굴 쿠키와 영구 저장되는 쿠키 NPC. */
 public final class CookieFeature implements Feature, Listener, TabExecutor {
     private final ServerCore plugin;
-    private final NamespacedKey npcKey, cookieKey, visualKey;
+    private final NamespacedKey npcKey, cookieKey, visualKey, yawKey;
     public CookieFeature(ServerCore plugin) {
         this.plugin = plugin;
         npcKey = new NamespacedKey(plugin, "cookie_npc");
         cookieKey = new NamespacedKey(plugin, "deemo_cookie");
         visualKey = new NamespacedKey(plugin, "cookie_chef_visual");
+        yawKey = new NamespacedKey(plugin, "cookie_chef_yaw");
     }
     @Override public void enable() {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -96,13 +97,18 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
             Interaction npc = spawnChef(at);
             p.sendMessage(Text.mm(npc != null ? "<green>deemo777 요리사를 만들었어요. 우클릭하면 쿠키 16개를 받아요." :
                     "<red>NPC 생성이 차단됐어요. 월드 보호 설정을 확인해 주세요."));
-        } else if (args.length == 1 && args[0].equalsIgnoreCase("remove")) {
+        } else if (args.length == 1 && (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("face"))) {
             Entity npc = p.getWorld().getNearbyEntities(p.getLocation(), 5, 5, 5).stream()
                     .filter(this::isNpc).filter(e -> e.getLocation().distanceSquared(p.getLocation()) <= 25)
                     .min(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(p.getLocation()))).orElse(null);
             if (npc == null) p.sendMessage(Text.mm("<red>5블록 안에 쿠키 NPC가 없어요."));
+            else if (args[0].equalsIgnoreCase("face")) {
+                npc.getPersistentDataContainer().set(yawKey, PersistentDataType.FLOAT, p.getLocation().getYaw() + 180f);
+                ensureVisual(npc);
+                p.sendMessage(Text.mm("<green>요리사의 방향을 현재 시선의 반대로 맞췄어요."));
+            }
             else { removeVisual(npc); npc.remove(); p.sendMessage(Text.mm("<green>쿠키 NPC를 제거했어요.")); }
-        } else p.sendMessage(Text.mm("<gray>/cookienpc create | remove"));
+        } else p.sendMessage(Text.mm("<gray>/cookienpc create | remove | face"));
         return true;
     }
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -115,6 +121,7 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
     private Interaction spawnChef(Location at) {
         Interaction root = at.getWorld().spawn(at, Interaction.class, e -> {
             e.getPersistentDataContainer().set(npcKey, PersistentDataType.BYTE, (byte)1);
+            e.getPersistentDataContainer().set(yawKey, PersistentDataType.FLOAT, at.getYaw());
             e.setInteractionWidth(.9f); e.setInteractionHeight(2.25f); e.setResponsive(true);
             e.setPersistent(true); e.setInvulnerable(true); e.setSilent(true);
         });
@@ -128,10 +135,11 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
                 .filter(e -> e instanceof ItemDisplay && id.equals(e.getPersistentDataContainer().get(visualKey, PersistentDataType.STRING)))
                 .map(e -> (ItemDisplay)e).toList();
         if (!found.isEmpty()) {
+            applyFacing(root, found.getFirst());
             for (int i=1;i<found.size();i++) found.get(i).remove();
             return true;
         }
-        Location at = root.getLocation(); at.setYaw(at.getYaw()+180); at.setPitch(0);
+        Location at = root.getLocation(); at.setYaw(0); at.setPitch(0);
         ItemDisplay visual = at.getWorld().spawn(at, ItemDisplay.class, d -> {
             d.getPersistentDataContainer().set(visualKey, PersistentDataType.STRING, id);
             ItemStack model = new ItemStack(Material.PAPER);
@@ -141,7 +149,19 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
             d.setPersistent(true); d.setInvulnerable(true); d.setSilent(true); d.setGravity(false);
             d.setViewRange(1.5f);
         });
+        if (visual.isValid()) applyFacing(root, visual);
         return visual.isValid();
+    }
+    private void applyFacing(Entity root, ItemDisplay visual) {
+        // Interaction의 yaw 대신 PDC 방향과 Display 변환을 사용해 재시작 후에도 유지.
+        float yaw = root.getPersistentDataContainer().getOrDefault(yawKey, PersistentDataType.FLOAT, 0f);
+        Location at = root.getLocation(); at.setYaw(0); at.setPitch(0);
+        visual.teleport(at);
+        visual.setBillboard(Display.Billboard.FIXED);
+        // 모델 정면은 -Z, Bukkit yaw 0은 +Z이며 양의 yaw는 -X를 향한다.
+        visual.setTransformation(new Transformation(new Vector3f(0,.5625f,0),
+                new Quaternionf().rotateY((float)Math.toRadians(180.0-yaw)),
+                new Vector3f(1.125f), new Quaternionf()));
     }
     private void removeVisual(Entity root) {
         String id = root.getUniqueId().toString();
@@ -166,6 +186,6 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
     }
     @Override public List<String> onTabComplete(CommandSender s, Command c, String a, String[] args) {
         return s.hasPermission("servercore.admin") && args.length == 1 ?
-                List.of("create", "remove").stream().filter(v -> v.startsWith(args[0].toLowerCase(Locale.ROOT))).toList() : List.of();
+                List.of("create", "remove", "face").stream().filter(v -> v.startsWith(args[0].toLowerCase(Locale.ROOT))).toList() : List.of();
     }
 }
