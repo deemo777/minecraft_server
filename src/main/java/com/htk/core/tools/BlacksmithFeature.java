@@ -224,7 +224,10 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
     @EventHandler public void onNpcDamage(EntityDamageEvent e) { if (isNpc(e.getEntity())) e.setCancelled(true); }
     @EventHandler public void onNpcTransform(EntityTransformEvent e) { if (isNpc(e.getEntity())) e.setCancelled(true); }
     private void spawn(Player p) {
-        Location at = p.getLocation(); at.setYaw(at.getYaw() + 180);
+        Location at = p.getLocation();
+        at.setX(at.getBlockX() + 0.5);
+        at.setZ(at.getBlockZ() + 0.5);
+        at.setYaw(at.getYaw() + 180);
         Villager v = at.getWorld().spawn(at, Villager.class, npc -> {
             npc.getPersistentDataContainer().set(npcKey, PersistentDataType.BYTE, (byte)1);
             npc.customName(Text.mm("<#ffc773><bold>대장장이")); npc.setCustomNameVisible(true);
