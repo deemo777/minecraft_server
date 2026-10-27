@@ -55,6 +55,8 @@ public final class ServerCore extends JavaPlugin {
             if (getConfig().getBoolean("features.blacksmith", true))
                 features.add(new com.htk.core.tools.BlacksmithFeature(this, tools));
         }
+        if (getConfig().getBoolean("features.cookie", true))
+            features.add(new com.htk.core.cookie.CookieFeature(this));
         SkillFeature skills = null;
         if (getConfig().getBoolean("features.skills", true)) {
             skills = new SkillFeature(this);

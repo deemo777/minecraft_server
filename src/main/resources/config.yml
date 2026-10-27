@@ -3,6 +3,7 @@
 
 # 기능 켜기/끄기 (바꾼 뒤에는 서버 재시작)
 features:
+  cookie: true     # 무료 얼굴 쿠키 NPC
   menu: true
   dogam: true
   jumppad: true   # 점프 패드 (/점프패드 로 아이템 받기)
