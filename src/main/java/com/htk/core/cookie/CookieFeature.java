@@ -45,9 +45,8 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
     public ItemStack cookie() {
         ItemStack item = new ItemStack(Material.COOKIE);
         var meta = item.getItemMeta();
-        meta.displayName(Text.mm("<#eac18b><bold>deemo777 얼굴 쿠키"));
-        meta.lore(List.of(Text.mm("<gray>바삭하게 구운 동그란 얼굴 쿠키"),
-                Text.mm("<#f3d59c>허기 회복 10 · 빵의 2배")));
+        meta.displayName(Text.mm("<#eac18b><bold>광쿠키"));
+        meta.lore(List.of(Text.mm("<gray>바삭하게 구운 광태의 얼굴")));
         meta.getPersistentDataContainer().set(cookieKey, PersistentDataType.BYTE, (byte) 1);
         if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("deemo_cookie"));
         var food = meta.getFood();
@@ -83,7 +82,7 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (p.isOnline()) p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, SoundCategory.PLAYERS, .3f, 1.259921f);
         }, 4L);
-        p.sendActionBar(Text.mm("<#eac18b>얼굴 쿠키 16개를 받았어요!"));
+        p.sendActionBar(Text.mm("<#eac18b>광쿠키 16개를 받았어요!"));
     }
     @EventHandler public void damage(EntityDamageEvent e) { if (isNpc(e.getEntity())) e.setCancelled(true); }
     @EventHandler public void transform(EntityTransformEvent e) { if (isNpc(e.getEntity())) e.setCancelled(true); }
