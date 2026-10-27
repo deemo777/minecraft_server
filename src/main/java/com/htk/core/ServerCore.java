@@ -34,12 +34,7 @@ public final class ServerCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        saveDefaultConfig();
-        saveIfMissing("menu.yml");
-        saveIfMissing("dogam.yml");
-        saveIfMissing("shops.yml");
-        saveIfMissing("skills.yml");
-        saveIfMissing("guide.yml");
+        saveDefaultFiles();
 
         points = new Points(getDataFolder(), getLogger());
         getServer().getPluginManager().registerEvents(new GuiListener(), this);
@@ -54,6 +49,7 @@ public final class ServerCore extends JavaPlugin {
         if (getConfig().getBoolean("features.jumppad", true)) features.add(new JumpPadFeature(this));
         if (getConfig().getBoolean("features.longjump", true)) features.add(new LongJumpFeature(this));
         if (getConfig().getBoolean("features.guide", true)) features.add(new com.htk.core.guide.GuideFeature(this));
+        if (getConfig().getBoolean("features.tools", true)) features.add(new com.htk.core.tools.VillageToolFeature(this));
         SkillFeature skills = null;
         if (getConfig().getBoolean("features.skills", true)) {
             skills = new SkillFeature(this);
@@ -100,6 +96,7 @@ public final class ServerCore extends JavaPlugin {
     }
 
     public void reloadAll() {
+        saveDefaultFiles();          // 지운 설정 파일은 jar 안의 기본 파일로 다시 만들어요
         reloadConfig();
         points.reload();
         for (Feature f : features) f.reload();
@@ -145,6 +142,17 @@ public final class ServerCore extends JavaPlugin {
             return YamlConfiguration.loadConfiguration(r);
         } catch (Exception e) {
             return new YamlConfiguration();
+        }
+    }
+
+    /** 없는 설정 파일만 jar 안의 기본 파일로 만들기 (있는 파일은 건드리지 않아요) */
+    private void saveDefaultFiles() {
+        saveDefaultConfig();
+        for (String f : new String[]{"menu.yml", "dogam.yml", "shops.yml", "skills.yml", "guide.yml", "tools.yml"}) {
+            if (!new File(getDataFolder(), f).exists()) {
+                saveIfMissing(f);
+                getLogger().info(f + " 이(가) 없어서 기본 파일로 만들었어요.");
+            }
         }
     }
 

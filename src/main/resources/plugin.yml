@@ -52,6 +52,11 @@ commands:
     description: 이장님 NPC 세우기/없애기, 첫 대화 되돌리기 (관리자)
     usage: /<command> create | remove | reset <플레이어>
     permission: servercore.admin
+  villagetool:
+    description: 마을 도구 주기 / 강화 단계 바꾸기 (관리자, 모양 확인용)
+    usage: /<command> give <종류> [단계] [플레이어] | level <단계>
+    aliases: [마을도구]
+    permission: servercore.admin
   servercore:
     description: ServerCore 관리 명령어
     usage: /<command> reload | setpoint <이름> | delpoint <이름> | points

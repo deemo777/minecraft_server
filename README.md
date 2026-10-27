@@ -2,7 +2,7 @@
 
 Paper **26.3** / Java 25. 플레이어는 바닐라 클라이언트 + 서버 리소스팩.
 상자 GUI 제목 자리에 리소스팩 배경 그림을 깔아서 꾸미는 방식이라, 다른 화면(Esc 메뉴 등)에는 영향이 없어요.
-지금 버전은 `build.gradle.kts` 의 `version`, 바뀐 내용은 `CHANGELOG.md`.
+지금 할 일·설계 중인 것은 `진행상황.md`. 지금 버전은 `build.gradle.kts` 의 `version`, 바뀐 내용은 `CHANGELOG.md`.
 
 ## 서버 구성 (월드 3개)
 | 월드 | 하는 일 | 난이도 |
@@ -51,6 +51,14 @@ Paper **26.3** / Java 25. 플레이어는 바닐라 클라이언트 + 서버 리
 - 집터는 아무도 못 부수고, 내 땅은 나와 이웃만 만질 수 있어요. 크리퍼·TNT 폭발에서도 보호
 - 땅에 들어가면 화면 아래에 "○○님의 집"
 - 데이터 `lands.yml`, 설정 `config.yml` → `land`
+
+### 마을 도구 (만드는 중 — 설계는 `강화도구_설계.md`)
+- 곡괭이·도끼·괭이·낚싯대·물뿌리개(아이템만, 물 주기 농사는 나중에). 바탕은 다이아 도구라 캐기·내구도는 바닐라 그대로
+- 모양은 테라리아 느낌 픽셀 도구를 입체로 (`tools/make_tool_models.py`). 지금은 곡괭이·도끼·괭이·물뿌리개 +0 (낚싯대는 바닐라 모양)
+- 판타지 이름이 5강마다 바뀜 (곡괭이: 돌울림 → 깊은 메아리 → 드워프의 맥박 → 용암심장 → 별을 캐는 자, 아스트라) + `+7`, 설명에 별(강화 단계 20칸), 인챈트 테이블·모루·숫돌에 못 올림 (`tools.yml` → `allow-enchant`)
+- 모양: 리소스팩 3D 모델 `servercore:village_pickaxe` 등, 강화 단계로 **5강마다** 모양이 바뀜 (모델 파일 자리 `tools/models/`)
+- 지금은 관리자 명령어로만 받아요 (`/villagetool`). 강화·능력·수리·대장장이 NPC 는 아직
+- 설정 `tools.yml`
 
 ### 골드
 - 처음 접속하면 1,000G (`economy.starting-balance`). 잔액은 `money.yml`
@@ -143,6 +151,8 @@ Paper **26.3** / Java 25. 플레이어는 바닐라 클라이언트 + 서버 리
 | `/land admin setdebt <이름> <금액>` | 빚 정하기 |
 | `/도감 reset <플레이어>` | 도감 기록 지우기 |
 | `/점프패드 [개수] [플레이어]` (`/jumppad`) | 점프 패드 아이템 받기 |
+| `/마을도구 give <종류> [단계] [플레이어]` (`/villagetool`) | 마을 도구 주기 (종류: pickaxe axe hoe fishing_rod watering_can 또는 곡괭이 도끼 괭이 낚싯대 물뿌리개) |
+| `/마을도구 level <단계>` | 손에 든 마을 도구의 강화 단계 바꾸기 (모양 확인용) |
 
 ## 처음 서버 세팅 체크리스트
 1. jar 넣기, `plugins/ServerCore/` 의 설정 파일 확인 (아래 설치 순서)
@@ -164,6 +174,8 @@ Paper **26.3** / Java 25. 플레이어는 바닐라 클라이언트 + 서버 리
    python build_pack.py --jar "$env:APPDATA\.minecraft\versions\26.3\26.3.jar" --dogam "서버\plugins\ServerCore\dogam.yml"
    ```
 4. **리소스팩 올리기**: `tools/build/servercore_pack.zip` 업로드 → `server.properties` 의 `resource-pack`, `resource-pack-sha1` 수정 → 재시작
+
+> 설정 파일을 새 기본값으로 바꾸고 싶으면 서버의 `plugins/ServerCore/` 에서 그 파일을 지우고 `/코어 reload` → jar 안의 기본 파일로 다시 만들어져요 (3.12.1 부터)
 
 ### 언제 리소스팩을 다시 만들어야 하나
 - `dogam.yml` 에 **새 아이템 종류**를 추가했을 때 (체크 모델이 아이템별로 들어가요)
@@ -210,6 +222,7 @@ src/main/java/com/htk/core
  ├─ land/    LandFeature, LandStore, LandProtection, LandCommand, LandGui, MembersGui (내 집 땅, lands.yml)
  │           LandZones (집 구역, land-zones.yml), BorderDisplay (빛나는 경계선)
  ├─ mayor/   MayorFeature (이장님 NPC: 첫 대화 → 집터, 빚 갚기 창, 대화창 Dialog)
+ ├─ tools/   VillageToolFeature, ToolType (마을 도구: 아이템·강화 단계·3D 모양·인챈트 금지, tools.yml)
  ├─ hud/     HudFeature (보스바 HUD)
  └─ dogam/  DogamFeature (등록·보상), DogamGui (책 화면), CollectionRegistry, PlayerDataStore, DogamCommand
 
@@ -217,11 +230,71 @@ tools/
  ├─ make_art.py    배경·체크·화살표·막대·숫자 그림 그리기 → art/
  ├─ make_creative_order.py  크리에이티브 인벤토리 순서 뽑기 → src/main/resources/creative_order.txt
  │                          (마인크래프트 업데이트로 순서가 바뀌었을 때만: --jar <버전 jar>, 그다음 플러그인 빌드)
- ├─ build_pack.py  리소스팩 만들기 (폰트, 아이템별 체크 모델, zip, SHA-1)
+ ├─ build_pack.py  리소스팩 만들기 (폰트, 아이템별 체크 모델, 마을 도구 모델, zip, SHA-1)
+ ├─ make_tool_models.py  마을 도구 3D 모델 만들기 (테라리아 느낌 픽셀 → 입체, --preview 로 미리보기) → models/
+ ├─ models/        마을 도구 3D 모델 자리 (<도구>_<단계>.json, textures/) — 규칙은 models/README.md
  └─ art/           그림
 ```
 `dogam/DogamDialog.java`, `menu/QuickActionInstaller.java`, `tools/make_template.py`, `tools/pack_template/` 은
 2.0(대화창 방식)에서 쓰던 것이라 지워도 돼요. (`common/Dialogs.java` 는 3.11 부터 이장님 대화창에서 다시 써요)
+
+## 집터 블록은 어떻게 만들었나
+겉보기엔 "작은 집 모형 블록"이지만, 실제로는 **보이지 않는 방벽 블록 + 그 자리에 띄운 집 모형** 두 개를 합친 것이에요.
+
+### 1. 손에 드는 집터 아이템
+- 바탕 아이템: `config.yml` → `land.core-block` (기본 자석석 `LODESTONE`)
+- 이름 `🏠 집터`, 설명 3줄 (설치하면 내 집 / 우클릭하면 지도 / 마을에서만)
+- 표시: 아이템 데이터에 `servercore:land_core` 를 넣어 집터인지 구분 (이름을 바꿔도 집터로 인식)
+- 리소스팩을 쓰면 아이템 모델 `servercore:house_core` → 가방·손에서도 작은 집으로 보여요. 리소스팩을 안 쓰면 반짝이는 자석석
+
+### 2. 설치할 때 (`LandFeature`)
+1. `onPlaceCoreWrongWorld` (가장 먼저, LOWEST): 마을(`village`)이 아니면 설치 취소 + 안내 → 아이템은 손에 그대로
+2. `onPlaceCore` → `claimWithCore`: 이미 집이 있음 / 남의 땅 / 집 구역 밖(공용지)이면 취소
+3. 통과하면 땅을 만들어 `lands.yml` 에 저장
+   - `core.x / y / z`: 집터 위치, `core.facing`: 놓을 때 바라본 방향 (동서남북 중 하나)
+   - `home`: 집터 바로 위 (집으로 이동 지점), `debt`: 처음 빚 (`land.first-cost`)
+4. 다음 틱에 `placeCoreVisual` 로 모양을 바꿔요 (아래 3)
+5. 빛나는 경계선으로 내 땅 테두리 보여주기
+
+### 3. 땅에 놓인 집터 = 방벽 + 집 모형
+- **블록**: 놓인 자리를 **방벽(barrier)** 으로 바꿔요
+  - 안 보이고, 서바이벌에서 못 부수고, 폭발·피스톤에도 안 움직여서 집터 자리를 지키기 좋아요
+- **모형**: 그 블록 가운데에 **아이템 디스플레이**(엔티티)를 띄우고, `servercore:house_core` 모델을 보여줘요
+  - 모델의 문은 +z(남쪽) 면이에요. 문이 **놓은 사람 쪽**(바라본 방향의 반대)을 보게 Y축으로 돌리고,
+    아이템 디스플레이가 그릴 때 모델을 스스로 180도 돌리는 만큼 반대로 180도 더 돌려 둬요
+  - 디스플레이에도 `servercore:land_core` = 표시 버전(`CORE_DISPLAY_VERSION`, 지금 2)을 넣어 둬요
+- **자동 고치기** `ensureCoreVisual`: 주인이 접속하고 2초 뒤, 또는 집터를 우클릭할 때
+  방벽이 아니거나 / 모형이 없거나 / 모형 버전이 옛날 것이면 다시 놓아요
+  (예전 자석석 집터, 앞뒤가 반대로 놓였던 3.8.0~3.9.1 집터가 이렇게 자동으로 바뀌었어요)
+
+### 4. 설치된 뒤
+| 상황 | 동작 |
+|---|---|
+| 주인이 우클릭 | 집 지도 창 (`onUseCore`) |
+| 다른 사람이 우클릭 | 화면 아래에 "○○님의 집터" |
+| 부수기 | 누구도 못 부숨 (`onBreakCore`), 주인에게는 "포기하려면 /land abandon confirm" |
+| 피스톤 | 밀거나 당기지 못함 (`onPistonCore`) |
+| 폭발 | 땅 보호(`LandProtection`)로 막힘 |
+| `/land abandon confirm` | 방벽·모형을 지우고 땅 삭제, 집터 아이템을 돌려줌, 남은 빚 없어짐 |
+| `/land delete <이름>` (관리자) | 방벽·모형을 지우고 땅 삭제 (아이템은 안 줌) |
+
+- 집 지도의 방향: `core.facing` 이 지도 "위". `Land.mapOffset()` 이 지도 칸 → 실제 청크로 바꿔요 (그래서 집 문은 항상 지도 아래쪽)
+- 지도의 내 집 칸 아이콘도 `house_core` 모델
+
+### 5. 집 모형 그림 (리소스팩)
+- **모델** `tools/build_pack.py` → `house_model()`: 16×16 블록 안에
+  돌 바닥 + 나무 벽 + 앞(+z)에 문 + 앞 양옆·옆면·뒤 창문 + 6층 계단식 빨간 지붕 + 굴뚝
+  - `display`: 가방(gui)·바닥(ground)·손(thirdperson)에서 문이 보이게 각도 조정, `fixed` 는 180도
+- **텍스처** `tools/make_art.py` → `draw_house_textures()`: `house_wall / roof / door / window / base / chimney` (16×16)
+  - `textures/block/` 에 넣어야 해요 (`item/` 에 두면 보라·검정 체크무늬로 보임 — 3.9.x 에서 고친 문제)
+- 모델·텍스처를 바꾸면 리소스팩 다시 만들고 다시 올리기
+
+### 코드 위치
+- `land/LandFeature.java`: `coreItem`, `isCoreItem`, `hasCoreItem`, `giveCore`, `onPlaceCoreWrongWorld`, `onPlaceCore`, `claimWithCore`,
+  `placeCoreVisual`, `ensureCoreVisual`, `removeCoreBlock`, `onUseCore`, `onBreakCore`, `onPistonCore`
+- `land/Land.java`: `hasCore`, `coreX/Y/Z`, `facing`, `isCore()`, `mapOffset()`
+- `land/LandStore.java`: `lands.yml` 의 `core` 저장·읽기
+- `tools/build_pack.py` `house_model()`, `tools/make_art.py` `draw_house_textures()`
 
 ## 리소스팩 약속 (Glyphs.java ↔ build_pack.py ↔ make_art.py)
 | 항목 | 값 |

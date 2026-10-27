@@ -179,6 +179,31 @@ def house_model():
     }
 
 
+# ---------------- 마을 도구 (강화 단계별 3D 모델) ⚠ 플러그인과 약속 ----------------
+# 모델 자리: tools/models/<도구>_<단계>.json, 텍스처: tools/models/textures/*.png (자세한 건 tools/models/README.md)
+#   플러그인: setItemModel("servercore:<도구>") + custom_model_data floats[0] = 강화 단계
+#   없는 단계는 그 아래 단계 모양, +0 도 없으면 바닐라 모양
+MODELS = os.path.join(HERE, "models")
+VILLAGE_TOOLS = {"village_pickaxe": "diamond_pickaxe", "village_axe": "diamond_axe", "village_hoe": "diamond_hoe",
+                 "village_watering_can": "carrot_on_a_stick"}
+TOOL_TIERS = [0, 5, 10, 15, 20]
+
+
+def village_tool_def(jar, tool, vanilla):
+    """도구 하나의 아이템 정의 + 모델이 있는 단계 목록"""
+    have = [t for t in TOOL_TIERS if os.path.exists(os.path.join(MODELS, f"{tool}_{t}.json"))]
+    model = lambda t: {"type": "minecraft:model", "model": f"servercore:item/{tool}_{t}"}
+    v = jar.json(f"assets/minecraft/items/{vanilla}.json")
+    fallback = v["model"] if v and "model" in v else {"type": "minecraft:model", "model": f"minecraft:item/{vanilla}"}
+    if 0 in have:
+        fallback = model(0)
+    entries = [{"threshold": t, "model": model(t)} for t in have if t > 0]
+    if not entries:
+        return item_def(fallback), have
+    return item_def({"type": "minecraft:range_dispatch", "property": "minecraft:custom_model_data", "index": 0,
+                     "fallback": fallback, "entries": entries}), have
+
+
 def generated(texture, extra=None):
     m = {"parent": "minecraft:item/generated", "textures": {"layer0": texture}}
     if extra:
@@ -310,6 +335,20 @@ def main():
     write_json(os.path.join(sc, "models", "item", "house_core.json"), house_model())
     write_json(os.path.join(sc, "items", "house_core.json"),
                item_def({"type": "minecraft:model", "model": "servercore:item/house_core"}))
+
+    # 마을 도구: tools/models 의 모델·텍스처를 넣고, 강화 단계로 모양을 고르는 정의
+    #   텍스처는 집터 모형처럼 textures/block 에 (입체 모델이라서)
+    tex_src = os.path.join(MODELS, "textures")
+    if os.path.isdir(tex_src):
+        for fn in os.listdir(tex_src):
+            if fn.endswith((".png", ".png.mcmeta")):
+                shutil.copy(os.path.join(tex_src, fn), block_tex)
+    for tool, vanilla in VILLAGE_TOOLS.items():
+        d, have = village_tool_def(jar, tool, vanilla)
+        for t in have:
+            shutil.copy(os.path.join(MODELS, f"{tool}_{t}.json"), os.path.join(sc, "models", "item", f"{tool}_{t}.json"))
+        write_json(os.path.join(sc, "items", tool + ".json"), d)
+        print(f"  {tool}: " + (", ".join(f"+{t}" for t in have) + " 모델" if have else "모델 없음 → 바닐라 모양"))
 
     # 이웃 허가: 플레이어 머리 + 체크
     if vhead and "model" in vhead:
