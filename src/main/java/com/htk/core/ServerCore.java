@@ -71,6 +71,11 @@ public final class ServerCore extends JavaPlugin {
             features.add(shop);
             shop.enable();
         }
+        var villageTools=feature(com.htk.core.tools.VillageToolFeature.class);
+        if(economy!=null && villageTools!=null && getConfig().getBoolean("features.weapon-merchant",true)) {
+            var merchant=new com.htk.core.merchant.WeaponMerchantFeature(this,economy.economy(),villageTools);
+            features.add(merchant);merchant.enable();
+        }
         // HUD는 레벨과 골드가 있어야 해요
         if (skills != null && economy != null && getConfig().getBoolean("features.hud", true)) {
             HudFeature hud = new HudFeature(this, skills, economy.economy());
@@ -157,7 +162,7 @@ public final class ServerCore extends JavaPlugin {
     /** 없는 설정 파일만 jar 안의 기본 파일로 만들기 (있는 파일은 건드리지 않아요) */
     private void saveDefaultFiles() {
         saveDefaultConfig();
-        for (String f : new String[]{"menu.yml", "dogam.yml", "shops.yml", "skills.yml", "guide.yml", "tools.yml", "ranking.yml"}) {
+        for (String f : new String[]{"menu.yml", "dogam.yml", "shops.yml", "skills.yml", "guide.yml", "tools.yml", "ranking.yml", "weapon-shop.yml"}) {
             if (!new File(getDataFolder(), f).exists()) {
                 saveIfMissing(f);
                 getLogger().info(f + " 이(가) 없어서 기본 파일로 만들었어요.");

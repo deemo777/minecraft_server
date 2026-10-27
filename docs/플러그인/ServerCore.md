@@ -1,6 +1,6 @@
 # ServerCore 명령어
 
-[전체 문서](../README.md) · **3.20.2 / 2026-10-28**
+[전체 문서](../README.md) · **3.21.0 / 2026-10-28**
 
 관리자는 OP 또는 `servercore.admin` 권한이 필요합니다. `<값>` 필수, `[값]` 생략 가능.
 
@@ -10,6 +10,8 @@
 |---|---|---|---|
 | `/rankboard` | 네 분야 순위 게시판 관리 | 관리자 | `/순위게시판` |
 | `/ranking` | 네 분야 누적 순위 조회 | 일반 | `/순위` |
+| `/weaponmerchantnpc` | 무기 상인 생성·제거·방향 | 관리자 | `/무기상인` |
+| `/weaponshop` | 0강 마을 도구 구매 창 열기 | 관리자 | `/무기상점` |
 | `/cookienpc` | 광쿠키 요리사 생성·제거·방향 | 관리자 | `/쿠키npc` |
 | `/blacksmithnpc` | 대장장이 NPC 생성 및 제거 | 관리자 | `/대장장이` |
 | `/enhance` | 강화 화면 열기 및 전용 재료 지급 (관리자) | 관리자 | `/강화` |
@@ -44,6 +46,8 @@
 | `/enhance material <종류> <1~64> [플레이어]` | 전용 강화 재료 지급 |
 | `/villagetool give <종류> [단계] [플레이어]` | 마을 도구 지급 |
 | `/villagetool level <0~20>` | 손에 든 도구 강화 단계 지정 |
+| `/weaponmerchantnpc create` · `/weaponmerchantnpc remove` · `/weaponmerchantnpc face` | 무기 상인 생성·제거·방향 |
+| `/weaponshop [플레이어]` | 0강 마을 도구 구매 창 열기 |
 | `/cookienpc create` · `/cookienpc remove` · `/cookienpc face` | 요리사 생성·제거·방향 변경 |
 | `/rankboard create <이름> <분야>` | 누적 순위 홀로그램 생성 |
 | `/rankboard remove <이름>` · `/rankboard list` | 게시판 삭제·목록 |
@@ -91,6 +95,7 @@ NPC `remove`·요리사 `face`는 5블록 안의 가장 가까운 대상을 처�
 | `/hud on` · `/hud off` | HUD 표시 |
 | `/hud left [칸]` · `/hud right [칸]` · `/hud pos <숫자>` · `/hud reset` | HUD 위치 |
 | `/ranking <분야>` | 누적 순위 조회 (한글 분야도 가능) |
+| 무기 상인 우클릭 | 골드로 마을 도구 0강 구매 |
 | 요리사 우클릭 | 광쿠키 16개 무료 수령 |
 | 대장장이 우클릭 | 장비와 전용 재료를 넣어 강화 |
 

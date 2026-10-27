@@ -3,6 +3,7 @@
 
 # 기능 켜기/끄기 (바꾼 뒤에는 서버 재시작)
 features:
+  weapon-merchant: true # 마을 도구 0강 판매 NPC (economy·tools 필요)
   ranking: true    # 농사·채광·벌목·낚시 누적 순위 게시판
   cookie: true     # 무료 얼굴 쿠키 NPC
   menu: true

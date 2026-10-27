@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "3.20.2"
+version = "3.21.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -66,3 +66,10 @@ val verifyRankingRules by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.ranking.RankingRulesTest")
 }
 tasks.check { dependsOn(verifyRankingRules) }
+
+val verifyPurchaseRules by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.merchant.PurchaseRulesTest")
+}
+tasks.check { dependsOn(verifyPurchaseRules) }

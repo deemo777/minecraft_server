@@ -414,6 +414,8 @@ def main():
     install_cookie_assets(pack)
     from make_chef_art import install_chef_assets
     install_chef_assets(pack)
+    from make_weapon_merchant_art import install_weapon_merchant_assets
+    install_weapon_merchant_assets(pack)
     zip_path = os.path.join(args.out, "servercore_pack.zip")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
         for root, _dirs, files in os.walk(pack):

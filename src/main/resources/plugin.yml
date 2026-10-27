@@ -5,6 +5,16 @@ api-version: '1.21'
 description: 서버 전용 기능 모음 (메뉴, 도감, 점프 패드, 도약, 골드, 상점, 레벨링·칭호, HUD, 집 땅, 이장님, 안내서)
 
 commands:
+  weaponmerchantnpc:
+    description: 무기 상인 NPC 생성·제거·방향 변경
+    usage: /<command> create|remove|face
+    aliases: [무기상인]
+    permission: servercore.admin
+  weaponshop:
+    description: 0강 마을 도구 구매 창 열기 (관리자)
+    usage: /<command> [플레이어]
+    aliases: [무기상점]
+    permission: servercore.admin
   rankboard:
     description: 누적 순위 홀로그램 게시판 관리
     usage: /<command> create <이름> farming|mining|woodcutting|fishing | remove <이름> | list
