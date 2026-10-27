@@ -10,6 +10,11 @@ import org.bukkit.entity.*;
 import org.bukkit.event.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.util.Transformation;
+import org.joml.Vector3f;
+import org.joml.Quaternionf;
 import org.bukkit.inventory.*;
 import org.bukkit.persistence.PersistentDataType;
 import java.util.*;
@@ -17,16 +22,19 @@ import java.util.*;
 /** 무료 얼굴 쿠키와 영구 저장되는 쿠키 NPC. */
 public final class CookieFeature implements Feature, Listener, TabExecutor {
     private final ServerCore plugin;
-    private final NamespacedKey npcKey, cookieKey;
+    private final NamespacedKey npcKey, cookieKey, visualKey;
     public CookieFeature(ServerCore plugin) {
         this.plugin = plugin;
         npcKey = new NamespacedKey(plugin, "cookie_npc");
         cookieKey = new NamespacedKey(plugin, "deemo_cookie");
+        visualKey = new NamespacedKey(plugin, "cookie_chef_visual");
     }
     @Override public void enable() {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         PluginCommand cmd = plugin.getCommand("cookienpc");
         if (cmd != null) { cmd.setExecutor(this); cmd.setTabCompleter(this); }
+        for (World w : Bukkit.getWorlds())
+            for (Chunk c : w.getLoadedChunks()) repair(c);
     }
     @Override public void reload() { }
     @Override public void disable() { }
@@ -70,7 +78,10 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
         }
         p.getInventory().addItem(item);
         p.setCooldown(item, 10);
-        p.playSound(p.getLocation(), Sound.ENTITY_ITEM_PICKUP, .4f, 1.2f);
+        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, SoundCategory.PLAYERS, .35f, 1.0f);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (p.isOnline()) p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, SoundCategory.PLAYERS, .3f, 1.259921f);
+        }, 4L);
         p.sendActionBar(Text.mm("<#eac18b>얼굴 쿠키 16개를 받았어요!"));
     }
     @EventHandler public void damage(EntityDamageEvent e) { if (isNpc(e.getEntity())) e.setCancelled(true); }
@@ -82,24 +93,76 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
             Location at = p.getLocation();
             at.setX(at.getBlockX() + .5); at.setZ(at.getBlockZ() + .5);
             at.setYaw(at.getYaw() + 180); at.setPitch(0);
-            Villager npc = at.getWorld().spawn(at, Villager.class, v -> {
-                v.getPersistentDataContainer().set(npcKey, PersistentDataType.BYTE, (byte) 1);
-                v.customName(Text.mm("<#eac18b><bold>쿠키 나눔이")); v.setCustomNameVisible(true);
-                v.setAI(false); v.setInvulnerable(true); v.setSilent(true); v.setCollidable(false);
-                v.setPersistent(true); v.setRemoveWhenFarAway(false); v.setAdult(); v.setAgeLock(true);
-                var profession = Registry.VILLAGER_PROFESSION.get(NamespacedKey.minecraft("farmer"));
-                if (profession != null) v.setProfession(profession);
-            });
-            p.sendMessage(Text.mm(npc.isValid() ? "<green>쿠키 NPC를 만들었어요. 우클릭하면 무료 쿠키를 받아요." :
-                    "<red>NPC 생성이 차단됐어요. WorldGuard의 mob-spawning 설정을 확인해 주세요."));
+            Interaction npc = spawnChef(at);
+            p.sendMessage(Text.mm(npc != null ? "<green>deemo777 요리사를 만들었어요. 우클릭하면 쿠키 16개를 받아요." :
+                    "<red>NPC 생성이 차단됐어요. 월드 보호 설정을 확인해 주세요."));
         } else if (args.length == 1 && args[0].equalsIgnoreCase("remove")) {
             Entity npc = p.getWorld().getNearbyEntities(p.getLocation(), 5, 5, 5).stream()
                     .filter(this::isNpc).filter(e -> e.getLocation().distanceSquared(p.getLocation()) <= 25)
                     .min(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(p.getLocation()))).orElse(null);
             if (npc == null) p.sendMessage(Text.mm("<red>5블록 안에 쿠키 NPC가 없어요."));
-            else { npc.remove(); p.sendMessage(Text.mm("<green>쿠키 NPC를 제거했어요.")); }
+            else { removeVisual(npc); npc.remove(); p.sendMessage(Text.mm("<green>쿠키 NPC를 제거했어요.")); }
         } else p.sendMessage(Text.mm("<gray>/cookienpc create | remove"));
         return true;
+    }
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void interactAt(PlayerInteractAtEntityEvent e) { interact(e); }
+
+    @EventHandler public void chunkLoad(ChunkLoadEvent e) {
+        // 청크 로드 완료 후 기존 주민 전환 및 누락된 표시 엔티티 복원.
+        Bukkit.getScheduler().runTask(plugin, () -> { if (e.getChunk().isLoaded()) repair(e.getChunk()); });
+    }
+    private Interaction spawnChef(Location at) {
+        Interaction root = at.getWorld().spawn(at, Interaction.class, e -> {
+            e.getPersistentDataContainer().set(npcKey, PersistentDataType.BYTE, (byte)1);
+            e.setInteractionWidth(.9f); e.setInteractionHeight(2.25f); e.setResponsive(true);
+            e.setPersistent(true); e.setInvulnerable(true); e.setSilent(true);
+        });
+        if (!root.isValid()) return null;
+        if (!ensureVisual(root)) { root.remove(); return null; }
+        return root;
+    }
+    private boolean ensureVisual(Entity root) {
+        String id = root.getUniqueId().toString();
+        List<ItemDisplay> found = root.getWorld().getNearbyEntities(root.getLocation(), 1, 1, 1).stream()
+                .filter(e -> e instanceof ItemDisplay && id.equals(e.getPersistentDataContainer().get(visualKey, PersistentDataType.STRING)))
+                .map(e -> (ItemDisplay)e).toList();
+        if (!found.isEmpty()) {
+            for (int i=1;i<found.size();i++) found.get(i).remove();
+            return true;
+        }
+        Location at = root.getLocation(); at.setYaw(at.getYaw()+180); at.setPitch(0);
+        ItemDisplay visual = at.getWorld().spawn(at, ItemDisplay.class, d -> {
+            d.getPersistentDataContainer().set(visualKey, PersistentDataType.STRING, id);
+            ItemStack model = new ItemStack(Material.PAPER);
+            var meta = model.getItemMeta(); meta.setItemModel(Glyphs.model("deemo_chef")); model.setItemMeta(meta);
+            d.setItemStack(model); d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+            d.setTransformation(new Transformation(new Vector3f(0,.5625f,0), new Quaternionf(), new Vector3f(1.125f), new Quaternionf()));
+            d.setPersistent(true); d.setInvulnerable(true); d.setSilent(true); d.setGravity(false);
+            d.setViewRange(1.5f);
+        });
+        return visual.isValid();
+    }
+    private void removeVisual(Entity root) {
+        String id = root.getUniqueId().toString();
+        for (Entity e : root.getWorld().getNearbyEntities(root.getLocation(),1,1,1))
+            if (id.equals(e.getPersistentDataContainer().get(visualKey,PersistentDataType.STRING))) e.remove();
+    }
+    private void repair(Chunk chunk) {
+        for (Entity e : chunk.getEntities()) {
+            if (isNpc(e)) {
+                if (e instanceof Villager) {
+                    if (spawnChef(e.getLocation()) != null) e.remove();
+                    else { e.setSilent(true); plugin.getLogger().warning("쿠키 요리사 전환이 차단됐습니다: " + e.getUniqueId()); }
+                } else if (e instanceof Interaction) ensureVisual(e);
+            } else if (e instanceof ItemDisplay) {
+                String id=e.getPersistentDataContainer().get(visualKey,PersistentDataType.STRING);
+                if (id != null) {
+                    try { Entity root=Bukkit.getEntity(UUID.fromString(id)); if (root==null || !isNpc(root)) e.remove(); }
+                    catch (IllegalArgumentException ignored) { e.remove(); }
+                }
+            }
+        }
     }
     @Override public List<String> onTabComplete(CommandSender s, Command c, String a, String[] args) {
         return s.hasPermission("servercore.admin") && args.length == 1 ?
