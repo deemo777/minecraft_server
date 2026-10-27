@@ -154,6 +154,9 @@ public final class RankingFeature implements Feature,Listener,TabExecutor {
                     t.setBackgroundColor(Color.fromARGB(160,20,25,32));t.setSeeThrough(false);t.setViewRange(1.5f);
                 });displays.put(b.id(),d);
             }
+            var transform=d.getTransformation();
+            transform.getScale().set(1.3f,1.3f,1.3f);
+            d.setTransformation(transform);
             d.text(content(b.category()));
         }
     }
