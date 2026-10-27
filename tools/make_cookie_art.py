@@ -2,6 +2,7 @@
 from pathlib import Path
 from PIL import Image, ImageDraw
 import json
+import math
 HERE = Path(__file__).resolve().parent
 
 def install_cookie_assets(pack):
@@ -40,16 +41,43 @@ def install_cookie_assets(pack):
             if z0 == 6.5: faces["north"] = {"texture":"#layer0", "uv":[uv[2],uv[1],uv[0],uv[3]]}
             if z1 == 9.5: faces["south"] = {"texture":"#layer0", "uv":uv}
             elements.append({"from":[lo*.4,16-(y+1)*.4,z0],"to":[hi*.4,16-y*.4,z1],"faces":faces})
-    model = {"textures":{"layer0":"servercore:item/deemo_cookie", "charcoal":"servercore:item/cookie_charcoal", "cream":"servercore:item/cookie_cream"},
+    model = {"textures":{"particle":"servercore:item/deemo_cookie", "layer0":"servercore:item/deemo_cookie", "charcoal":"servercore:item/cookie_charcoal", "cream":"servercore:item/cookie_cream"},
         "elements":elements,"gui_light":"front",
         "display":{"gui":{"rotation":[0,0,0],"scale":[1,1,1]},
-        "firstperson_righthand":{"rotation":[0,-25,0],"translation":[0,2,0],"scale":[.65,.65,.65]},
-        "firstperson_lefthand":{"rotation":[0,25,0],"translation":[0,2,0],"scale":[.65,.65,.65]},
-        "thirdperson_righthand":{"rotation":[0,0,0],"translation":[0,3,1],"scale":[.5,.5,.5]},
-        "thirdperson_lefthand":{"rotation":[0,0,0],"translation":[0,3,1],"scale":[.5,.5,.5]},
-        "ground":{"translation":[0,2,0],"scale":[.5,.5,.5]},"fixed":{"scale":[1,1,1]}}}
+        "firstperson_righthand":{"rotation":[0,-8,-5],"translation":[0,5,-1],"scale":[.38,.38,.38]},
+        "firstperson_lefthand":{"rotation":[0,-8,-5],"translation":[0,5,-1],"scale":[.38,.38,.38]},
+        "thirdperson_righthand":{"rotation":[0,0,0],"translation":[0,3,1],"scale":[.34,.34,.34]},
+        "thirdperson_lefthand":{"rotation":[0,0,0],"translation":[0,3,1],"scale":[.34,.34,.34]},
+        "ground":{"translation":[0,2,0],"scale":[.34,.34,.34]},"fixed":{"scale":[1,1,1]}}}
     (dest/"models/item/deemo_cookie.json").write_text(json.dumps(model,indent=2),encoding="utf-8")
-    item = {"model":{"type":"minecraft:model","model":"servercore:item/deemo_cookie"}}
+    # 바닐라 먹기 회전 Ry(90f) Rx(10f) Rz(30f)을 모델에서 역보정.
+    # 행렬을 XYZ 각도로 변환하고 0.5틱 간격으로 시작 회전도 완화.
+    def matmul(a,b):
+        return [[sum(a[i][k]*b[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
+    def rotate(axis,degrees):
+        a=math.radians(degrees);c=math.cos(a);v=math.sin(a)
+        return ([[1,0,0],[0,c,-v],[0,v,c]] if axis=="x" else
+                [[c,0,v],[0,1,0],[-v,0,c]] if axis=="y" else
+                [[c,-v,0],[v,c,0],[0,0,1]])
+    entries=[]
+    for step in range(17):
+        ticks=step*.5
+        f=1-((32-ticks)/32)**27
+        inverse=matmul(matmul(rotate("z",-30*f),rotate("x",-10*f)),rotate("y",-90*f))
+        rotation=matmul(inverse,matmul(rotate("y",-8),rotate("z",-5)))
+        y=math.asin(max(-1,min(1,rotation[0][2])))
+        x=math.atan2(-rotation[1][2],rotation[2][2])
+        z=math.atan2(-rotation[0][1],rotation[0][0])
+        angles=[round(math.degrees(v),6) for v in [x,y,z]]
+        name=f"deemo_cookie_eating_{step}"
+        transform={"rotation":angles,"translation":[0,4,-1],"scale":[.38,.38,.38]}
+        eating={"parent":"servercore:item/deemo_cookie", "display":{
+            "firstperson_righthand":transform,"firstperson_lefthand":transform}}
+        (dest/f"models/item/{name}.json").write_text(json.dumps(eating,indent=2),encoding="utf-8")
+        entries.append({"threshold":ticks,"model":{"type":"minecraft:model","model":f"servercore:item/{name}"}})
+    normal={"type":"minecraft:model","model":"servercore:item/deemo_cookie"}
+    item={"model":{"type":"minecraft:condition","property":"minecraft:using_item","on_false":normal,
+        "on_true":{"type":"minecraft:range_dispatch","property":"minecraft:use_duration","entries":entries,"fallback":normal}}}
     (dest/"items/deemo_cookie.json").write_text(json.dumps(item,indent=2),encoding="utf-8")
     return im
 
