@@ -161,7 +161,7 @@ public final class WeaponMerchantFeature implements Feature,Listener,TabExecutor
         visual.setBillboard(Display.Billboard.FIXED);
         // 모델 정면은 -Z, Bukkit yaw 0은 +Z이며 양의 yaw는 -X를 향한다.
         visual.setTransformation(new Transformation(new Vector3f(0,.5625f,0),
-                new Quaternionf().rotateY((float)Math.toRadians(180.0-yaw)),
+                com.htk.core.npc.NpcFacing.rotation(yaw),
                 new Vector3f(1.125f), new Quaternionf()));
     }
     private void removeVisual(Entity root) {

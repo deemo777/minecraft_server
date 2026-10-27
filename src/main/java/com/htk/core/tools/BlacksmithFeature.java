@@ -44,6 +44,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
     int maxLevel() { return Math.min(UpgradeRules.MAX_LEVEL, tools.maxLevel()); }
     @Override public void enable() {
         reload(); accepting = true;
+        plugin.npcModels().registerLegacy(e -> isNpc(e)?"blacksmith":null);
         Bukkit.getPluginManager().registerEvents(this, plugin);
         for (String cmd : List.of("blacksmithnpc", "enhance")) {
             PluginCommand c = plugin.getCommand(cmd);
@@ -215,6 +216,9 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         e.getEntity().closeInventory();
     }
 
+    @EventHandler(priority=EventPriority.HIGHEST)
+    public void onModelInteractAt(org.bukkit.event.player.PlayerInteractAtEntityEvent e) { onNpc(e); }
+
     private boolean isNpc(Entity entity) { return entity.getPersistentDataContainer().has(npcKey, PersistentDataType.BYTE); }
     @EventHandler(priority = EventPriority.HIGHEST) public void onNpc(PlayerInteractEntityEvent e) {
         if (!isNpc(e.getRightClicked())) return;
@@ -228,16 +232,10 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         at.setX(at.getBlockX() + 0.5);
         at.setZ(at.getBlockZ() + 0.5);
         at.setYaw(at.getYaw() + 180);
-        Villager v = at.getWorld().spawn(at, Villager.class, npc -> {
-            npc.getPersistentDataContainer().set(npcKey, PersistentDataType.BYTE, (byte)1);
-            npc.customName(Text.mm("<#ffc773><bold>대장장이")); npc.setCustomNameVisible(true);
-            npc.setAI(false); npc.setInvulnerable(true); npc.setSilent(true); npc.setCollidable(false);
-            npc.setPersistent(true); npc.setRemoveWhenFarAway(false);
-            var profession = Registry.VILLAGER_PROFESSION.get(NamespacedKey.minecraft("weaponsmith"));
-            if (profession != null) npc.setProfession(profession);
-            npc.setVillagerLevel(5);
+        Interaction v = plugin.npcModels().spawn(at,"blacksmith",npc -> {
+            npc.getPersistentDataContainer().set(npcKey,PersistentDataType.BYTE,(byte)1);
         });
-        if (!v.isValid()) p.sendMessage(Text.mm("<red>NPC 생성이 차단됐어요. WorldGuard의 mob-spawning 설정을 확인해 주세요."));
+        if (v == null) p.sendMessage(Text.mm("<red>NPC 생성이 차단됐어요. WorldGuard의 mob-spawning 설정을 확인해 주세요."));
         else p.sendMessage(Text.mm("<green>대장장이를 세웠어요. 우클릭하면 강화 창이 열려요."));
     }
 
@@ -261,18 +259,19 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         }
         if (!(sender instanceof Player p)) { sender.sendMessage("게임 안에서 사용해 주세요."); return true; }
         if (args.length == 1 && args[0].equalsIgnoreCase("create")) spawn(p);
-        else if (args.length == 1 && args[0].equalsIgnoreCase("remove")) {
+        else if (args.length == 1 && (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("face"))) {
             Entity nearest = p.getNearbyEntities(5,5,5).stream().filter(this::isNpc)
                     .filter(e -> e.getLocation().distanceSquared(p.getLocation()) <= 25)
                     .min(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(p.getLocation()))).orElse(null);
             if (nearest == null) p.sendMessage(Text.mm("<red>5블록 안에 대장장이가 없어요."));
-            else { nearest.remove(); p.sendMessage(Text.mm("<green>대장장이를 없앴어요.")); }
-        } else sender.sendMessage(Text.mm("<gray>/blacksmithnpc create | remove"));
+            else if(args[0].equalsIgnoreCase("face")){plugin.npcModels().face(nearest,p.getLocation().getYaw()+180);p.sendMessage(Text.mm("<green>대장장이 방향을 맞췄어요."));}
+            else { plugin.npcModels().remove(nearest); p.sendMessage(Text.mm("<green>대장장이를 없앴어요.")); }
+        } else sender.sendMessage(Text.mm("<gray>/blacksmithnpc create | remove | face"));
         return true;
     }
     @Override public List<String> onTabComplete(CommandSender s, Command c, String alias, String[] args) {
         if (!s.hasPermission("servercore.admin")) return List.of();
-        if (c.getName().equals("blacksmithnpc") && args.length == 1) return List.of("create","remove");
+        if (c.getName().equals("blacksmithnpc") && args.length == 1) return List.of("create","remove","face");
         if (c.getName().equals("enhance") && args.length == 1) return List.of("material");
         if (args.length == 2 && args[0].equalsIgnoreCase("material")) return Arrays.stream(ToolType.values()).map(t -> t.id).toList();
         return List.of();

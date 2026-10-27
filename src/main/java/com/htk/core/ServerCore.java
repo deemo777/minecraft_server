@@ -31,10 +31,13 @@ public final class ServerCore extends JavaPlugin {
 
     private final List<Feature> features = new ArrayList<>();
     private Points points;
+    private com.htk.core.npc.NpcModelService npcModels;
+    public com.htk.core.npc.NpcModelService npcModels() { return npcModels; }
 
     @Override
     public void onEnable() {
         saveDefaultFiles();
+        npcModels=new com.htk.core.npc.NpcModelService(this);
 
         points = new Points(getDataFolder(), getLogger());
         getServer().getPluginManager().registerEvents(new GuiListener(), this);

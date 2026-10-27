@@ -68,6 +68,7 @@ public final class MayorFeature implements Feature, Listener {
     @Override
     public void enable() {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        plugin.npcModels().registerLegacy(e -> isMayor(e)?"mayor":null);
         PluginCommand cmd = plugin.getCommand("mayornpc");
         if (cmd != null) {
             NpcCommand c = new NpcCommand();
@@ -160,7 +161,7 @@ public final class MayorFeature implements Feature, Listener {
                 .replace("%page%", String.valueOf(page + 1)).replace("%pages%", String.valueOf(pages.size()));
         p.showDialog(dialog(Text.mm(s("title", "<#6b4226>이장님") + " " + counter), pages.get(page),
                 List.of(next), later, 1));
-        if (page == 0) p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 0.8f, 1f);
+        if (page == 0) p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 0.3f, 1f);
     }
 
     private void finishIntro(Player p) {
@@ -245,6 +246,9 @@ public final class MayorFeature implements Feature, Listener {
 
     // ---------------- NPC ----------------
 
+    @EventHandler(priority=EventPriority.HIGHEST)
+    public void onModelInteractAt(org.bukkit.event.player.PlayerInteractAtEntityEvent e) { onClick(e); }
+
     private boolean isMayor(Entity e) {
         return e.getPersistentDataContainer().has(npcKey, PersistentDataType.BYTE);
     }
@@ -278,20 +282,9 @@ public final class MayorFeature implements Feature, Listener {
         }, 60L);
     }
 
-    private Villager spawnNpc(Location loc) {
-        return loc.getWorld().spawn(loc, Villager.class, v -> {
-            v.getPersistentDataContainer().set(npcKey, PersistentDataType.BYTE, (byte) 1);
-            v.customName(Text.mm(s("npc-name", "<#f3c060><bold>이장님")));
-            v.setCustomNameVisible(true);
-            v.setAI(false);
-            v.setInvulnerable(true);
-            v.setSilent(true);
-            v.setCollidable(false);
-            v.setPersistent(true);
-            v.setRemoveWhenFarAway(false);
-            var prof = Registry.VILLAGER_PROFESSION.get(NamespacedKey.minecraft(s("npc-profession", "cartographer").toLowerCase()));
-            if (prof != null) v.setProfession(prof);
-            v.setVillagerLevel(5);
+    private org.bukkit.entity.Interaction spawnNpc(Location loc) {
+        return plugin.npcModels().spawn(loc,"mayor",v -> {
+            v.getPersistentDataContainer().set(npcKey,PersistentDataType.BYTE,(byte)1);
         });
     }
 
@@ -322,11 +315,11 @@ public final class MayorFeature implements Feature, Listener {
                 Location at = p.getLocation().getBlock().getLocation().add(0.5, 0, 0.5);
                 at.setYaw(p.getLocation().getYaw() + 180f);
                 at.setPitch(0f);
-                spawnNpc(at);
+                if(spawnNpc(at)==null){p.sendMessage(Text.mm("<red>NPC 생성이 차단됐어요. 월드 보호 설정을 확인하세요."));return true;}
                 p.sendMessage(Text.mm("<green>이장님을 세웠어요."));
                 return true;
             }
-            if (sub.equals("remove")) {
+            if (sub.equals("remove") || sub.equals("face")) {
                 Entity nearest = null;
                 double best = 25;
                 for (Entity e : p.getNearbyEntities(5, 5, 5)) {
@@ -341,18 +334,19 @@ public final class MayorFeature implements Feature, Listener {
                     p.sendMessage(Text.mm("<red>5칸 안에 이장님이 없어요."));
                     return true;
                 }
-                nearest.remove();
+                if(sub.equals("face")){plugin.npcModels().face(nearest,p.getLocation().getYaw()+180);p.sendMessage(Text.mm("<green>이장님 방향을 맞췄어요."));return true;}
+                plugin.npcModels().remove(nearest);
                 p.sendMessage(Text.mm("<green>이장님을 없앴어요."));
                 return true;
             }
-            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create | remove | reset <플레이어>"));
+            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create | remove | face | reset <플레이어>"));
             return true;
         }
 
         @Override
         public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
             if (!sender.hasPermission("servercore.admin")) return List.of();
-            if (args.length == 1) return List.of("create", "remove", "reset");
+            if (args.length == 1) return List.of("create", "remove", "face", "reset");
             if (args.length == 2 && args[0].equalsIgnoreCase("reset")) {
                 List<String> names = new ArrayList<>();
                 for (Player pl : Bukkit.getOnlinePlayers()) names.add(pl.getName());

@@ -63,6 +63,7 @@ public final class ShopFeature implements Feature, Listener {
     @Override
     public void enable() {
         loadConfig();
+        plugin.npcModels().registerLegacy(e -> { String id=npcShop(e);return id==null?null:role(id); });
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         PluginCommand shopCmd = plugin.getCommand("shop");
         if (shopCmd != null) {
@@ -270,6 +271,9 @@ public final class ShopFeature implements Feature, Listener {
 
     // ---------------- NPC ----------------
 
+    @EventHandler(priority=EventPriority.HIGHEST)
+    public void onModelInteractAt(org.bukkit.event.player.PlayerInteractAtEntityEvent e) { onNpcClick(e); }
+
     private String npcShop(Entity e) {
         return e.getPersistentDataContainer().get(npcKey, PersistentDataType.STRING);
     }
@@ -299,20 +303,12 @@ public final class ShopFeature implements Feature, Listener {
         if (npcShop(e.getEntity()) != null) e.setCancelled(true);
     }
 
-    private Villager spawnNpc(Location loc, ShopConfig.Shop shop) {
-        return loc.getWorld().spawn(loc, Villager.class, v -> {
-            v.getPersistentDataContainer().set(npcKey, PersistentDataType.STRING, shop.id());
-            v.customName(Text.mm(shop.npcName()));
-            v.setCustomNameVisible(true);
-            v.setAI(false);
-            v.setInvulnerable(true);
-            v.setSilent(true);
-            v.setCollidable(false);
-            v.setPersistent(true);
-            v.setRemoveWhenFarAway(false);
-            var prof = Registry.VILLAGER_PROFESSION.get(NamespacedKey.minecraft(shop.npcProfession().toLowerCase()));
-            if (prof != null) v.setProfession(prof);
-            v.setVillagerLevel(5);
+    private String role(String id) {
+        return switch(id) { case "fish" -> "fish";case "crops" -> "crops";case "ores" -> "ores";default -> "merchant"; };
+    }
+    private org.bukkit.entity.Interaction spawnNpc(Location loc,ShopConfig.Shop shop) {
+        return plugin.npcModels().spawn(loc,role(shop.id()),v -> {
+            v.getPersistentDataContainer().set(npcKey,PersistentDataType.STRING,shop.id());
         });
     }
 
@@ -371,11 +367,11 @@ public final class ShopFeature implements Feature, Listener {
                 Location at = p.getLocation().getBlock().getLocation().add(0.5, 0, 0.5);
                 at.setYaw(p.getLocation().getYaw() + 180f);
                 at.setPitch(0f);
-                spawnNpc(at, shop);
+                if(spawnNpc(at,shop)==null){p.sendMessage(Text.mm("<red>NPC 생성이 차단됐어요. 월드 보호 설정을 확인하세요."));return true;}
                 p.sendMessage(Text.mm("<green>상점 주인을 세웠어요: <white>" + shop.id()));
                 return true;
             }
-            if (args.length >= 1 && args[0].equalsIgnoreCase("remove")) {
+            if (args.length >= 1 && (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("face"))) {
                 Entity nearest = null;
                 double best = 25;   // 5칸
                 for (Entity e : p.getNearbyEntities(5, 5, 5)) {
@@ -391,17 +387,18 @@ public final class ShopFeature implements Feature, Listener {
                     return true;
                 }
                 String id = npcShop(nearest);
-                nearest.remove();
+                if(args[0].equalsIgnoreCase("face")){plugin.npcModels().face(nearest,p.getLocation().getYaw()+180);p.sendMessage(Text.mm("<green>상인 방향을 맞췄어요."));return true;}
+                plugin.npcModels().remove(nearest);
                 p.sendMessage(Text.mm("<green>상점 주인을 없앴어요: <white>" + id));
                 return true;
             }
-            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create <상점> | remove  <dark_gray>상점: " + String.join(", ", config.ids())));
+            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create <상점> | remove | face  <dark_gray>상점: " + String.join(", ", config.ids())));
             return true;
         }
 
         @Override
         public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-            if (args.length == 1) return List.of("create", "remove");
+            if (args.length == 1) return List.of("create", "remove", "face");
             if (args.length == 2 && args[0].equalsIgnoreCase("create")) return config.ids();
             return new ArrayList<>();
         }

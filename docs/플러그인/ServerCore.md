@@ -1,6 +1,6 @@
 # ServerCore 명령어
 
-[전체 문서](../README.md) · **3.21.0 / 2026-10-28**
+[전체 문서](../README.md) · **3.22.0 / 2026-10-28**
 
 관리자는 OP 또는 `servercore.admin` 권한이 필요합니다. `<값>` 필수, `[값]` 생략 가능.
 
@@ -37,11 +37,11 @@
 | `/servercore reload` | 켜진 기능의 설정 다시 읽기 |
 | `/servercore setpoint <이름>` | 현재 자리를 메뉴 이동 지점으로 저장 |
 | `/servercore delpoint <이름>` · `/servercore points` | 이동 지점 삭제·목록 |
-| `/mayornpc create` · `/mayornpc remove` | 이장 생성·제거 |
+| `/mayornpc create` · `/mayornpc remove` · `/mayornpc face` | 이장 생성·제거 |
 | `/mayornpc reset <플레이어>` | 이장 첫 대화 초기화 |
-| `/shopnpc create <상점>` · `/shopnpc remove` | 상점 NPC 생성·제거 (기본: fish, crops, ores) |
+| `/shopnpc create <상점>` · `/shopnpc remove` · `/shopnpc face` | 상점 NPC 생성·제거 (기본: fish, crops, ores) |
 | `/shop <상점> [플레이어]` | 상점 창 열기 |
-| `/blacksmithnpc create` · `/blacksmithnpc remove` | 대장장이 생성·제거 |
+| `/blacksmithnpc create` · `/blacksmithnpc remove` · `/blacksmithnpc face` | 대장장이 생성·제거 |
 | `/enhance [플레이어]` | 강화 창 열기 |
 | `/enhance material <종류> <1~64> [플레이어]` | 전용 강화 재료 지급 |
 | `/villagetool give <종류> [단계] [플레이어]` | 마을 도구 지급 |
@@ -100,3 +100,5 @@ NPC `remove`·요리사 `face`는 5블록 안의 가장 가까운 대상을 처�
 | 대장장이 우클릭 | 장비와 전용 재료를 넣어 강화 |
 
 새 JAR 또는 기능 켜기/끄기는 **재시작**이 필요합니다. 기존 아이템의 이름·설명은 새 JAR만으로 자동 변경되지 않습니다.
+
+[NPC 7종 외형·기존 주민 전환 안내](../기능/NPC디자인.md)

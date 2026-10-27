@@ -31,7 +31,7 @@ commands:
     permission: servercore.admin
   blacksmithnpc:
     description: 대장장이 NPC 생성 및 제거
-    usage: /<command> create|remove
+    usage: /<command> create|remove|face
     aliases: [대장장이]
     permission: servercore.admin
   enhance:
@@ -57,7 +57,7 @@ commands:
     permission: servercore.admin
   shopnpc:
     description: 상점 주인 NPC 세우기/없애기 (관리자)
-    usage: /<command> create <상점> | remove
+    usage: /<command> create <상점> | remove | face
     permission: servercore.admin
   skill:
     description: 스킬 창 열기 / 레벨 설정 (관리자)
@@ -84,7 +84,7 @@ commands:
     permission: servercore.admin
   mayornpc:
     description: 이장님 NPC 세우기/없애기, 첫 대화 되돌리기 (관리자)
-    usage: /<command> create | remove | reset <플레이어>
+    usage: /<command> create | remove | face | reset <플레이어>
     permission: servercore.admin
   villagetool:
     description: 마을 도구 주기 / 강화 단계 바꾸기 (관리자, 모양 확인용)
