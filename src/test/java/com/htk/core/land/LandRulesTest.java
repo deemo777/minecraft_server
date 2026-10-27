@@ -35,6 +35,19 @@ public final class LandRulesTest {
             check(candidate.iterator().next() == core && candidate.size() == 4,
                     "legacy migration keeps the core first for each corner");
         }
+        for (int x : new int[]{-17,-1,0,15}) for (int z : new int[]{-17,-1,0,15}) {
+            Set<Set<Long>> variants=new HashSet<>();
+            for (int corner=0;corner<4;corner++) {
+                var selected=LandLayout.fromCorner(x,z,corner);
+                check(LandLayout.isSquare(selected) && selected.iterator().next()==LandLayout.key(x,z), "selected corner keeps core first in a square");
+                int ax=selected.stream().mapToInt(LandLayout::x).min().orElseThrow();
+                int az=selected.stream().mapToInt(LandLayout::z).min().orElseThrow();
+                check(x-ax==((corner==1||corner==2)?1:0) && z-az==((corner==2||corner==3)?1:0), "selected corner matches world axes");
+                variants.add(selected);
+            }
+            check(variants.size()==4,"four distinct selectable footprints");
+            check(LandLayout.fromCorner(x,z,4).equals(LandLayout.fromCorner(x,z,0)),"corner selection wraps");
+        }
         Set<Long> irregular = new HashSet<>(plot);
         irregular.remove(LandLayout.key(1, 1));
         irregular.add(LandLayout.key(2, 0));

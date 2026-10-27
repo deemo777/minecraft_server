@@ -20,6 +20,14 @@ final class LandLayout {
         return result;
     }
 
+    /** 0=북서, 1=북동, 2=남동, 3=남서에 집터 청크를 둔다. */
+    static LinkedHashSet<Long> fromCorner(int coreX, int coreZ, int corner) {
+        int c = Math.floorMod(corner, 4);
+        int anchorX = coreX - ((c == 1 || c == 2) ? 1 : 0);
+        int anchorZ = coreZ - ((c == 2 || c == 3) ? 1 : 0);
+        return square(anchorX, anchorZ, key(coreX, coreZ));
+    }
+
     static boolean isSquare(Set<Long> plot) {
         if (plot.size() != 4) return false;
         int minX = plot.stream().mapToInt(LandLayout::x).min().orElseThrow();

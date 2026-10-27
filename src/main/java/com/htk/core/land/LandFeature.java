@@ -65,6 +65,7 @@ public final class LandFeature implements Feature, Listener {
     private final Map<UUID, Land> lastShown = new HashMap<>();
     private final LandZones zones;
     private final BorderDisplay border;
+    private final LandPlacementPreview placement;
 
     // 설정
     /** 집을 지을 수 있는 월드: 마을(village) 하나로 고정 */
@@ -86,6 +87,7 @@ public final class LandFeature implements Feature, Listener {
         this.store = new LandStore(plugin.getDataFolder(), plugin.getLogger());
         this.zones = new LandZones(plugin.getDataFolder(), plugin.getLogger());
         this.border = new BorderDisplay(plugin);
+        this.placement = new LandPlacementPreview(plugin,this);
         this.coreKey = new NamespacedKey(plugin, "land_core");
         this.kitKey = new NamespacedKey(plugin, "land_kit_given");
     }
@@ -94,6 +96,7 @@ public final class LandFeature implements Feature, Listener {
     public void enable() {
         loadConfig();
         migrateFixedPlots();
+        placement.start();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getServer().getPluginManager().registerEvents(new LandProtection(this), plugin);
         PluginCommand cmd = plugin.getCommand("land");
@@ -111,6 +114,7 @@ public final class LandFeature implements Feature, Listener {
 
     @Override
     public void disable() {
+        placement.stop();
         border.clearAll();
         store.save();
     }
@@ -272,7 +276,7 @@ public final class LandFeature implements Feature, Listener {
         }
         int cx = core.getX() >> 4, cz = core.getZ() >> 4;
         long coreChunk = Land.key(cx, cz);
-        var footprint = LandLayout.square(cx, cz, coreChunk);
+        var footprint = placement.footprint(p, cx, cz);
         for (long chunk : footprint) {
             if (!zones.allows(Land.cx(chunk), Land.cz(chunk))) {
                 send(p, "plot-outside-zone", "<red>2×2 집 부지 전체가 집 구역 안에 들어와야 해요.");
@@ -592,6 +596,16 @@ public final class LandFeature implements Feature, Listener {
         if (!claimWithCore(e.getPlayer(), e.getBlockPlaced())) e.setCancelled(true);
     }
 
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onChooseCoreCorner(PlayerInteractEvent e) {
+        if (e.getHand()!=EquipmentSlot.HAND || !e.getPlayer().isSneaking() || !isCoreItem(e.getItem())) return;
+        if (e.getAction()!=Action.RIGHT_CLICK_AIR && e.getAction()!=Action.RIGHT_CLICK_BLOCK) return;
+        e.setCancelled(true);
+        e.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
+        e.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
+        placement.cycle(e.getPlayer());
+    }
+
     /** 집터 우클릭 = 집 지도 (주인), 다른 사람은 누구 집인지만 */
     @EventHandler(priority = EventPriority.LOWEST)
     public void onUseCore(PlayerInteractEvent e) {
@@ -883,6 +897,7 @@ public final class LandFeature implements Feature, Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
+        placement.quit(e.getPlayer());
         lastShown.remove(e.getPlayer().getUniqueId());
         cancelPending(e.getPlayer(), false);
         border.clear(e.getPlayer());
