@@ -8,3 +8,9 @@
 - Keep generated build directories and release binaries out of source commits. Build with Java 25, run Gradle build (including verifyLandRules and verifyEnhancementRules), and validate changed resource-pack JSON/PNG/font references as appropriate.
 - Update the relevant docs and changelog with behavior changes. Report the pushed branch and commit, check results, and whether deployment/live-game validation remains outstanding.
 - A push authorizes source publication only. Do not change the running OCI server, worlds, credentials, GitHub release assets or hosting without task-specific authorization.
+
+# Resource-pack release updates
+
+- The user explicitly authorized ongoing updates of `servercore_pack.zip` on GitHub release tag `servercore` in `deemo777/minecraft_server`. After resource-pack changes, build and validate the full pack, replace that release asset, verify the downloadable ZIP against the local build, and report the current SHA-1 for server.properties. Do not ask for ordinary replacement approval again.
+- This authorization covers the full resource-pack ZIP only; other release assets and live OCI settings still require task-specific authorization. Keep unrelated release files and release notes intact.
+- Prefer uploading a temporary asset and verifying it before replacing the existing asset, to preserve the working download if upload fails. Never claim a release is updated if authentication or upload fails.
