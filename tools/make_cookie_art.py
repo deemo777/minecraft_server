@@ -44,8 +44,8 @@ def install_cookie_assets(pack):
     model = {"textures":{"particle":"servercore:item/deemo_cookie", "layer0":"servercore:item/deemo_cookie", "charcoal":"servercore:item/cookie_charcoal", "cream":"servercore:item/cookie_cream"},
         "elements":elements,"gui_light":"front",
         "display":{"gui":{"rotation":[0,0,0],"scale":[1,1,1]},
-        "firstperson_righthand":{"rotation":[0,-8,-5],"translation":[0,5,-1],"scale":[.38,.38,.38]},
-        "firstperson_lefthand":{"rotation":[0,-8,-5],"translation":[0,5,-1],"scale":[.38,.38,.38]},
+        "firstperson_righthand":{"rotation":[0,-8,-5],"translation":[1.2,1.8,-1],"scale":[.38,.38,.38]},
+        "firstperson_lefthand":{"rotation":[0,-8,-5],"translation":[1.2,1.8,-1],"scale":[.38,.38,.38]},
         "thirdperson_righthand":{"rotation":[0,0,0],"translation":[0,3,1],"scale":[.34,.34,.34]},
         "thirdperson_lefthand":{"rotation":[0,0,0],"translation":[0,3,1],"scale":[.34,.34,.34]},
         "ground":{"translation":[0,2,0],"scale":[.34,.34,.34]},"fixed":{"scale":[1,1,1]}}}
@@ -70,7 +70,13 @@ def install_cookie_assets(pack):
         z=math.atan2(-rotation[0][1],rotation[0][0])
         angles=[round(math.degrees(v),6) for v in [x,y,z]]
         name=f"deemo_cookie_eating_{step}"
-        transform={"rotation":angles,"translation":[0,4,-1],"scale":[.38,.38,.38]}
+        # 먹기 회전 이후 화면 오른쪽으로 이동하도록 역회전 좌표로 보정.
+        # 첫 프레임은 평소 위치에서 시작해 자연스럽게 수령 위치로 이어진다.
+        right_shift=1.2+3.3*f
+        translation=[round(inverse[0][0]*right_shift,6),
+                     round(1.8+2.2*f+inverse[1][0]*right_shift,6),
+                     round(-1+inverse[2][0]*right_shift,6)]
+        transform={"rotation":angles,"translation":translation,"scale":[.38,.38,.38]}
         eating={"parent":"servercore:item/deemo_cookie", "display":{
             "firstperson_righthand":transform,"firstperson_lefthand":transform}}
         (dest/f"models/item/{name}.json").write_text(json.dumps(eating,indent=2),encoding="utf-8")
