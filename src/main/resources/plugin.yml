@@ -5,6 +5,15 @@ api-version: '1.21'
 description: 서버 전용 기능 모음 (메뉴, 도감, 점프 패드, 도약, 골드, 상점, 레벨링·칭호, HUD, 집 땅, 이장님, 안내서)
 
 commands:
+  rankboard:
+    description: 누적 순위 홀로그램 게시판 관리
+    usage: /<command> create <이름> farming|mining | remove <이름> | list
+    aliases: [순위게시판]
+    permission: servercore.admin
+  ranking:
+    description: 농사·채광 누적 순위 보기
+    usage: /<command> farming|mining
+    aliases: [순위]
   cookienpc:
     description: 무료 얼굴 쿠키 NPC 생성 및 제거
     usage: /<command> create|remove|face

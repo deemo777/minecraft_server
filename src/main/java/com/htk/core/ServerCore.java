@@ -57,6 +57,8 @@ public final class ServerCore extends JavaPlugin {
         }
         if (getConfig().getBoolean("features.cookie", true))
             features.add(new com.htk.core.cookie.CookieFeature(this));
+        if (getConfig().getBoolean("features.ranking", true))
+            features.add(new com.htk.core.ranking.RankingFeature(this));
         SkillFeature skills = null;
         if (getConfig().getBoolean("features.skills", true)) {
             skills = new SkillFeature(this);
@@ -155,7 +157,7 @@ public final class ServerCore extends JavaPlugin {
     /** 없는 설정 파일만 jar 안의 기본 파일로 만들기 (있는 파일은 건드리지 않아요) */
     private void saveDefaultFiles() {
         saveDefaultConfig();
-        for (String f : new String[]{"menu.yml", "dogam.yml", "shops.yml", "skills.yml", "guide.yml", "tools.yml"}) {
+        for (String f : new String[]{"menu.yml", "dogam.yml", "shops.yml", "skills.yml", "guide.yml", "tools.yml", "ranking.yml"}) {
             if (!new File(getDataFolder(), f).exists()) {
                 saveIfMissing(f);
                 getLogger().info(f + " 이(가) 없어서 기본 파일로 만들었어요.");

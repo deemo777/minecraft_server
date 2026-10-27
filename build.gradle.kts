@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "3.18.0"
+version = "3.19.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -59,3 +59,10 @@ tasks.test { failOnNoDiscoveredTests = false }
 tasks.withType<JavaExec>().configureEach {
     jvmArgs("-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8")
 }
+
+val verifyRankingRules by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.ranking.RankingRulesTest")
+}
+tasks.check { dependsOn(verifyRankingRules) }

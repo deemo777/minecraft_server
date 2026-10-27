@@ -1,0 +1,46 @@
+# 순위 전용 점수. 스킬 경험치·골드와 독립적입니다. /servercore reload 적용.
+# 빈 목록이면 모든 월드. 예: [world, world_nether, world_the_end, village]
+worlds: []
+# 성숙한 블록을 직접 수확할 때만 인정할 작물.
+mature-only: [WHEAT, CARROTS, POTATOES, BEETROOTS, NETHER_WART, COCOA, PITCHER_CROP, SWEET_BERRY_BUSH]
+# 블록 한 개(열매 우클릭 수확은 한 번)당 점수. 0 또는 삭제하면 집계 제외.
+# 희귀도·재배 효율의 초기 기준이며 서버 경제에 맞게 조절하세요.
+points:
+  farming:
+    WHEAT: 1
+    CARROTS: 1
+    POTATOES: 1
+    BEETROOTS: 2
+    NETHER_WART: 3
+    COCOA: 3
+    PITCHER_CROP: 8
+    MELON: 1
+    PUMPKIN: 2
+    SUGAR_CANE: 1
+    CACTUS: 1
+    SWEET_BERRY_BUSH: 1
+    CAVE_VINES: 2
+    CAVE_VINES_PLANT: 2
+    BROWN_MUSHROOM: 1
+    RED_MUSHROOM: 1
+  mining:
+    COAL_ORE: 2
+    DEEPSLATE_COAL_ORE: 2
+    COPPER_ORE: 2
+    DEEPSLATE_COPPER_ORE: 2
+    IRON_ORE: 4
+    DEEPSLATE_IRON_ORE: 4
+    GOLD_ORE: 6
+    DEEPSLATE_GOLD_ORE: 6
+    NETHER_GOLD_ORE: 1
+    REDSTONE_ORE: 3
+    DEEPSLATE_REDSTONE_ORE: 3
+    LAPIS_ORE: 5
+    DEEPSLATE_LAPIS_ORE: 5
+    NETHER_QUARTZ_ORE: 2
+    DIAMOND_ORE: 20
+    DEEPSLATE_DIAMOND_ORE: 20
+    EMERALD_ORE: 25
+    DEEPSLATE_EMERALD_ORE: 40
+    ANCIENT_DEBRIS: 50
+    AMETHYST_CLUSTER: 3
