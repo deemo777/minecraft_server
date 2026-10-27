@@ -58,13 +58,20 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
         // 한 번의 우클릭으로 중복 지급되지 않도록 짧은 아이템 쿨다운 사용.
         ItemStack item = cookie();
         if (p.hasCooldown(item)) return;
-        if (!p.getInventory().addItem(item).isEmpty()) {
-            p.sendMessage(Text.mm("<red>쿠키를 받을 인벤토리 공간이 없어요."));
+        item.setAmount(16);
+        int space = 0;
+        for (ItemStack slot : p.getInventory().getStorageContents()) {
+            if (slot == null || slot.getType().isAir()) space += item.getMaxStackSize();
+            else if (slot.isSimilar(item)) space += Math.max(0, Math.min(slot.getMaxStackSize(), p.getInventory().getMaxStackSize()) - slot.getAmount());
+        }
+        if (space < item.getAmount()) {
+            p.sendMessage(Text.mm("<red>쿠키 16개를 받을 인벤토리 공간이 필요해요."));
             return;
         }
+        p.getInventory().addItem(item);
         p.setCooldown(item, 10);
         p.playSound(p.getLocation(), Sound.ENTITY_ITEM_PICKUP, .4f, 1.2f);
-        p.sendActionBar(Text.mm("<#eac18b>얼굴 쿠키를 받았어요!"));
+        p.sendActionBar(Text.mm("<#eac18b>얼굴 쿠키 16개를 받았어요!"));
     }
     @EventHandler public void damage(EntityDamageEvent e) { if (isNpc(e.getEntity())) e.setCancelled(true); }
     @EventHandler public void transform(EntityTransformEvent e) { if (isNpc(e.getEntity())) e.setCancelled(true); }

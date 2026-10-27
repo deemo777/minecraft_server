@@ -1,28 +1,52 @@
-"""고정된 Deemo777 스킨을 이용해 도트 쿠키를 생성. 빌드 시 네트워크 불필요."""
+"""Deemo777 스킨 테마의 귀 달린 둥근 아이싱 쿠키. 네트워크 요청 없음."""
 from pathlib import Path
 from PIL import Image, ImageDraw
 import json
 HERE = Path(__file__).resolve().parent
 
 def install_cookie_assets(pack):
-    skin = Image.open(HERE / "art/deemo777_skin.png").convert("RGBA")
-    face = skin.crop((8, 8, 16, 16))
-    face.alpha_composite(skin.crop((40, 8, 48, 16)))
-    face = face.resize((16, 16), Image.Resampling.NEAREST)
+    # 둥근 회색 동물 얼굴을 쿠키 틀과 아이싱으로 표현한다.
+    # 사각 스킨을 붙이지 않고 귀·볼·크림 주둥이까지 새로 그린다.
     im = Image.new("RGBA", (32, 32))
     d = ImageDraw.Draw(im)
-    # 角を段階的に削った丸い焼き菓子。外周は焼き色、表面は明るいバター色。
-    for y in range(32):
-        for x in range(32):
-            distance = (x - 15.5)**2 + (y - 15.5)**2
-            if distance <= 14.6**2:
-                edge = distance > 13.2**2
-                palette = [(143, 82, 43), (174, 110, 55)] if edge else [(225, 174, 101), (233, 186, 116), (217, 159, 86)]
-                im.putpixel((x, y), (*palette[(x * 7 + y * 11) % len(palette)], 255))
-    for x,y in [(8,6),(22,7),(5,14),(25,15),(8,25),(21,26),(15,4)]:
-        d.rectangle((x,y,x+1,y+1), fill=(160,102,58,255))
-    # 顔は中央に大きく。外側のクッキー生地を残して円形を読みやすくする。
-    im.alpha_composite(face,(8,8))
+    outline = "#694c3d"
+    baked = "#b98151"
+    dough = "#e3b77d"
+    # 둥근 귀도 쿠키 반죽과 이어지는 외곽 형태.
+    for box in [(3, 1, 12, 12), (19, 1, 28, 12)]:
+        d.ellipse(box, fill=outline)
+    d.ellipse((2, 5, 29, 30), fill=outline)
+    for box in [(4, 2, 11, 11), (20, 2, 27, 11)]:
+        d.ellipse(box, fill=dough)
+    d.ellipse((3, 6, 28, 29), fill=baked)
+    d.ellipse((3, 6, 28, 27), fill=dough)
+    # 차콜 흑임자 아이싱, 얇은 반죽 테두리와 위쪽 반사광.
+    for box in [(5, 3, 10, 10), (21, 3, 26, 10)]:
+        d.ellipse(box, fill="#696268")
+    for box in [(6, 4, 9, 9), (22, 4, 25, 9)]:
+        d.ellipse(box, fill="#d59ca1")
+    d.ellipse((4, 7, 27, 27), fill="#57525a")
+    d.ellipse((4, 7, 27, 25), fill="#777078")
+    d.arc((5, 7, 26, 25), 190, 295, fill="#a39aa1", width=1)
+    # 부드러운 크림색 주둥이와 스킨의 작은 검정 코.
+    d.ellipse((9, 16, 22, 26), fill="#b1a6a0")
+    d.ellipse((9, 17, 22, 25), fill="#f0dfc7")
+    d.rectangle((12, 17, 19, 21), fill="#f0dfc7")
+    d.rectangle((14, 17, 17, 18), fill="#35303a")
+    d.point((15, 19), fill="#35303a")
+    d.line((15, 20, 15, 22), fill="#8c695e")
+    d.point((14, 22), fill="#8c695e")
+    d.point((16, 22), fill="#8c695e")
+    # 작은 초콜릿 눈, 하이라이트와 딸기 아이싱 볼.
+    for x in [10, 20]:
+        d.rectangle((x, 12, x+1, 15), fill="#302c34")
+        d.point((x, 12), fill="#fff1da")
+    for x in [6, 23]:
+        d.line((x, 17, x+2, 17), fill="#ce9297", width=2)
+    # 스킨 하단의 금색 장식을 작은 꿀색 아이싱으로 반영.
+    for x in [8, 22]:
+        d.rectangle((x, 22, x+1, 24), fill="#d7aa54")
+        d.point((x, 22), fill="#ffe2a1")
     dest = Path(pack) / "assets/servercore"
     for sub in ["textures/item", "models/item", "items"]: (dest/sub).mkdir(parents=True, exist_ok=True)
     im.save(dest / "textures/item/deemo_cookie.png")
