@@ -1,9 +1,11 @@
 # 순위 전용 점수. 스킬 경험치·골드와 독립적입니다. /servercore reload 적용.
 # 빈 목록이면 모든 월드. 예: [world, world_nether, world_the_end, village]
 worlds: []
+# 모든 원목·나무 종류에 동일 적용하는 벌목 점수 (직접 설치한 나무는 제외).
+woodcutting-points: 1
 # 성숙한 블록을 직접 수확할 때만 인정할 작물.
 mature-only: [WHEAT, CARROTS, POTATOES, BEETROOTS, NETHER_WART, COCOA, PITCHER_CROP, SWEET_BERRY_BUSH]
-# 블록 한 개(열매 우클릭 수확은 한 번)당 점수. 0 또는 삭제하면 집계 제외.
+# 블록 한 개(열매 우클릭 수확은 한 번)당 점수. 0이면 집계 제외. 삭제한 기본 항목은 기본값으로 복원.
 # 희귀도·재배 효율의 초기 기준이며 서버 경제에 맞게 조절하세요.
 points:
   farming:
@@ -44,3 +46,14 @@ points:
     DEEPSLATE_EMERALD_ORE: 40
     ANCIENT_DEBRIS: 50
     AMETHYST_CLUSTER: 3
+  fishing:
+    COD: 1
+    SALMON: 2
+    PUFFERFISH: 4
+    TROPICAL_FISH: 8
+    ENCHANTED_BOOK: 20
+    NAME_TAG: 20
+    NAUTILUS_SHELL: 20
+    SADDLE: 20
+    BOW: 20
+    FISHING_ROD: 20  # 마법이 부여된 보물 낚싯대만, 일반 손상 낚싯대는 0점

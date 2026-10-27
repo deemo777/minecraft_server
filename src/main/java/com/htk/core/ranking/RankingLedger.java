@@ -3,13 +3,15 @@ import java.util.*;
 
 /** 스킬 경험치와 독립된 전체 누적 점수. 동점은 UUID로 안정 정렬한다. */
 final class RankingLedger {
-    enum Category { FARMING, MINING;
+    enum Category { FARMING, MINING, WOODCUTTING, FISHING;
         static Category parse(String v) {
             if (v.equalsIgnoreCase("farming") || v.equals("농사")) return FARMING;
             if (v.equalsIgnoreCase("mining") || v.equals("채광")) return MINING;
+            if (v.equalsIgnoreCase("woodcutting") || v.equals("벌목") || v.equals("나무")) return WOODCUTTING;
+            if (v.equalsIgnoreCase("fishing") || v.equals("낚시")) return FISHING;
             return null;
         }
-        String title() { return this==FARMING?"농사":"채광"; }
+        String title() { return switch(this) { case FARMING -> "농사"; case MINING -> "채광"; case WOODCUTTING -> "벌목"; case FISHING -> "낚시"; }; }
     }
     static final class Entry {
         final UUID id; String name;

@@ -12,6 +12,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.*;
 import org.bukkit.event.block.*;
 import org.bukkit.event.player.PlayerHarvestBlockEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
@@ -44,6 +45,7 @@ public final class RankingFeature implements Feature,Listener,TabExecutor {
     }
     @Override public void reload() {
         var cfg=plugin.loadYaml("ranking.yml");cfg.setDefaults(plugin.loadDefaultYaml("ranking.yml"));
+        cfg.options().copyDefaults(true);
         points.clear();mature.clear();
         worlds=new HashSet<>(cfg.getStringList("worlds"));
         for(var c:RankingLedger.Category.values()) {
@@ -53,6 +55,11 @@ public final class RankingFeature implements Feature,Listener,TabExecutor {
                 Material m=Material.matchMaterial(key);long value=section.getLong(key);
                 if(m!=null && value>0) table.put(m,value);
                 else if(m==null) plugin.getLogger().warning("알 수 없는 순위 재료: "+key);
+            }
+            if(c==RankingLedger.Category.WOODCUTTING) {
+                long value=Math.max(0,cfg.getLong("woodcutting-points",1));
+                table.clear();
+                if(value>0) for(Material log:Tag.LOGS.getValues()) table.put(log,value);
             }
             points.put(c,table);
         }
@@ -65,8 +72,11 @@ public final class RankingFeature implements Feature,Listener,TabExecutor {
     private boolean eligible(Player p) { return accept && (p.getGameMode()==GameMode.SURVIVAL || p.getGameMode()==GameMode.ADVENTURE) && (worlds.isEmpty() || worlds.contains(p.getWorld().getName())); }
     private void award(Player p,Material m) {
         if(!eligible(p))return;
-        for(var c:RankingLedger.Category.values())
-            if(store.ledger.add(p.getUniqueId(),p.getName(),c,points.get(c).getOrDefault(m,0L)))store.dirty();
+        for(var c:List.of(RankingLedger.Category.FARMING,RankingLedger.Category.MINING,RankingLedger.Category.WOODCUTTING))
+            award(p,c,m);
+    }
+    private void award(Player p,RankingLedger.Category c,Material m) {
+        if(eligible(p) && store.ledger.add(p.getUniqueId(),p.getName(),c,points.get(c).getOrDefault(m,0L)))store.dirty();
     }
     private boolean ranked(Material m) { return points.values().stream().anyMatch(t->t.containsKey(m)); }
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
@@ -87,6 +97,14 @@ public final class RankingFeature implements Feature,Listener,TabExecutor {
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void harvest(PlayerHarvestBlockEvent e) {
         if(!e.getItemsHarvested().isEmpty())award(e.getPlayer(),e.getHarvestedBlock().getType());
+    }
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void fish(PlayerFishEvent e) {
+        if(e.getState()!=PlayerFishEvent.State.CAUGHT_FISH || !(e.getCaught() instanceof Item item))return;
+        var caught=item.getItemStack();
+        // 손상된 일반 낚싯대는 잡동사니이며 마법 낚싯대만 보물로 인정.
+        if(caught.getType()==Material.FISHING_ROD && caught.getEnchantments().isEmpty())return;
+        award(e.getPlayer(),RankingLedger.Category.FISHING,caught.getType());
     }
     private static int packed(Block b) { return (b.getX()&15)|((b.getZ()&15)<<4)|((b.getY()+4096)<<8); }
     private boolean marked(Block b,NamespacedKey key) {
@@ -142,13 +160,13 @@ public final class RankingFeature implements Feature,Listener,TabExecutor {
     @Override public boolean onCommand(CommandSender s,Command cmd,String label,String[] args) {
         if(cmd.getName().equals("ranking")) {
             var c=RankingLedger.Category.parse(args.length==0?"farming":args[0]);
-            if(c==null){s.sendMessage("/ranking farming|mining");return true;}
+            if(c==null){s.sendMessage("/ranking farming|mining|woodcutting|fishing");return true;}
             s.sendMessage(content(c));return true;
         }
         if(!s.hasPermission("servercore.admin")){s.sendMessage(Text.mm("<red>관리자만 사용할 수 있어요."));return true;}
         if(args.length==3 && args[0].equalsIgnoreCase("create") && s instanceof Player p) {
             String id=args[1];var c=RankingLedger.Category.parse(args[2]);
-            if(!id.matches("[a-zA-Z0-9_-]{1,32}")||c==null){s.sendMessage("게시판 이름: 영문/숫자/_/- 1~32자, 분야: farming|mining");return true;}
+            if(!id.matches("[a-zA-Z0-9_-]{1,32}")||c==null){s.sendMessage("게시판 이름: 영문/숫자/_/- 1~32자, 분야: farming|mining|woodcutting|fishing");return true;}
             if(store.boards.containsKey(id)){s.sendMessage("이미 있는 게시판 이름이에요. 다른 이름을 사용하세요.");return true;}
             Location l=p.getLocation();store.boards.put(id,new RankingStore.Board(id,c,l.getWorld().getUID(),l.getX(),l.getY()+3,l.getZ()));
             store.dirty();store.save();updateBoards();s.sendMessage(Text.mm("<green>현재 위치 위에 "+c.title()+" 순위 게시판을 만들었어요."));
@@ -156,14 +174,14 @@ public final class RankingFeature implements Feature,Listener,TabExecutor {
             if(store.boards.remove(args[1])==null){s.sendMessage("해당 게시판이 없어요.");return true;}
             TextDisplay d=displays.remove(args[1]);if(d!=null)d.remove();store.dirty();store.save();s.sendMessage("게시판을 제거했어요. 누적 점수는 유지돼요.");
         } else if(args.length==1 && args[0].equalsIgnoreCase("list")) s.sendMessage("순위 게시판: "+String.join(", ",store.boards.keySet()));
-        else s.sendMessage("/rankboard create <이름> farming|mining | remove <이름> | list");
+        else s.sendMessage("/rankboard create <이름> farming|mining|woodcutting|fishing | remove <이름> | list");
         return true;
     }
     @Override public List<String> onTabComplete(CommandSender s,Command cmd,String label,String[] args) {
-        List<String> options=cmd.getName().equals("ranking")?List.of("farming","mining"):
+        List<String> options=cmd.getName().equals("ranking")?List.of("farming","mining","woodcutting","fishing"):
             !s.hasPermission("servercore.admin")?List.of():args.length==1?List.of("create","remove","list"):
             args.length==2 && args[0].equalsIgnoreCase("remove")?new ArrayList<>(store.boards.keySet()):
-            args.length==3 && args[0].equalsIgnoreCase("create")?List.of("farming","mining"):List.of();
+            args.length==3 && args[0].equalsIgnoreCase("create")?List.of("farming","mining","woodcutting","fishing"):List.of();
         String last=args.length==0?"":args[args.length-1];return options.stream().filter(v->v.startsWith(last)).toList();
     }
 }

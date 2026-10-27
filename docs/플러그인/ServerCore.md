@@ -133,3 +133,5 @@
 ## 채집 순위 게시판
 
 `/rankboard create <이름> farming|mining`, `/rankboard remove <이름>`, `/rankboard list` (관리자). `/ranking farming|mining`은 누구나 누적 순위를 조회합니다. [설정·점수·저장 안내](../기능/채집순위게시판.md)를 참고하세요.
+
+벌목·낚시 게시판은 `/rankboard create wood_top woodcutting`, `/rankboard create fish_top fishing`으로 만듭니다. `/순위 벌목`, `/순위 낚시`로도 조회합니다.
