@@ -13,7 +13,7 @@ public enum ToolType {
     HOE("hoe", "괭이", Material.DIAMOND_HOE, "village_hoe", "<#d9d9d9><bold>광 괭이"),
     // 낚싯대는 강화 단계별 3D 모델과 던진 상태(cast) 모델을 함께 사용
     FISHING_ROD("fishing_rod", "낚싯대", Material.FISHING_ROD, "village_fishing_rod", "<#d9d9d9><bold>광 낚싯대"),
-    // 물에 우클릭해 보충하고 3×3 밭에 물을 뿌립니다. 용량은 20회 + 5강마다 5회.
+    // 단계별 1칸/좌우 3칸/3×3/4×4 물주기. 용량은 20회 + 5강마다 5회.
     // PDC의 물 보유 상태를 custom_model_data flags[0]에 반영합니다.
     WATERING_CAN("watering_can", "물뿌리개", Material.CARROT_ON_A_STICK, "village_watering_can", "<#d9d9d9><bold>광 물뿌리개");
 

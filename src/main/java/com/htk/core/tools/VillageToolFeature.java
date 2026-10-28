@@ -175,7 +175,8 @@ public final class VillageToolFeature implements Feature, Listener {
             pdc.set(waterUsesKey, PersistentDataType.INTEGER, waterUses);
             pdc.remove(waterFullKey);
             List<Component> lines = new ArrayList<>(meta.lore());
-            lines.add(noItalic(Text.mm("<aqua>물: " + waterUses + "/" + WateringCanRules.capacity(lv) + "회 · 범위 3×3")));
+            lines.add(noItalic(Text.mm("<aqua>물: " + waterUses + "/" + WateringCanRules.capacity(lv)
+                    + "회 · 범위 " + WateringCanRules.areaLabel(lv))));
             lines.add(noItalic(Text.mm(waterUses > 0
                     ? "<aqua>밭에 우클릭하여 주변 물주기 · 물에 우클릭하여 보충"
                     : "<gray>물: 비어 있음 · 물에 우클릭하여 채우기")));

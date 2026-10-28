@@ -371,6 +371,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
             player.sendActionBar(Text.mm("<gray>물뿌리개가 비어 있어요. 물에 우클릭해서 채워 주세요."));
             return;
         }
+        var footprint = WateringCanRules.offsets(tools.levelOf(expected), player.getLocation().getYaw());
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!accepting || e.isCancelled() || !e.getPlayer().isOnline() || e.useInteractedBlock() == Event.Result.DENY
                     || !player.getInventory().getItemInMainHand().equals(expected)) return;
@@ -378,8 +379,8 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
             if (!(center.getBlockData() instanceof Farmland)) return;
             wateringChecks.add(player.getUniqueId());
             try {
-                for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) {
-                    int x = center.getX() + dx, z = center.getZ() + dz;
+                for (var offset : footprint) {
+                    int x = center.getX() + offset.x(), z = center.getZ() + offset.z();
                     if (!center.getWorld().isChunkLoaded(x >> 4, z >> 4)) continue;
                     Block target = center.getWorld().getBlockAt(x, center.getY(), z);
                     if (!(target.getBlockData() instanceof Farmland farm)

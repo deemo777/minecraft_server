@@ -7,6 +7,40 @@ public final class UpgradeRulesTest {
     }
     public static void main(String[] args) {
         for (int level = 0; level <= 20; level++) {
+            int count = level < 5 ? 1 : level < 10 ? 3 : level < 15 ? 9 : 16;
+            for (float yaw : new float[]{0, 90, 180, 270, -90, 360, 44.9f, 45, -45}) {
+                var cells = WateringCanRules.offsets(level, yaw);
+                check(cells.size() == count, "water footprint count at level " + level);
+                check(new java.util.HashSet<>(cells).size() == count, "no duplicate watering targets");
+                check(cells.contains(new WateringCanRules.Offset(0, 0)), "clicked soil always included");
+                int width = cells.stream().mapToInt(WateringCanRules.Offset::x).max().orElseThrow()
+                        - cells.stream().mapToInt(WateringCanRules.Offset::x).min().orElseThrow() + 1;
+                int depth = cells.stream().mapToInt(WateringCanRules.Offset::z).max().orElseThrow()
+                        - cells.stream().mapToInt(WateringCanRules.Offset::z).min().orElseThrow() + 1;
+                check(width * depth == count, "footprint is a filled rectangle");
+                if (level >= 10) check(width == depth, "high-tier watering is square");
+            }
+        }
+        var southRow = java.util.Set.of(new WateringCanRules.Offset(-1, 0),
+                new WateringCanRules.Offset(0, 0), new WateringCanRules.Offset(1, 0));
+        var westRow = java.util.Set.of(new WateringCanRules.Offset(0, -1),
+                new WateringCanRules.Offset(0, 0), new WateringCanRules.Offset(0, 1));
+        check(new java.util.HashSet<>(WateringCanRules.offsets(5, 0)).equals(southRow), "south-facing left/right row");
+        check(new java.util.HashSet<>(WateringCanRules.offsets(5, 90)).equals(westRow), "west-facing left/right row");
+        check(WateringCanRules.offsets(5, -90).equals(WateringCanRules.offsets(5, 270)), "negative yaw wraps");
+        check(WateringCanRules.offsets(5, 0).equals(WateringCanRules.offsets(5, 360)), "full-turn yaw wraps");
+        check(WateringCanRules.offsets(5, 44.9f).equals(WateringCanRules.offsets(5, 0)), "diagonal lower boundary");
+        check(WateringCanRules.offsets(5, 45).equals(WateringCanRules.offsets(5, 90)), "diagonal upper boundary");
+        var southSquare = WateringCanRules.offsets(15, 0);
+        check(southSquare.contains(new WateringCanRules.Offset(-2, 2))
+                && !southSquare.contains(new WateringCanRules.Offset(2, 0))
+                && !southSquare.contains(new WateringCanRules.Offset(0, -2)), "4x4 extends forward/right");
+        for (int yaw = 0; yaw < 360; yaw += 90)
+            check(WateringCanRules.offsets(15, yaw).equals(WateringCanRules.offsets(20, yaw)), "+20 keeps +15 range");
+        check(WateringCanRules.areaLabel(0).equals("1칸") && WateringCanRules.areaLabel(5).equals("좌우 3칸")
+                && WateringCanRules.areaLabel(10).equals("3×3") && WateringCanRules.areaLabel(15).equals("4×4")
+                && WateringCanRules.areaLabel(20).equals("4×4"), "item lore matches tier areas");
+        for (int level = 0; level <= 20; level++) {
             int capacity = level < 5 ? 20 : level < 10 ? 25 : level < 15 ? 30 : level < 20 ? 35 : 40;
             check(WateringCanRules.capacity(level) == capacity, "water capacity at level " + level);
             check(WateringCanRules.remaining(null, true, level) == capacity, "legacy full can migration");
