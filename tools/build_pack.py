@@ -412,12 +412,8 @@ def main():
     install_blacksmith_assets(pack)
     from make_cookie_art import install_cookie_assets
     install_cookie_assets(pack)
-    from make_chef_art import install_chef_assets
-    install_chef_assets(pack)
-    from make_weapon_merchant_art import install_weapon_merchant_assets
-    install_weapon_merchant_assets(pack)
-    from make_npc_collection import install_npc_collection
-    install_npc_collection(pack)
+    from make_npc_skins import install_clean_npc_skins
+    install_clean_npc_skins(pack)
     zip_path = os.path.join(args.out, "servercore_pack.zip")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
         for root, _dirs, files in os.walk(pack):
