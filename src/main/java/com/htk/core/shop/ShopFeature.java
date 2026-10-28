@@ -372,11 +372,18 @@ public final class ShopFeature implements Feature, Listener {
                 p.sendMessage(Text.mm("<green>상점 주인을 세웠어요: <white>" + shop.id()));
                 return true;
             }
-            if (args.length >= 1 && (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("face"))) {
+            if (args.length >= 1 && args.length <= 2
+                    && (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("face"))) {
+                String requestedShop = args.length == 2 ? args[1] : null;
+                if (requestedShop != null && config.shop(requestedShop) == null) {
+                    p.sendMessage(Text.mm("<red>그런 상점이 없어요. <gray>(" + String.join(", ", config.ids()) + ")"));
+                    return true;
+                }
                 Entity nearest = null;
                 double best = 25;   // 5칸
                 for (Entity e : p.getNearbyEntities(5, 5, 5)) {
-                    if (npcShop(e) == null) continue;
+                    String shopId = npcShop(e);
+                    if (shopId == null || (requestedShop != null && !requestedShop.equalsIgnoreCase(shopId))) continue;
                     double d = e.getLocation().distanceSquared(p.getLocation());
                     if (d < best) {
                         best = d;
@@ -393,14 +400,14 @@ public final class ShopFeature implements Feature, Listener {
                 p.sendMessage(Text.mm("<green>상점 주인을 없앴어요: <white>" + id));
                 return true;
             }
-            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create <shop> | remove | face  <dark_gray>상점: " + String.join(", ", config.ids())));
+            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create <shop> | remove [shop] | face [shop]  <dark_gray>상점: " + String.join(", ", config.ids())));
             return true;
         }
 
         @Override
         public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
             if (args.length == 1) return List.of("create", "remove", "face");
-            if (args.length == 2 && args[0].equalsIgnoreCase("create")) return config.ids();
+            if (args.length == 2 && List.of("create", "remove", "face").contains(args[0].toLowerCase())) return config.ids();
             return new ArrayList<>();
         }
     }

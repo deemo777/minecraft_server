@@ -124,7 +124,7 @@ land:
 # 이장님 (로비) — /npc create mayor 로 세우기
 #   우클릭 → 첫 인사/재방문 인사 + 집터 수령·빚 전액 상환.
 #   집터 안내는 매 장 '다 읽음' 체크 후 진행합니다. 안내·버튼 문구는 서버 코드에서 관리합니다.
-#   /mayornpc reset <player>: 대화·안내 기록 초기화 (기존 집·아이템은 보존)
+#   /npc reset mayor <player>: 대화·안내 기록 초기화 (기존 집·아이템은 보존)
 mayor:
   npc-name: "<#f3c060><bold>이장님"
   messages:

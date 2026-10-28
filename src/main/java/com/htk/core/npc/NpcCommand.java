@@ -12,12 +12,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.util.StringUtil;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Common creation command for ServerCore NPCs. */
+/** Common management command for ServerCore NPCs. */
 public final class NpcCommand implements TabExecutor {
     private final ServerCore plugin;
 
@@ -31,33 +32,45 @@ public final class NpcCommand implements TabExecutor {
             sender.sendMessage(Text.mm(plugin.msg("no-permission")));
             return true;
         }
-        if (args.length != 2 || !args[0].equalsIgnoreCase("create")) {
+        if (args.length == 0) return usage(sender);
+        String action = args[0].toLowerCase(Locale.ROOT);
+        if (action.equals("reset") && args.length == 3 && args[1].equalsIgnoreCase("mayor")) {
+            return dispatch(sender, label, "mayor", new String[]{"reset", args[2]});
+        }
+        if (!List.of("create", "remove", "face").contains(action) || args.length != 2) {
             return usage(sender);
         }
+        return dispatch(sender, label, args[1], new String[]{action});
+    }
 
-        String type = args[1].toLowerCase(Locale.ROOT);
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (!sender.hasPermission("servercore.admin")) return List.of();
+        if (args.length == 1) return StringUtil.copyPartialMatches(args[0], List.of("create", "remove", "face", "reset"), new ArrayList<>());
+        if (args.length == 2 && List.of("create", "remove", "face").contains(args[0].toLowerCase(Locale.ROOT)))
+            return StringUtil.copyPartialMatches(args[1], availableTypes(), new ArrayList<>());
+        if (args.length == 2 && args[0].equalsIgnoreCase("reset"))
+            return StringUtil.copyPartialMatches(args[1], List.of("mayor"), new ArrayList<>());
+        if (args.length == 3 && args[0].equalsIgnoreCase("reset") && args[1].equalsIgnoreCase("mayor")) {
+            List<String> names = Bukkit.getOnlinePlayers().stream().map(org.bukkit.entity.Player::getName).toList();
+            return StringUtil.copyPartialMatches(args[2], names, new ArrayList<>());
+        }
+        return List.of();
+    }
+
+    private boolean dispatch(CommandSender sender, String label, String rawType, String[] forwarded) {
+        String type = rawType.toLowerCase(Locale.ROOT);
         String commandName;
-        String[] forwarded;
-        if (type.equals("mayor") && plugin.feature(MayorFeature.class) != null) {
-            commandName = "mayornpc";
-            forwarded = new String[]{"create"};
-        } else if (type.equals("blacksmith") && plugin.feature(BlacksmithFeature.class) != null) {
-            commandName = "blacksmithnpc";
-            forwarded = new String[]{"create"};
-        } else if (type.equals("cookie") && plugin.feature(CookieFeature.class) != null) {
-            commandName = "cookienpc";
-            forwarded = new String[]{"create"};
-        } else if ((type.equals("weaponmerchant") || type.equals("merchant"))
-                && plugin.feature(WeaponMerchantFeature.class) != null) {
-            commandName = "weaponmerchantnpc";
-            forwarded = new String[]{"create"};
-        } else {
+        if (type.equals("mayor") && plugin.feature(MayorFeature.class) != null) commandName = "mayornpc";
+        else if (type.equals("blacksmith") && plugin.feature(BlacksmithFeature.class) != null) commandName = "blacksmithnpc";
+        else if (type.equals("cookie") && plugin.feature(CookieFeature.class) != null) commandName = "cookienpc";
+        else if ((type.equals("weaponmerchant") || type.equals("merchant"))
+                && plugin.feature(WeaponMerchantFeature.class) != null) commandName = "weaponmerchantnpc";
+        else {
             ShopFeature shops = plugin.feature(ShopFeature.class);
-            if (shops == null || !shops.shopIds().stream().anyMatch(type::equals)) {
-                return usage(sender);
-            }
+            if (shops == null || shops.shopIds().stream().noneMatch(type::equals)) return usage(sender);
             commandName = "shopnpc";
-            forwarded = new String[]{"create", type};
+            forwarded = new String[]{forwarded[0], type};
         }
 
         PluginCommand target = plugin.getCommand(commandName);
@@ -72,15 +85,6 @@ public final class NpcCommand implements TabExecutor {
         return target.getExecutor().onCommand(sender, target, label, forwarded);
     }
 
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!sender.hasPermission("servercore.admin")) return List.of();
-        if (args.length == 1) return StringUtil.copyPartialMatches(args[0], List.of("create"), new ArrayList<>());
-        if (args.length == 2 && args[0].equalsIgnoreCase("create"))
-            return StringUtil.copyPartialMatches(args[1], availableTypes(), new ArrayList<>());
-        return List.of();
-    }
-
     private List<String> availableTypes() {
         List<String> types = new ArrayList<>();
         if (plugin.feature(MayorFeature.class) != null) types.add("mayor");
@@ -93,7 +97,8 @@ public final class NpcCommand implements TabExecutor {
     }
 
     private boolean usage(CommandSender sender) {
-        sender.sendMessage(Text.mm("<gray>사용법: /npc create <type>"));
+        sender.sendMessage(Text.mm("<gray>사용법: /npc <create|remove|face> <type>"));
+        sender.sendMessage(Text.mm("<gray>첫 대화 초기화: /npc reset mayor <player>"));
         sender.sendMessage(Text.mm("<dark_gray>종류: " + String.join(", ", availableTypes())));
         return true;
     }

@@ -20,11 +20,11 @@
 각 NPC 명령 뒤에 `face` 또는 `remove`를 사용합니다. 5블록 안의 가장 가까운 해당 NPC에 적용됩니다.
 
 ```text
-/mayornpc face
-/blacksmithnpc face
-/shopnpc face
-/cookienpc face
-/weaponmerchantnpc face
+/npc face mayor
+/npc face blacksmith
+/npc face fish
+/npc face cookie
+/npc face weaponmerchant
 ```
 
 원하는 NPC 방향의 반대를 보고 실행하세요. `shopnpc face`는 가장 가까운 상점 상인의 방향을 바꿉니다.
