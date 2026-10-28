@@ -12,7 +12,7 @@
 | `/mv list` | 등록 월드 |
 | `/mv info [월드]` | 월드 정보 |
 | `/mv tp <월드>` | 이동 |
-| `/mv create <name> normal` | 새 월드 |
+| `/mv create <name> normal` | 기본 설정으로 새 월드 |
 | `/mv import <name> normal` | 기존 월드 등록 |
 | `/mv load <월드>` | 로드 |
 | `/mv unload <월드>` | 언로드 |
@@ -30,6 +30,19 @@
 
 환경은 `normal`, `nether`, `the_end` 중 선택합니다. 폴더가 있는 월드는 `create` 대신 `import`를 검토합니다.
 `delete`·`regen`은 월드 데이터를 없애거나 재생성하므로 백업 후에만 사용합니다.
+
+## 깊이 64 평지 월드 만들기
+
+새 월드는 아래 명령으로 생성합니다. 평지 층은 아래에서부터 기반암 1층, 흙 62층,
+잔디 블록 1층으로 총 64블록이며, 생물 군계는 평원입니다. `--no-structures`로
+마을 등 구조물 생성을 끕니다.
+
+```text
+/mv create <이름> normal --world-type flat --no-structures --generator-settings {"layers":[{"block":"bedrock","height":1},{"block":"dirt","height":62},{"block":"grass_block","height":1}],"biome":"plains"}
+```
+
+예를 들어 이름을 `build`로 만들려면 `<이름>`을 `build`로 바꿉니다. 생성이 끝난
+월드에는 이 설정이 소급 적용되지 않으므로, 원하는 설정으로 새 월드를 생성해야 합니다.
 
 ServerCore 메뉴 이동 지점은 별도입니다. 같은 자리를 쓰려면 `/mv setspawn`과
 `/servercore setpoint village`를 각각 설정합니다.
