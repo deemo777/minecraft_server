@@ -8,6 +8,10 @@
 버전은 `build.gradle.kts` 의 `version` 한 곳만 바꾸면 jar 이름과 plugin.yml 에 같이 들어가요.
 서버에서는 `/version ServerCore` 로 지금 돌고 있는 버전을 확인할 수 있어요.
 
+## 3.31.15 — 2026-10-28
+
+- 낫(괭이) 디자인을 제공된 원본 모델·텍스처로 교체합니다. +0은 `iron_hay_sickle`, +5는 `windreaper`, +10은 `crystal_frostcythe`, +15와 +20은 `azure_scythe`를 사용합니다. 원본 형상·UV·색상·표시 자세를 유지하고 재생성에도 반영합니다.
+
 ## 3.31.14 — 2026-10-28
 
 - 곡괭이 디자인을 제공된 원본 모델·텍스처로 교체합니다. +0은 `talonpick`, +5는 `azure_pickaxe`, +10은 `amethyst_greatpick`, +15와 +20은 `viridian_pickaxe`를 사용합니다. 원본 형상·UV·색상·표시 자세를 유지하고 재생성 시에도 같은 디자인을 적용합니다.

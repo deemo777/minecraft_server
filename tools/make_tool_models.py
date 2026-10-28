@@ -14,6 +14,8 @@ TOOLS=('village_pickaxe','village_axe','village_hoe','village_watering_can')
 TIERS=(0,5,10,15,20)
 PICKAXE_DESIGNS={0:"talonpick",5:"azure_pickaxe",10:"amethyst_greatpick",
                  15:"viridian_pickaxe",20:"viridian_pickaxe"}
+SCYTHE_DESIGNS={0:"iron_hay_sickle",5:"windreaper",10:"crystal_frostcythe",
+                15:"azure_scythe",20:"azure_scythe"}
 COLORS={'wood':'#624336','leather':'#342c3f','iron':'#7e8a9e','steel':'#c5dbdf',
         'dark':'#292840','gold':'#dcb367','lightgold':'#fff0b6','copper':'#ad7855',
         'teal':'#38c4b2','ice':'#9cf5ff','blue':'#3871cb','violet':'#8a55d6',
@@ -75,6 +77,15 @@ class Model:
         self.box((8,y,8),(width,.55,width),color,label='four sided shaft collar')
 
     def data(self):
+        if self.tool=='village_hoe':
+            name=SCYTHE_DESIGNS[self.tier]
+            source=HERE/'models'/'references'/'scythes'/name
+            result=json.loads(source.with_suffix('.json').read_text(encoding='utf-8'))
+            texture=f'servercore:block/village_hoe_{self.tier}'
+            result['textures']={key:texture for key in result['textures']}
+            self.elements=result['elements']
+            self.colors=sample_element_colors(self.elements,source.with_suffix('.png'))
+            return result
         if self.tool=='village_pickaxe':
             name=PICKAXE_DESIGNS[self.tier]
             source=HERE/'models'/'references'/'pickaxes'/name
@@ -557,7 +568,11 @@ def main():
             for idx,key in enumerate(KEYS):
                 x,y=(idx%8)*8,(idx//8)*8
                 palette_draw.rectangle((x,y,x+7,y+7),fill=palette_for(tool)[key])
-            if tool=='village_pickaxe':
+            if tool=='village_hoe':
+                source=out/'references'/'scythes'/(SCYTHE_DESIGNS[tier]+'.png')
+                (tex/(name+'.png')).write_bytes(source.read_bytes())
+                print(name,len(data['elements']),'imported UV parts')
+            elif tool=='village_pickaxe':
                 source=out/'references'/'pickaxes'/(PICKAXE_DESIGNS[tier]+'.png')
                 (tex/(name+'.png')).write_bytes(source.read_bytes())
                 print(name,len(data['elements']),'imported UV parts')
