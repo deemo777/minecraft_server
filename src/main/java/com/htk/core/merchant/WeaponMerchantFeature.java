@@ -49,7 +49,14 @@ public final class WeaponMerchantFeature implements Feature,Listener,TabExecutor
         for(Player p:Bukkit.getOnlinePlayers()) if(p.getOpenInventory().getTopInventory().getHolder() instanceof ShopGui)p.closeInventory();
     }
     private boolean isNpc(Entity e) { return e.getPersistentDataContainer().has(npcKey,PersistentDataType.BYTE); }
-    private void open(Player p) { if(active)new ShopGui().open(p); }
+    private boolean canBuy(Player p) {
+        var land=plugin.feature(com.htk.core.land.LandFeature.class);
+        return land!=null&&land.landOf(p.getUniqueId())!=null;
+    }
+    private void open(Player p) {
+        if(!canBuy(p)){p.sendMessage(Text.mm("<yellow>집터를 먼저 설치해야 도구를 구매할 수 있어요."));return;}
+        if(active)new ShopGui().open(p);
+    }
     @EventHandler(priority=EventPriority.HIGHEST) public void interact(PlayerInteractEntityEvent e) {
         if(!isNpc(e.getRightClicked()))return;e.setCancelled(true);
         if(e.getHand()==EquipmentSlot.HAND)open(e.getPlayer());
@@ -79,6 +86,7 @@ public final class WeaponMerchantFeature implements Feature,Listener,TabExecutor
             ToolType type=slots.get(slot);if(type==null)return;
             long now=System.nanoTime();Long last=clicks.get(p.getUniqueId());if(last!=null && now-last<350_000_000L)return;clicks.put(p.getUniqueId(),now);
             if(!Objects.equals(shown.get(type),prices.get(type))){open(p);p.sendMessage(Text.mm("<yellow>가격이 바뀌었어요. 확인 후 다시 눌러 주세요."));return;}
+            if(!canBuy(p)){p.closeInventory();p.sendMessage(Text.mm("<red>집터를 먼저 설치해 주세요."));return;}
             ItemStack product=tools.createTool(type,0);economy.ensureAccount(p.getUniqueId());
             var result=PurchaseTransaction.buy(new PurchaseTransaction.Buyer(){
                 public boolean hasSpace(){

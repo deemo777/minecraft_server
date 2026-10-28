@@ -12,11 +12,11 @@ import java.util.Arrays;
  * 플레이어가 직접 놓은 블록 위치 기억 (청크 데이터 servercore:placed).
  * 놓은 원목·광석을 다시 캐서 경험치를 버는 걸 막는 데 써요.
  */
-final class PlacedBlocks {
+public final class PlacedBlocks {
 
     private final NamespacedKey key;
 
-    PlacedBlocks(NamespacedKey key) {
+    public PlacedBlocks(NamespacedKey key) {
         this.key = key;
     }
 
@@ -29,13 +29,13 @@ final class PlacedBlocks {
         return a == null ? new int[0] : a;
     }
 
-    boolean isPlaced(Block b) {
+    public boolean isPlaced(Block b) {
         int k = pack(b);
         for (int v : all(b.getChunk())) if (v == k) return true;
         return false;
     }
 
-    void mark(Block b) {
+    public void mark(Block b) {
         Chunk c = b.getChunk();
         int k = pack(b);
         int[] a = all(c);
@@ -45,7 +45,7 @@ final class PlacedBlocks {
         c.getPersistentDataContainer().set(key, PersistentDataType.INTEGER_ARRAY, n);
     }
 
-    void unmark(Block b) {
+    public void unmark(Block b) {
         Chunk c = b.getChunk();
         int k = pack(b);
         int[] a = all(c);

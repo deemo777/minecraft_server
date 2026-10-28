@@ -361,6 +361,12 @@ public final class SkillFeature implements Feature, Listener {
         Skill s = pendingDrops.remove(e.getBlock().getLocation());
         if (s == null || e.getItems().isEmpty()) return;
         Player p = e.getPlayer();
+        var tools=plugin.feature(com.htk.core.tools.VillageToolFeature.class);
+        if(tools!=null) {
+            var type=tools.typeOf(p.getInventory().getItemInMainHand());
+            if((s==Skill.WOODCUTTING&&type==com.htk.core.tools.ToolType.AXE)
+                    ||(s==Skill.MINING&&type==com.htk.core.tools.ToolType.PICKAXE))return;
+        }
         if (!roll(doubleDropChance(p.getUniqueId(), s))) return;
         for (Item it : e.getItems()) {
             ItemStack copy = it.getItemStack().clone();

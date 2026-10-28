@@ -40,27 +40,30 @@ import java.util.List;
 
 /**
  * 이장 NPC (로비)
- *   - 처음: 대화창 몇 장(다음 ▶)을 넘기면 마지막에 집터를 줘요. 중간에 닫으면 다음에 그 장부터 이어서
- *   - 그 뒤: 말을 걸면 빚 갚기 창 (빚은 이장에게만 갚아요). 집터를 잃어버렸으면 다시 받기
+ *   - 첫 인사/재방문 인사 아래 집터 수령·전액 빚 상환 버튼.
+ *   - 집터 안내는 매 장 다 읽음 확인 후 수령. 잔액 부족은 비활성 버튼과 툴팁.
  *   /mayornpc create      지금 서 있는 곳에 이장 세우기 (나를 바라보게)
  *   /mayornpc remove      5칸 안의 이장 없애기
  *   /mayornpc reset <name>  그 사람의 첫 대화를 처음부터 다시 (테스트용)
- * 대사·버튼 글자: config.yml → mayor
+ * 인사·집터 안내·상환 UI는 서버 코드에서 관리한다.
  */
 public final class MayorFeature implements Feature, Listener {
 
     private final ServerCore plugin;
     private final Economy economy;
+    private final java.util.Map<java.util.UUID,Long> lastTalk=new java.util.HashMap<>();
     private final NamespacedKey npcKey;
     private final NamespacedKey pageKey;      // 첫 대화 몇 장째까지 봤는지
     private final NamespacedKey doneKey;      // 첫 대화를 끝내고 집터를 받았는지
+    private final NamespacedKey metKey;
     private final NamespacedKey legacyKitKey; // 예전 방식(처음 접속하면 집터)으로 이미 받은 사람
 
     public MayorFeature(ServerCore plugin, Economy economy) {
         this.plugin = plugin;
         this.economy = economy;
+        this.metKey = new NamespacedKey(plugin, "mayor_met");
         this.npcKey = new NamespacedKey(plugin, "mayor_npc");
-        this.pageKey = new NamespacedKey(plugin, "mayor_intro_page");
+        this.pageKey = new NamespacedKey(plugin, "mayor_plot_guide_page_v2");
         this.doneKey = new NamespacedKey(plugin, "mayor_intro_done");
         this.legacyKitKey = new NamespacedKey(plugin, "land_kit_given");
     }
@@ -81,7 +84,7 @@ public final class MayorFeature implements Feature, Listener {
     public void reload() { }
 
     @Override
-    public void disable() { }
+    public void disable() { lastTalk.clear(); }
 
     private FileConfiguration cfg() {
         return plugin.getConfig();
@@ -117,6 +120,7 @@ public final class MayorFeature implements Feature, Listener {
 
     private void resetIntro(Player p) {
         PersistentDataContainer pdc = p.getPersistentDataContainer();
+        pdc.remove(metKey);
         pdc.remove(pageKey);
         pdc.remove(doneKey);
         pdc.remove(legacyKitKey);
@@ -124,113 +128,65 @@ public final class MayorFeature implements Feature, Listener {
 
     /** config 의 mayor.intro : 장(page)마다 줄 목록 */
     private List<List<String>> introPages() {
-        List<List<String>> pages = new ArrayList<>();
-        // 기본값을 따로 주지 않아야 서버 config.yml 에 없을 때 jar 안의 기본 대사를 써요
-        List<?> raw = cfg().getList("mayor.intro");
-        for (Object o : raw == null ? List.of() : raw) {
-            if (o instanceof List<?> lines) {
-                List<String> page = new ArrayList<>();
-                for (Object l : lines) page.add(String.valueOf(l));
-                pages.add(page);
-            } else if (o != null) {
-                pages.add(List.of(String.valueOf(o)));
-            }
-        }
-        if (pages.isEmpty()) pages.add(List.of("<white>어서 오게, 새 이웃! 이 집터를 받게나."));
-        return pages;
+        return List.of(
+            List.of("<white>집터는 village 월드에 설치할 수 있다네.", "<white>부지는 정사각형 2×2, 총 4청크로 고정된다네.", "<gray>집터를 들고 바닥을 바라보면 설치할 부지 경계가 보이네."),
+            List.of("<white>집터를 들고 웅크리기 + 우클릭을 하면", "<white>집터 블록이 놓일 모서리가 네 방향으로 바뀐다네.", "<gray>방향과 경계를 확인한 뒤 일반 우클릭으로 설치하게."),
+            List.of("<white>처음에는 집터 청크 하나를 사용할 수 있네.", "<white>빚을 모두 갚은 뒤 남은 청크를 하나씩 해방하게.", "<white>집터 설치 후 무기 상인에게 광 도구를 살 수 있다네.", "<gold>안내를 확인했다면 집터 블록을 받게나."));
     }
-
-    // ---------------- 말 걸기 ----------------
-
+    @EventHandler public void onQuit(org.bukkit.event.player.PlayerQuitEvent e){lastTalk.remove(e.getPlayer().getUniqueId());}
     public void talk(Player p) {
-        if (!introDone(p)) showIntro(p, Math.min(page(p), introPages().size() - 1));
-        else showOffice(p);
+        long now=System.nanoTime();Long last=lastTalk.get(p.getUniqueId());
+        if(last!=null&&now-last<300_000_000L)return;
+        lastTalk.put(p.getUniqueId(),now);
+        boolean met=p.getPersistentDataContainer().has(metKey,PersistentDataType.BYTE)||introDone(p)||page(p)>0;
+        p.getPersistentDataContainer().set(metKey,PersistentDataType.BYTE,(byte)1);
+        showOffice(p,met?"반갑다네":"광광서버에 오신걸 환영한다네");
     }
-
-    private void showIntro(Player p, int page) {
-        List<List<String>> pages = introPages();
-        setPage(p, page);
-        boolean last = page >= pages.size() - 1;
-
-        ActionButton next = last
-                ? Dialogs.button(plugin, Text.mm(s("give-label", "<#7acb52><bold>🏠 집터 받기")), null, 150, this::finishIntro)
-                : Dialogs.button(plugin, Text.mm(s("next-label", "다음 ▶")), null, 150, pl -> showIntro(pl, page + 1));
-        ActionButton later = Dialogs.close(plugin, Text.mm(s("later-label", "<gray>나중에")), 100);
-
-        String counter = s("page-format", "<gray>(%page%/%pages%)")
-                .replace("%page%", String.valueOf(page + 1)).replace("%pages%", String.valueOf(pages.size()));
-        p.showDialog(dialog(Text.mm(s("title", "<#6b4226>이장님") + " " + counter), pages.get(page),
-                List.of(next), later, 1));
-        if (page == 0) p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 0.3f, 1f);
+    private void showIntro(Player p,int page) {
+        LandFeature land=land();
+        if(land==null||land.landOf(p.getUniqueId())!=null||land.hasCoreItem(p)){showOffice(p);return;}
+        var pages=introPages();int current=Math.clamp(page,0,pages.size()-1);setPage(p,current);
+        boolean last=current==pages.size()-1;
+        ActionButton next=Dialogs.checked(plugin,Text.mm(last?"<gold>집터 블록 수령":"<green>다음"),
+            pl->{if(last)finishIntro(pl);else showIntro(pl,current+1);},
+            pl->{pl.sendMessage(Text.mm("<yellow>다 읽음에 체크해 주세요."));showIntro(pl,current);});
+        p.showDialog(dialog(Text.mm("이장님 · 집터 안내 ("+(current+1)+"/"+pages.size()+")"),pages.get(current),
+            List.of(next),Dialogs.button(plugin,Text.mm("<gray>돌아가기"),null,100,this::showOffice),1,true));
     }
-
     private void finishIntro(Player p) {
-        p.closeDialog();
-        if (introDone(p)) return;                     // 두 번 누른 경우
-        p.getPersistentDataContainer().set(doneKey, PersistentDataType.BYTE, (byte) 1);
-        LandFeature land = land();
-        if (land != null) land.giveCore(p);
-        p.sendMessage(Text.mm(s("messages.core-given",
-                "<#f3c060>🏠 <gray>집터를 받았어요! 마을에서 마음에 드는 곳에 설치하면 거기가 내 집이 돼요.")));
-        p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.4f);
+        LandFeature land=land();
+        if(land==null||land.landOf(p.getUniqueId())!=null||land.hasCoreItem(p)){showOffice(p);return;}
+        p.getPersistentDataContainer().set(doneKey,PersistentDataType.BYTE,(byte)1);
+        land.kit(p);p.closeDialog();
+        p.playSound(p.getLocation(),Sound.BLOCK_NOTE_BLOCK_HARP,.5f,1.4f);
     }
-
-    /** 첫 대화가 끝난 뒤: 빚 갚기 창 */
-    private void showOffice(Player p) {
-        LandFeature land = land();
-        long debt = land == null ? 0 : land.debtOf(p.getUniqueId());
-        boolean hasLand = land != null && land.landOf(p.getUniqueId()) != null;
-        long balance = economy.balance(p.getUniqueId());
-
-        List<String> body = new ArrayList<>();
-        List<ActionButton> buttons = new ArrayList<>();
-        if (!hasLand) {
-            body.addAll(cfg().getStringList("mayor.office.no-land"));
-            if (land != null && !land.hasCoreItem(p)) {
-                buttons.add(Dialogs.button(plugin, Text.mm(s("office.kit-label", "<#f3c060>🏠 집터 다시 받기")), null, 200, pl -> {
-                    pl.closeDialog();
-                    land.kit(pl);
-                }));
-            }
-        } else if (debt <= 0) {
-            body.addAll(cfg().getStringList("mayor.office.no-debt"));
-        } else {
-            for (String l : cfg().getStringList("mayor.office.debt"))
-                body.add(l.replace("%debt%", Economy.format(debt)).replace("%balance%", Economy.format(balance)));
-            List<?> amounts = cfg().getList("mayor.pay-amounts");
-            for (Object o : amounts == null ? List.of(1000, 10000, 50000) : amounts) {
-                long amount;
-                try {
-                    amount = Long.parseLong(String.valueOf(o).replace(",", "").trim());
-                } catch (NumberFormatException e) {
-                    continue;
-                }
-                if (amount <= 0 || amount >= debt) continue;
-                String label = s("office.pay-label", "<#ffd34d>%amount% 갚기").replace("%amount%", Economy.format(amount));
-                buttons.add(payButton(label, amount, balance >= amount));
-            }
-            long all = Math.min(debt, balance);
-            String allLabel = all >= debt
-                    ? s("office.pay-all-label", "<#ffd34d><bold>전부 갚기 (%amount%)")
-                    : s("office.pay-max-label", "<#ffd34d>가진 만큼 갚기 (%amount%)");
-            buttons.add(payButton(allLabel.replace("%amount%", Economy.format(all)), 0, all > 0));
-        }
-        if (body.isEmpty()) body.add("<white>잘 지내고 있나?");
-        ActionButton close = Dialogs.close(plugin, Text.mm(s("office.close-label", "<gray>닫기")), 100);
-        p.showDialog(dialog(Text.mm(s("title", "<#6b4226>이장님")), body, buttons, close, 1));
+    private ActionButton disabled(String label,String tooltip) {
+        return ActionButton.create(Text.mm("<dark_gray>"+label),Text.mm("<gray>"+tooltip),200,null);
     }
-
-    private ActionButton payButton(String label, long amount, boolean enough) {
-        String shown = enough ? label : "<dark_gray>" + Text.plain(label);
-        return Dialogs.button(plugin, Text.mm(shown), null, 200, pl -> {
-            LandFeature land = land();
-            if (land != null) land.payDebt(pl, amount);
-            showOffice(pl);                            // 남은 빚으로 다시 그리기
-        });
+    private void showOffice(Player p){showOffice(p,"반갑다네");}
+    private void showOffice(Player p,String greeting) {
+        LandFeature land=land();long debt=land==null?0:land.debtOf(p.getUniqueId());
+        boolean hasLand=land!=null&&land.landOf(p.getUniqueId())!=null;
+        long balance=economy.balance(p.getUniqueId());List<ActionButton> buttons=new ArrayList<>();
+        if(land==null)buttons.add(disabled("집터 수령","집터 기능을 사용할 수 없습니다"));
+        else if(hasLand)buttons.add(disabled("집터 수령","이미 집터를 설치했습니다"));
+        else if(land.hasCoreItem(p))buttons.add(disabled("집터 수령","가방에 집터 블록이 있습니다"));
+        else buttons.add(Dialogs.button(plugin,Text.mm("<gold>집터 수령"),null,200,pl->showIntro(pl,Math.min(page(pl),introPages().size()-1))));
+        if(debt<=0)buttons.add(disabled("빚 갚기","갚을 빚이 없습니다"));
+        else if(balance<debt)buttons.add(disabled("빚 전부 갚기 ("+Economy.format(debt)+")","돈이 부족합니다"));
+        else buttons.add(Dialogs.button(plugin,Text.mm("<yellow>빚 전부 갚기 ("+Economy.format(debt)+")"),null,200,pl->{
+            var current=land();if(current!=null)current.payDebt(pl);showOffice(pl);
+        }));
+        p.showDialog(dialog(Text.mm("이장님"),List.of("<white>"+greeting,"<gray>빚: <gold>"+Economy.format(debt)+" <gray>· 보유: <gold>"+Economy.format(balance)),
+            buttons,Dialogs.close(plugin,Text.mm("<gray>닫기"),100),1));
     }
 
     private Dialog dialog(net.kyori.adventure.text.Component title, List<String> lines,
                           List<ActionButton> buttons, ActionButton exit, int columns) {
+        return dialog(title,lines,buttons,exit,columns,false);
+    }
+    private Dialog dialog(net.kyori.adventure.text.Component title,List<String> lines,
+                          List<ActionButton> buttons,ActionButton exit,int columns,boolean read) {
         DialogBase base = DialogBase.builder(title)
                 .canCloseWithEscape(true)
                 .pause(false)
@@ -238,6 +194,7 @@ public final class MayorFeature implements Feature, Listener {
                 // (WAIT_FOR_RESPONSE 는 '서버를 기다리는 중' 화면으로 넘어가는데, 그 화면은 서버가 닫아 줄 수 없어서 멈춰요)
                 .afterAction(DialogBase.DialogAfterAction.NONE)
                 .body(List.of(DialogBody.plainMessage(Text.lines(lines))))
+                .inputs(read?List.of(io.papermc.paper.registry.data.dialog.input.DialogInput.bool("read",Text.mm("다 읽음"),false,"true","false")):List.of())
                 .build();
         List<ActionButton> list = buttons.isEmpty() ? List.of(exit) : buttons;
         ActionButton exitButton = buttons.isEmpty() ? null : exit;

@@ -340,28 +340,21 @@ public final class LandFeature implements Feature, Listener {
         return land == null ? 0 : Math.max(0, land.debt);
     }
 
-    /** 이장님 창에서: 가진 골드로 빚 갚기 (amount <= 0 이면 갚을 수 있는 만큼) */
-    public void payDebt(Player p, long amount) {
+    /** 이장님 창에서 현재 빚을 전액 상환한다. */
+    public void payDebt(Player p) {
         Land land = store.of(p.getUniqueId());
         if (land == null || land.debt <= 0) {
             send(p, "no-debt", "<gray>갚을 빚이 없어요.");
             return;
         }
-        long want = amount <= 0 ? land.debt : Math.min(amount, land.debt);
-        long pay = Math.min(want, economy.balance(p.getUniqueId()));
-        if (pay <= 0 || !economy.withdraw(p.getUniqueId(), pay)) {
-            send(p, "no-gold", "<red>골드가 없어요.");
-            return;
+        long pay = land.debt;
+        if (DebtSettlement.settle(pay,economy.balance(p.getUniqueId()),value->economy.withdraw(p.getUniqueId(),value)) != DebtSettlement.Result.PAID) {
+            p.sendMessage(Text.mm("<red>돈이 부족합니다. 빚은 한 번에 전부 갚아야 해요."));return;
         }
-        land.debt -= pay;
+        land.debt = 0;
         store.save();
-        if (land.debt <= 0) {
-            p.sendMessage(Text.mm(msg("paid-off", "<#ffd34d>🎉 빚을 다 갚았어요! <gray>(%paid% 냄) 이제 땅을 더 해방할 수 있어요.")
-                    .replace("%paid%", Economy.format(pay))));
-        } else {
-            p.sendMessage(Text.mm(msg("paid", "<gray>%paid%을 갚았어요. 남은 빚 <#ffd34d>%debt%")
-                    .replace("%paid%", Economy.format(pay)).replace("%debt%", Economy.format(land.debt))));
-        }
+        p.sendMessage(Text.mm(msg("paid-off", "<#ffd34d>🎉 빚을 다 갚았어요! <gray>(%paid% 냄) 이제 땅을 더 해방할 수 있어요.")
+                .replace("%paid%", Economy.format(pay))));
     }
 
     void sendDebt(Player p, Land land) {

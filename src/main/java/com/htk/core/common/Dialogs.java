@@ -45,6 +45,15 @@ public final class Dialogs {
         return button(plugin, label, null, width, Player::closeDialog);
     }
 
+    public static ActionButton checked(Plugin plugin, Component label, Consumer<Player> accepted, Consumer<Player> rejected) {
+        return ActionButton.create(label, null, 180, DialogAction.customClick((response, audience) -> {
+            if (audience instanceof Player p) {
+                boolean read = Boolean.TRUE.equals(response.getBoolean("read"));
+                Bukkit.getScheduler().runTask(plugin, () -> { if (p.isOnline()) (read ? accepted : rejected).accept(p); });
+            }
+        }, OPTIONS));
+    }
+
     public static int clampWidth(int width) {
         return Math.max(1, Math.min(1024, width));
     }

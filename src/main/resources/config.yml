@@ -122,52 +122,13 @@ land:
   # 문구는 land.messages.<name> 으로 바꿀 수 있어요 (README 참고)
 
 # 이장님 (로비) — /mayornpc create 로 세우기
-#   처음 말을 걸면 intro 의 장(page)을 "다음 ▶"으로 넘기고, 마지막 장에서 집터를 받아요.
-#   중간에 닫으면 다음에 말을 걸 때 그 장부터 이어서. 그 뒤로는 빚 갚기 창이 열려요.
-#   테스트: /mayornpc reset <player>  (집이 이미 있는 사람은 첫 대화를 건너뛰어요)
+#   우클릭 → 첫 인사/재방문 인사 + 집터 수령·빚 전액 상환.
+#   집터 안내는 매 장 '다 읽음' 체크 후 진행합니다. 안내·버튼 문구는 서버 코드에서 관리합니다.
+#   /mayornpc reset <player>: 대화·안내 기록 초기화 (기존 집·아이템은 보존)
 mayor:
   npc-name: "<#f3c060><bold>이장님"
-  npc-profession: cartographer      # 주민 옷 (librarian, cleric ... none)
-  title: "<#6b4226>이장님"
-  page-format: "<gray>(%page%/%pages%)"
-  next-label: "다음 ▶"
-  later-label: "<gray>나중에"
-  give-label: "<#7acb52><bold>🏠 집터 받기"
-  intro:
-    - - "<white>오오, 새 얼굴이구먼! 어서 오게."
-      - "<white>나는 이 마을의 이장일세."
-      - ""
-      - "<gray>먼 길 오느라 고생 많았네."
-    - - "<white>우리 마을에선 다들 <#7acb52>농사</#7acb52>, <#9fb4c8>채광</#9fb4c8>, <#c8a06a>벌목</#c8a06a>, <#6aa8e0>낚시</#6aa8e0>로 먹고산다네."
-      - "<white>얻은 물건은 마을 상점에 팔면 골드가 되지."
-      - ""
-      - "<gray>Shift + F 를 누르면 마을 메뉴가 열린다네."
-    - - "<white>자, 이건 <#f3c060>집터</#f3c060>일세."
-      - "<white>마을에서 마음에 드는 곳에 놓으면 거기가 자네 집이 되네."
-      - ""
-      - "<white>집값은 마을에서 먼저 내 두었으니, 천천히 갚으면 되네."
-      - "<gray>빚은 언제든 나한테 와서 갚게나."
-  pay-amounts: [1000, 10000, 50000]   # 빚 갚기 버튼 (빚보다 작은 것만 보여요) + "전부/가진 만큼 갚기"
-  office:
-    debt:
-      - "<white>잘 지내고 있나?"
-      - ""
-      - "<gray>남은 빚: <#ffd34d>%debt%"
-      - "<gray>가진 골드: <#ffd34d>%balance%"
-    no-debt:
-      - "<white>빚을 다 갚았구먼! 대단하네."
-      - "<gray>다음 청크를 해방하면 또 와서 갚게나."
-    no-land:
-      - "<white>아직 집터를 안 놓았나 보군."
-      - "<gray>마을에서 마음에 드는 곳에 놓아 보게."
-    pay-label: "<#ffd34d>%amount% 갚기"
-    pay-all-label: "<#ffd34d><bold>전부 갚기 (%amount%)"
-    pay-max-label: "<#ffd34d>가진 만큼 갚기 (%amount%)"
-    kit-label: "<#f3c060>🏠 집터 다시 받기"
-    close-label: "<gray>닫기"
   messages:
-    core-given: "<#f3c060>🏠 <gray>집터를 받았어요! 마을에서 마음에 드는 곳에 설치하면 거기가 내 집이 돼요."
-    join-hint: "<#f3c060>🌾 <gray>로비의 <#f3c060>이장님</#f3c060>께 말을 걸어 보세요. 집터를 주실 거예요!"
+    join-hint: "<#f3c060>🌾 <gray>로비의 이장님께 말을 걸어 집터 안내를 받아 보세요!"
 
 # 메뉴의 이동 버튼 (집으로 등): 화면에 숫자를 센 뒤 이동
 teleport:

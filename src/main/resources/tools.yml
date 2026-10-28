@@ -1,10 +1,9 @@
-# 마을 도구 (대장장이에게 사는 곡괭이·도끼·괭이·낚싯대) — 자세한 설계는 강화도구_설계.md
-# 성능은 다이아 도구 그대로 (낚싯대는 낚싯대). 강화 능력은 나중에 더해요
-# 지금 들어간 것: 도구 아이템(이름·별·3D 모양), 인챈트 금지, 관리자 명령어
-#   /villagetool give <type> [level] [player]   종류: pickaxe axe hoe fishing_rod watering_can
-#   /villagetool level <level>                    손에 든 마을 도구의 강화 단계 바꾸기 (모양 확인용)
-# 대장장이·재료 드롭·확률 강화는 3.15.0부터 지원해요. 특수 능력·수리는 아직 없어요. 바꾼 뒤 /servercore reload
-#   (이미 만들어진 도구의 이름·별은 다음에 단계가 바뀔 때 새로 그려져요)
+# 광 도구 5종. 이름은 광 + 도구명으로 고정, 강화 단계별 색·별·모델 유지.
+# 곡괭이: +0 다이아, +10 효율 V/행운 III, +15~20 행운 IV, +20 효율 VII.
+# 도끼: 단계마다 원목 2배 확률 2.5%, +20 자연 나무 연쇄 벌목.
+# 괭이·낚싯대·물뿌리개 기존 동작 유지. 강화 성공률과 재료 비용은 아래 설정 사용.
+# /villagetool give <type> [level] [player] · /villagetool level <level>
+# 기존 도구도 로그인·손 교체·인벤토리 닫기 때 이름/강화 성능을 갱신합니다.
 
 max-level: 20          # 최대 강화 단계
 allow-enchant: false   # false = 인챈트 테이블·모루·숫돌에 못 올림
@@ -22,52 +21,52 @@ stars:
   empty: "<dark_gray>☆"
   per-row: 10           # 한 줄에 별 몇 개
 
-# names: 강화 단계별 이름 (그 단계 이상이면 그 이름, 5강마다 모양과 같이 바뀌어요)
+# names: 기본 이름 참고용 (실제 이름은 코드에서 광 + 도구명으로 고정)
 #   색: +0 회색 → +5 초록 → +10 파랑 → +15 보라 → +20 금색
 tools:
   pickaxe:
     names:
-      0: "<#d9d9d9><bold>돌울림"
-      5: "<#7acb52><bold>깊은 메아리"
-      10: "<#6aa8e0><bold>드워프의 맥박"
-      15: "<#b57edc><bold>용암심장"
-      20: "<#ffd34d><bold>별을 캐는 자, 아스트라"
+      0: "<#d9d9d9><bold>광 곡괭이"
+      5: "<#7acb52><bold>광 곡괭이"
+      10: "<#6aa8e0><bold>광 곡괭이"
+      15: "<#b57edc><bold>광 곡괭이"
+      20: "<#ffd34d><bold>광 곡괭이"
     lore:
       - "<gray>마을 곡괭이 · 대장장이의 작품"
   axe:
     names:
-      0: "<#d9d9d9><bold>나무꾼의 서약"
-      5: "<#7acb52><bold>숲울음"
-      10: "<#6aa8e0><bold>고목의 분노"
-      15: "<#b57edc><bold>이그드라실의 송곳니"
-      20: "<#ffd34d><bold>세계수를 베는 자, 칼라드"
+      0: "<#d9d9d9><bold>광 도끼"
+      5: "<#7acb52><bold>광 도끼"
+      10: "<#6aa8e0><bold>광 도끼"
+      15: "<#b57edc><bold>광 도끼"
+      20: "<#ffd34d><bold>광 도끼"
     lore:
       - "<gray>마을 도끼 · 대장장이의 작품"
   hoe:
     names:
-      0: "<#d9d9d9><bold>흙내음"
-      5: "<#7acb52><bold>풍요의 손길"
-      10: "<#6aa8e0><bold>새벽이슬"
-      15: "<#b57edc><bold>황금 이랑"
-      20: "<#ffd34d><bold>대지의 노래, 세레스"
+      0: "<#d9d9d9><bold>광 괭이"
+      5: "<#7acb52><bold>광 괭이"
+      10: "<#6aa8e0><bold>광 괭이"
+      15: "<#b57edc><bold>광 괭이"
+      20: "<#ffd34d><bold>광 괭이"
     lore:
       - "<gray>마을 괭이 · 대장장이의 작품"
   fishing_rod:
     names:
-      0: "<#d9d9d9><bold>잔물결"
-      5: "<#7acb52><bold>은빛 바늘"
-      10: "<#6aa8e0><bold>심해의 속삭임"
-      15: "<#b57edc><bold>레비아탄의 실"
-      20: "<#ffd34d><bold>바다왕의 부름, 넵투라"
+      0: "<#d9d9d9><bold>광 낚싯대"
+      5: "<#7acb52><bold>광 낚싯대"
+      10: "<#6aa8e0><bold>광 낚싯대"
+      15: "<#b57edc><bold>광 낚싯대"
+      20: "<#ffd34d><bold>광 낚싯대"
     lore:
       - "<gray>마을 낚싯대 · 대장장이의 작품"
   watering_can:     # 지금은 아이템만 (물 주기 농사는 나중에)
     names:
-      0: "<#d9d9d9><bold>이슬방울"
-      5: "<#7acb52><bold>봄비"
-      10: "<#6aa8e0><bold>샘의 정령"
-      15: "<#b57edc><bold>폭포의 숨결"
-      20: "<#ffd34d><bold>하늘비의 여신, 레이나"
+      0: "<#d9d9d9><bold>광 물뿌리개"
+      5: "<#7acb52><bold>광 물뿌리개"
+      10: "<#6aa8e0><bold>광 물뿌리개"
+      15: "<#b57edc><bold>광 물뿌리개"
+      20: "<#ffd34d><bold>광 물뿌리개"
     lore:
       - "<gray>마을 물뿌리개 · 대장장이의 작품"
 
