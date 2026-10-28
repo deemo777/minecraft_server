@@ -1,7 +1,6 @@
 """Import the supplied watering-can models, preserving UVs and PNG bytes."""
 import json
 from pathlib import Path
-from first_person_display import adjust_first_person
 
 MODELS = Path(__file__).resolve().parent / 'models'
 REFERENCES = MODELS / 'references' / 'watering_cans'
@@ -35,7 +34,7 @@ def model_data(tier, full=False):
     suffix = '_full' if full else ''
     texture = f'servercore:block/village_watering_can_{tier}{suffix}'
     model['textures'] = {key: texture for key in model['textures']}
-    return adjust_first_person(model)
+    return model
 
 
 def generate():

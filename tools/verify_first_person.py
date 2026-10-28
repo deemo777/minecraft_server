@@ -37,7 +37,7 @@ def verify(pack_path):
             assert set(actual['display']) == set(source['display']), name
             for context, pose in source['display'].items():
                 changed = actual['display'][context]
-                if context not in ('firstperson_righthand', 'firstperson_lefthand'):
+                if name.startswith('village_watering_can_') or context not in ('firstperson_righthand', 'firstperson_lefthand'):
                     assert changed == pose, (name, context)
                     continue
                 assert {k: v for k, v in changed.items() if k != 'translation'} == {
@@ -46,7 +46,7 @@ def verify(pack_path):
                 expected = [old[0] + 3, old[1] - 4, old[2]]
                 assert all(math.isclose(a, b, abs_tol=1e-8) for a, b in zip(changed['translation'], expected)), (name, context)
             assert pack.read(f'assets/servercore/textures/block/{name}.png') == texture.read_bytes(), name
-    print('PASS: all 35 tool/state models, 70 first-person poses; X +3, Y -4; geometry, rotation, scale, other views and PNGs preserved.')
+    print('PASS: 25 adjusted tool/state models (50 poses), 10 watering-can models with original displays; geometry, rotation, scale, other views and PNGs preserved.')
 
 
 if __name__ == '__main__':

@@ -6,7 +6,6 @@ import zipfile
 from PIL import Image
 
 from make_watering_models import MODELS, REFERENCES, source_paths
-from first_person_display import adjust_first_person
 
 
 def verify(pack_path):
@@ -42,7 +41,6 @@ def verify(pack_path):
                     source = REFERENCES / f'{design}_watering_can_{state}'
                     original = json.loads(source.with_suffix('.json').read_text(encoding='utf-8'))
                     texture = source.with_suffix('.png')
-                adjust_first_person(original)
                 for key, value in original.items():
                     if key != 'textures':
                         assert model[key] == value, (name, key)
@@ -61,7 +59,7 @@ def verify(pack_path):
                         assert face['texture'].removeprefix('#') in model['textures']
         for tier in expected:
             assert source_paths(tier, False)[1].read_bytes() != source_paths(tier, True)[1].read_bytes()
-    print('PASS: 42 level/state selections; 10 original models, UVs, adjusted displays and byte-identical PNGs; valid planes, rotations and references.')
+    print('PASS: 42 level/state selections; 10 original models, UVs, original displays and byte-identical PNGs; valid planes, rotations and references.')
 
 
 if __name__ == '__main__':
