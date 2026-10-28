@@ -220,11 +220,11 @@ def shaft(m,k,accent):
     wood='bark' if k<2 or m.tool=='village_axe' else 'navy'
     m.box((8,5.5,8),(1.03,26.5,1.03),wood)
     m.box((8,5.5,8),(.87,26.5,.87),wood+'hi',45,axis='y')
-    grip_step=1.3 if m.tool=='village_axe' else 1.25 if m.tool=='village_pickaxe' else .85
-    for y in np.arange(-5.8,5.4,grip_step):
-        for sign in (-1,1):
-            wrap_width=.14 if m.tool=='village_pickaxe' else .2
-            m.box((8,y,8+sign*.65),(1.35,wrap_width,.2),'leather',-22.5,label='leather winding')
+    if m.tool!='village_pickaxe':
+        grip_step=1.3 if m.tool=='village_axe' else .85
+        for y in np.arange(-5.8,5.4,grip_step):
+            for sign in (-1,1):
+                m.box((8,y,8+sign*.65),(1.35,.2,.2),'leather',-22.5,label='leather winding')
     metal='copper' if k<2 else 'gold'
     for y in (-6.6,5.8,11.9,14):
         m.box((8,y,8),(1.55,.25,1.55),metal)
