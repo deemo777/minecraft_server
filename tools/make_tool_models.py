@@ -15,7 +15,7 @@ TIERS=(0,5,10,15,20)
 PICKAXE_DESIGNS={0:"talonpick",5:"azure_pickaxe",10:"amethyst_greatpick",
                  15:"viridian_pickaxe",20:"viridian_pickaxe"}
 SCYTHE_DESIGNS={0:"iron_hay_sickle",5:"windreaper",10:"crystal_frostcythe",
-                15:"azure_scythe",20:"azure_scythe"}
+                15:"revenants_darkscepter",20:"revenants_darkscepter"}
 AXE_DESIGNS={0:"viridian_greataxe",5:"black_iron_greataxe",10:"gloomsteel_greataxe",
               15:"berserkers_greataxe",20:"gilded_phoenix_greataxe"}
 COLORS={'wood':'#624336','leather':'#342c3f','iron':'#7e8a9e','steel':'#c5dbdf',

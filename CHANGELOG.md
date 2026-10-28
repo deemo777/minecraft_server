@@ -8,6 +8,10 @@
 버전은 `build.gradle.kts` 의 `version` 한 곳만 바꾸면 jar 이름과 plugin.yml 에 같이 들어가요.
 서버에서는 `/version ServerCore` 로 지금 돌고 있는 버전을 확인할 수 있어요.
 
+## 3.31.18 — 2026-10-28
+
+- 낫 +15·+20을 `revenants_darkscepter`로 교체합니다. 이번에 제공된 PNG와 기존 제공 무기 파일의 같은 이름 JSON을 사용하며, 원본 형상·UV·표시 자세·PNG 색상을 유지합니다. +0 `iron_hay_sickle`, +5 `windreaper`, +10 `crystal_frostcythe`는 재작업 폴더 파일과 기존 적용본이 같아 그대로 유지합니다.
+
 ## 3.31.17 — 2026-10-28
 
 - 물뿌리개 외형을 +0 bucket 기반 3D 물뿌리개, +5 gilded_phoenix, +10 demons_blood, +15 viridian, +20 winterthorn으로 교체하고 각 단계의 빈 모델과 full 모델을 구분합니다. 제공된 PNG 색상·UV·형상·표시 자세는 유지합니다.

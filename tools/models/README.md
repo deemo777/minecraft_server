@@ -37,19 +37,20 @@
 
 ---
 
-# 제공된 낫 디자인 (3.31.15)
+# 제공된 낫 디자인 (3.31.18)
 
 | 강화 | 원본 모델 |
 |---|---|
 | +0~4 | iron_hay_sickle |
 | +5~9 | windreaper |
 | +10~14 | crystal_frostcythe |
-| +15~20 | azure_scythe (+20도 +15와 동일) |
+| +15~20 | revenants_darkscepter (+20도 +15와 동일) |
 
 낫은 기존 `village_hoe` 아이템을 사용합니다. `references/scythes/`에 사용자 제공 원본을 보관합니다.
 `make_tool_models.py`는 형상·UV·텍스처·display를 유지하고 텍스처 경로만
 `servercore:block/village_hoe_<단계>`로 바꿉니다. 단계별 PNG는 원본 그대로 복사합니다.
-`azure_scythe_e.png`는 원본 보조 텍스처로 보관하며, 제공된 JSON은 기본 PNG만 참조합니다.
+`revenants_darkscepter.png`는 재작업 폴더의 제공 파일을 사용합니다. 이 폴더에 JSON은 없어 기존 제공 무기 분류 폴더의 `셉터/models/item/revenants_darkscepter.json`을 함께 보관하고 사용합니다.
++0·+5·+10의 재작업 파일은 기존 원본과 바이트가 같아 유지합니다. 이전 `azure_scythe` 원본은 디자인 기록으로 보관합니다.
 아래의 덩굴·꽃 세공 낫 설명은 이전 디자인 기록입니다.
 
 ---
@@ -115,7 +116,7 @@
 |---|---|---|---|---|
 | 곡괭이 | talonpick / azure_pickaxe | amethyst_greatpick | viridian_pickaxe | +15와 동일 |
 | 도끼 | viridian_greataxe / black_iron_greataxe | gloomsteel_greataxe | berserkers_greataxe | gilded_phoenix_greataxe |
-| 괭이 | iron_hay_sickle / windreaper | crystal_frostcythe | azure_scythe | +15와 동일 |
+| 괭이 | iron_hay_sickle / windreaper | crystal_frostcythe | revenants_darkscepter | +15와 동일 |
 | 물뿌리개 | 둥근 은청색 통·작은 원석 / 세공 보석 | 청색 주전자·은빛 문양·잎 | 자수정 몸통·꽃 | 은청색 몸통·큰 보석·날개·입체 궤도 |
 
 +0은 소박한 판타지 수제 도구, +5는 보강형입니다. +10과 +20은 실루엣과 장식 구성이 크게 달라집니다.
