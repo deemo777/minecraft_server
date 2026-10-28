@@ -263,35 +263,36 @@ def leaf3d(m,x,y,z,scale=1,color='jade'):
 
 def fine_make(tool,tier):
     m=Model(tool,tier);k=tier//5
-    accent={'village_pickaxe':('azure','azure','azure','cinder','amethyst'),
+    accent={'village_pickaxe':('azure','azure','teal','jade','amethyst'),
             'village_axe':('jade','jade','rose','cinder','jade'),
             'village_hoe':('jade','jade','jade','jade','azure'),
             'village_watering_can':('azure','azure','azure','amethyst','azure')}[tool][k]
-    metal=('silverlo','silver','navy','navy','silver')[k]
+    metal=('amethyst','amethyst','amethyst','amethyst','amethyst')[k] if tool=='village_pickaxe' else ('silverlo','silver','navy','navy','silver')[k]
     if tool!='village_watering_can': shaft(m,k,accent)
     if tool=='village_pickaxe':
         # Broad, swept cutting wings with a clean bevel and restrained cyan inlay.
         scale=(.68,.74,.95,1.02,1.12)[k]
-        blade_width=(1.0 if k<2 else 1.35)*1.5
+        blade_scale=scale*1.225
+        blade_width=1.0 if k<2 else 1.35
         m.box((8,19.9,8),(1.45,6.6,1.35),'navy',label='reinforced pick neck')
         for sign in (-1,1):
             pts=ribbon((8,22.9),(8+sign*4.2,24.0),(8+sign*9.2,23.1),(8+sign*11.5,20.3),lambda t: blade_width*(1-t)**.72+.08)
-            pts=[(8+(x-8)*scale,21+(y-21)*scale) for x,y in pts]
-            sculpt(m,pts,metal,'silverhi' if k<2 else accent+'hi',3.1 if k>=2 else 2.5,label='broad swept cutting blade')
+            pts=[(8+(x-8)*blade_scale,21+(y-21)*blade_scale) for x,y in pts]
+            sculpt(m,pts,metal,'silverhi',3.1 if k>=2 else 2.5,label='broad swept cutting blade')
             if k>=1:
-                line=cubic((8+sign*1.6*scale,21+2.15*scale),(8+sign*5*scale,21+2.6*scale),(8+sign*8.5*scale,21+1.7*scale),(8+sign*10.4*scale,21-.15*scale))
+                line=cubic((8+sign*1.6*blade_scale,21+2.15*blade_scale),(8+sign*5*blade_scale,21+2.6*blade_scale),(8+sign*8.5*blade_scale,21+1.7*blade_scale),(8+sign*10.4*blade_scale,21-.15*blade_scale))
                 tube(m,line,1.6,'azurehi',.12)
             if k>=2:
                 for z in (6.7,9.3):
-                    m.box((8+sign*7.2*scale,22.35,z),(1.15,.22,.16),'azurehi',-22.5,glow=True,label='precision blade inlay')
+                    m.box((8+sign*7.2*blade_scale,21+1.35*blade_scale,z),(1.15,.22,.16),'azurehi',-22.5,glow=True,label='precision blade inlay')
         if k==3:
-            for sign in (-1,1): jewel(m,8+sign*4.7*scale,23.0,.36,'cinder')
+            for sign in (-1,1): jewel(m,8+sign*4.7*blade_scale,23.0,.36,'azure')
         if k==4:
             sculpt(m,[(7.2,24.5),(8,27.3),(8.8,24.5)],'azure','azurehi',1.5,label='crystal spine')
             for sign in (-1,1):
                 m.box((8+sign*9.3*scale,21.9,6.5),(1.1,.2,.18),'amethysthi',-22.5,glow=True,label='tier crest inlay')
                 m.box((8+sign*9.3*scale,21.9,9.5),(1.1,.2,.18),'amethysthi',-22.5,glow=True,label='tier crest inlay')
-        socket(m,k,accent,20.5+2.3*scale)
+        socket(m,k,accent,20.5+2.3*blade_scale)
     elif tool=='village_axe':
         for sign in ((-1,1) if k==4 else (-1,)):
             scale=(.65,.72,.96,1.04,1.05)[k]
@@ -433,7 +434,16 @@ def fine_can(m,k,accent):
 
 def palette_for(tool):
     colors=dict(COLORS)
-    if tool=='village_axe':
+    if tool=='village_pickaxe':
+        colors.update({'ink':'#21142f','bark':'#382653','barkhi':'#624889','barklo':'#251936',
+            'navy':'#38245f','navyhi':'#604486','navylo':'#24163f','leather':'#29193f',
+            'silver':'#ded8ed','silverhi':'#fff8ff','silverlo':'#9285ad','ivory':'#d2c5ea',
+            'pearl':'#fff4ff','gold':'#239c9c','goldhi':'#7ee7cd','goldlo':'#17666f',
+            'copper':'#287c83','lightgold':'#bceee2',
+            'azure':'#20c7b5','azurehi':'#8affdf','azurelo':'#167c8d',
+            'teal':'#29aa9c','jade':'#328d83','jadehi':'#7be0bd','jadelo':'#235d62',
+            'amethyst':'#7542bd','amethysthi':'#c5a0ff','amethystlo':'#492774'})
+    elif tool=='village_axe':
         colors.update({'gold':'#967a4c','goldhi':'#dbc997','goldlo':'#63563e',
             'copper':'#8b7256','bark':'#554032','barkhi':'#8b6850','barklo':'#322f2c',
             'navy':'#345247','navyhi':'#587d65','navylo':'#253a37',
