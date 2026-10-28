@@ -8,6 +8,10 @@
 버전은 `build.gradle.kts` 의 `version` 한 곳만 바꾸면 jar 이름과 plugin.yml 에 같이 들어가요.
 서버에서는 `/version ServerCore` 로 지금 돌고 있는 버전을 확인할 수 있어요.
 
+## 3.26.0 — 2026-10-28
+
+- NPC 생성 명령을 `/npc create <type>`로 통일했습니다. `mayor`, `blacksmith`, `fish`, `crops`, `ores`, `cookie`, `weaponmerchant`를 지원하며 기존 생성 명령도 호환됩니다.
+
 ## 3.25.0 — 2026-10-28
 
 - 이장 우클릭: 첫 방문 환영/재방문 인사와 집터 수령·빚 상환 버튼. 집터 안내 3장을 매번 다 읽음 체크 후 수령합니다.

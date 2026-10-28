@@ -1,6 +1,6 @@
 # 상점 (NPC 상점 주인을 클릭하면 열려요)
 #
-# 상점 주인 세우기:  /shopnpc create <shop>   (지금 서 있는 곳, 나를 바라보게)
+# 상점 주인 세우기:  /npc create <shop>   (지금 서 있는 곳, 나를 바라보게)
 # 상점 주인 없애기:  /shopnpc remove              (5칸 안의 가장 가까운 주인)
 # 바꾼 뒤에는 /servercore reload
 #

@@ -102,6 +102,12 @@ public final class ServerCore extends JavaPlugin {
 
         PluginCommand admin = getCommand("servercore");
         if (admin != null) admin.setExecutor(new CoreCommand(this));
+        PluginCommand npc = getCommand("npc");
+        if (npc != null) {
+            var command = new com.htk.core.npc.NpcCommand(this);
+            npc.setExecutor(command);
+            npc.setTabCompleter(command);
+        }
 
         getLogger().info("켜진 기능 " + features.size() + "개");
     }

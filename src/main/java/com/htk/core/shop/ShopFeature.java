@@ -55,6 +55,7 @@ public final class ShopFeature implements Feature, Listener {
     public ServerCore plugin() { return plugin; }
     public Economy economy() { return economy; }
     public EconomyFeature gold() { return gold; }
+    public List<String> shopIds() { return config.ids(); }
 
     String msg(String key, String def) {
         return plugin.getConfig().getString("shop.messages." + key, def);

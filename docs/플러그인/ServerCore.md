@@ -1,6 +1,6 @@
 # ServerCore 명령어
 
-[전체 문서](../README.md) · **3.25.0 / 2026-10-28**
+[전체 문서](../README.md) · **3.26.0 / 2026-10-28**
 
 명령어·도구 ID·분야 ID는 **영어로만 입력**합니다.
 
@@ -10,6 +10,7 @@
 
 | 명령어 | 용도 | 권한 | 별칭 |
 |---|---|---|---|
+| `/npc` | NPC 생성 통합 명령 | 관리자 | — |
 | `/weaponmerchantnpc` | 무기 상인 NPC 생성·제거·방향 변경 | 관리자 | — |
 | `/weaponshop` | 0강 마을 도구 구매 창 열기 (관리자) | 관리자 | — |
 | `/rankboard` | 네 분야 순위 게시판 관리 | 관리자 | — |
@@ -36,21 +37,22 @@
 
 | 명령어 | 용도 |
 |---|---|
+| `/npc create <type>` | `mayor`, `blacksmith`, `fish`, `crops`, `ores`, `cookie`, `weaponmerchant` 생성 |
 | `/servercore reload` | 켜진 기능의 설정 다시 읽기 |
 | `/servercore setpoint <name>` | 현재 자리를 메뉴 이동 지점으로 저장 |
 | `/servercore delpoint <name>` · `/servercore points` | 이동 지점 삭제·목록 |
-| `/mayornpc create` · `/mayornpc remove` · `/mayornpc face` | 이장 생성·제거 |
-| `/mayornpc reset <player>` | 이장 첫 대화 초기화 |
-| `/shopnpc create <shop>` · `/shopnpc remove` · `/shopnpc face` | 상점 NPC 생성·제거 (기본: fish, crops, ores) |
+| `/npc create mayor` | 이장 생성 |
+| `/mayornpc remove` · `/mayornpc face` · `/mayornpc reset <player>` | 이장 제거·방향·첫 대화 초기화 |
+| `/npc create <shop>` · `/shopnpc remove` · `/shopnpc face` | 상점 NPC 생성·제거 (기본: fish, crops, ores) |
 | `/shop <shop> [player]` | 상점 창 열기 |
-| `/blacksmithnpc create` · `/blacksmithnpc remove` · `/blacksmithnpc face` | 대장장이 생성·제거 |
+| `/npc create blacksmith` · `/blacksmithnpc remove` · `/blacksmithnpc face` | 대장장이 생성·제거 |
 | `/enhance [player]` | 강화 창 열기 |
 | `/enhance material <type> <1~64> [player]` | 전용 강화 재료 지급 |
 | `/villagetool give <type> [level] [player]` | 마을 도구 지급 |
 | `/villagetool level <0~20>` | 손에 든 도구 강화 단계 지정 |
-| `/weaponmerchantnpc create` · `/weaponmerchantnpc remove` · `/weaponmerchantnpc face` | 무기 상인 생성·제거·방향 |
+| `/npc create weaponmerchant` · `/weaponmerchantnpc remove` · `/weaponmerchantnpc face` | 무기 상인 생성·제거·방향 |
 | `/weaponshop [player]` | 0강 마을 도구 구매 창 열기 |
-| `/cookienpc create` · `/cookienpc remove` · `/cookienpc face` | 요리사 생성·제거·방향 변경 |
+| `/npc create cookie` · `/cookienpc remove` · `/cookienpc face` | 요리사 생성·제거·방향 변경 |
 | `/rankboard create <name> <category>` | 누적 순위 홀로그램 생성 |
 | `/rankboard remove <name>` · `/rankboard list` | 게시판 삭제·목록 |
 | `/money give <player> <amount>` | 골드 지급 (`take` 회수, `set` 지정) |
@@ -61,6 +63,7 @@
 도구 종류: `pickaxe`, `axe`, `hoe`, `fishing_rod`, `watering_can`.
 순위 분야: `farming`, `mining`, `woodcutting`, `fishing`. 스킬에는 `combat`도 있습니다.
 NPC `remove`·요리사 `face`는 5블록 안의 가장 가까운 대상을 처리합니다. 요리사 방향은 **실행자 시선의 반대**입니다.
+기존 `/mayornpc create`, `/shopnpc create`, `/blacksmithnpc create`, `/cookienpc create`, `/weaponmerchantnpc create` 명령도 호환됩니다.
 
 ## 집터 명령과 조작
 
