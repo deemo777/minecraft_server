@@ -20,6 +20,33 @@ COLORS={'wood':'#624336','leather':'#342c3f','iron':'#7e8a9e','steel':'#c5dbdf',
 KEYS=list(COLORS)
 
 
+def sample_element_colors(elements, texture_path):
+    """Sample each imported cuboid's UV patches for a useful shape preview."""
+    with Image.open(texture_path) as source:
+        texture=source.convert('RGBA')
+    sx,sy=texture.width/16,texture.height/16
+    result=[]
+    for element in elements:
+        pixels=[]
+        for face in element.get('faces',{}).values():
+            uv=face.get('uv')
+            if not uv: continue
+            x0=max(0,min(texture.width-1,round(min(uv[0],uv[2])*sx)))
+            x1=max(x0+1,min(texture.width,round(max(uv[0],uv[2])*sx)))
+            y0=max(0,min(texture.height-1,round(min(uv[1],uv[3])*sy)))
+            y1=max(y0+1,min(texture.height,round(max(uv[1],uv[3])*sy)))
+            patch=texture.crop((x0,y0,x1,y1))
+            pixels.extend(patch.getdata())
+        opaque=[pixel[:3] for pixel in pixels if len(pixel)>3 and pixel[3]>0]
+        if opaque:
+            rgb=np.asarray(opaque,dtype=np.uint8)
+            color=np.median(rgb,axis=0).astype(int)
+            result.append('#'+''.join(f'{component:02x}' for component in color))
+        else:
+            result.append('#777777')
+    return result
+
+
 class Model:
     def __init__(self,tool,tier):
         self.tool,self.tier=tool,tier
@@ -47,9 +74,14 @@ class Model:
 
     def data(self):
         if self.tool=='village_axe':
-            return {'credit':'ServerCore reference axe item sprite',
-                    'parent':'minecraft:item/handheld',
-                    'textures':{'layer0':f'servercore:item/village_axe_{self.tier}'}}
+            source=HERE/'models'/'references'/'iron_greataxe.json'
+            result=json.loads(source.read_text(encoding='utf-8'))
+            texture=f'servercore:block/village_axe_{self.tier}'
+            result['credit']='Iron Greataxe model from the user-provided Nongko Fantasy Weapons pack'
+            result['textures']={key:texture for key in result.get('textures',{})}
+            self.elements=result.get('elements',[])
+            self.colors=sample_element_colors(self.elements, HERE/'models'/'textures'/'village_axe_0.png')
+            return result
         can=self.tool=='village_watering_can'
         gui_scale=.42 if self.tool=='village_hoe' and self.tier==20 else .49
         result={'credit':'ServerCore fine sculpted volumetric tools',
@@ -449,7 +481,8 @@ def render(m,angles=(18,-35,-25),size=(280,300),zoom=7.3):
             r=e['rotation'];o=np.array(r['origin']);pts=(pts-o)@matrix(r['axis'],r['angle']).T+o
         pts=(pts-np.array([8,10,8]))@view.T
         pts[:,0]=w/2+(pts[:,0]-center[0])*zoom;pts[:,1]=h/2-(pts[:,1]-center[1])*zoom
-        rgb=np.array(tuple(bytes.fromhex(palette_for(m.tool)[key][1:])))
+        color=key if key.startswith('#') else palette_for(m.tool)[key]
+        rgb=np.array(tuple(bytes.fromhex(color[1:])))
         for face,shade in faces:
             q=pts[face];light=1 if e.get('light_emission') else shade
             color=np.array([*np.minimum(255,rgb*light).astype(int),255],dtype=np.uint8)
@@ -507,10 +540,9 @@ def main():
                 args.preview_dir.mkdir(parents=True,exist_ok=True)
                 tile=Image.new('RGB',(420,480),'#f1ece3')
                 if tool=='village_axe':
-                    front=Image.open(tex/(name+'.png')).convert('RGBA')
-                    front.thumbnail((280,310),Image.Resampling.NEAREST)
-                    tile.paste(front,(20+(280-front.width)//2,78),front)
-                    td=ImageDraw.Draw(tile);td.rectangle((333,82,341,386),fill='#79563d',outline='#302a2b',width=2)
+                    front=render(model,(18,-35,-25),(280,310),7.3)
+                    side=render(model,(12,-65,0),(110,310),6.2)
+                    tile.paste(front,(0,65),front);tile.paste(side,(310,65),side)
                 else:
                     front=render(model,(8,-18,-27),(310,385),8.2)
                     side=render(model,(12,-65,0),(110,385),7.4)
@@ -518,7 +550,7 @@ def main():
                 td=ImageDraw.Draw(tile);td.text((15,10),f'{names[row]} +{tier}',font=font,fill='#423e50')
                 td.text((15,35),labels[col],font=small,fill='#8b7c70')
                 td.line((15,60,400,60),fill='#dcd3c5')
-                td.text((15,451),'PIXEL TEXTURE' if tool=='village_axe' else 'SCULPTED FACE',font=small,fill='#8b7c70');td.text((320,451),'EXTRUDED EDGE' if tool=='village_axe' else 'SIDE',font=small,fill='#8b7c70')
+                td.text((15,451),'IRON GREATAXE' if tool=='village_axe' else 'SCULPTED FACE',font=small,fill='#8b7c70');td.text((320,451),'SIDE',font=small,fill='#8b7c70')
                 tile.save(args.preview_dir/(name+'.png'));board.paste(tile,(col*420,65+row*485))
     if args.preview:
         board.save(args.preview_dir/'collection.png');board.save(HERE.parent/'collection.png')
@@ -527,9 +559,7 @@ def main():
         for row,tool in enumerate(TOOLS):
             for col,tier in enumerate((0,10,20)):
                 if tool=='village_axe':
-                    im=Image.new('RGBA',(500,360),(0,0,0,0))
-                    art=Image.open(tex/f'{tool}_{tier}.png').convert('RGBA');art.thumbnail((320,340),Image.Resampling.NEAREST)
-                    im.alpha_composite(art,((500-art.width)//2,(360-art.height)//2))
+                    im=render(make(tool,tier),(15,-45,-20),(500,360),7.5)
                 else:
                     im=render(make(tool,tier),(15,-45,-20),(500,360),7.5)
                 depth.paste(im,(col*500,row*360),im)

@@ -13,11 +13,11 @@
 - 왼손은 Y·Z 회전을 반대로 적용합니다.
 - 물뿌리개는 upright에 가까운 별도 자세 [-5, -20, 0], scale 0.75를 사용합니다.
 - 곡괭이: 넓은 진보라색 곡선 날·은백색 절삭면·자홍 보라색 소켓과 감개를 뺀 매끈한 손잡이.
-- 도끼: 참고 이미지에서 만든 투명 PNG 스프라이트. 넓은 룬 새김 은빛 주날, 작은 보조날, 굽은 나무 자루, 금색 연결부가 한 장에 그려집니다.
+- 도끼: 사용자가 제공한 `Nongko's Fantasy Weapons v1.20A` 팩의 `iron_greataxe` UV 모델과 텍스처. 52개 큐브 요소, 원본 손잡이·도끼날 형상과 표시 자세를 다섯 강화 단계에 적용합니다. 출처 모델은 `references/iron_greataxe.json`에 보관합니다.
 - 괭이: 밝은 연두색 날·덩굴·작은 보라 꽃.
 - 물뿌리개: 남색 물통·물방울 무늬·운반 손잡이·긴 직선 주둥이·구멍 난 살수판.
   주전자형 몸통·굽은 주둥이·날개·큰 보석·궤도 장식은 제거했습니다.
-- 입체 도구는 palette_for(tool)로 팔레트를 따로 만듭니다. 도끼는 tier별 정적 RGBA 텍스처를 item atlas에서 불러오는 `minecraft:item/handheld` 모델입니다.
+- 입체 도구는 palette_for(tool)로 팔레트를 따로 만듭니다. 도끼는 원본 JSON의 요소와 UV 면을 유지하고, 단계별 텍스처를 block atlas에서 불러옵니다.
 - 미리보기: tools/build/model_preview/tool_identity.png. 실제 클라이언트의 원근·손 위치는 게임 안 최종 확인이 필요합니다.
 
 ---
@@ -42,7 +42,7 @@
 | 도구 | +0 / +5 | +10 | +15 | +20 |
 |---|---|---|---|---|
 | 곡괭이 | 넓은 보라색 날·청록 소켓 / 인레이 보강 | 은백색 절삭면과 청록 인레이 | 청록 수정 장식 | 넓은 보라색 양날·자수정·청록 세공 |
-| 도끼 | 참고 이미지 기반 RGBA 스프라이트 | 같은 텍스처 | 같은 텍스처 | 같은 텍스처 |
+| 도끼 | iron_greataxe UV 모델·텍스처 | 같은 디자인 | 같은 디자인 | 같은 디자인 |
 | 괭이 | 짧은 낫 모양 농기구 / 덩굴·잎 | 남색 낫·청록 절삭면 | 청록 장식 낫·작은 꽃 | 은청색 날·짧은 보조 날·꽃·떠 있는 잎 |
 | 물뿌리개 | 둥근 은청색 통·작은 원석 / 세공 보석 | 청색 주전자·은빛 문양·잎 | 자수정 몸통·꽃 | 은청색 몸통·큰 보석·날개·입체 궤도 |
 
@@ -83,12 +83,12 @@ PNG는 64×64 색상표이며 실제 형상은 JSON의 elements에 있습니다.
 
 - `village_<도구>_<단계>.json`, 단계 0/5/10/15/20.
 - 입체 모델 텍스처: `servercore:block/village_<도구>_<단계>`.
-- 도끼 텍스처: `servercore:item/village_axe_<단계>`.
+- 도끼 텍스처: `servercore:block/village_axe_<단계>`.
 - 모델: `servercore:item/village_<도구>_<단계>`.
 - custom_model_data index 0의 range_dispatch: +0 fallback, 5/10/15/20 전환.
-- 도끼는 `parent: minecraft:item/handheld`를 사용하고, 나머지 입체 도구는 개별 `elements`를 사용합니다.
+- 도끼와 나머지 입체 도구는 개별 `elements`와 면별 UV 텍스처를 사용합니다.
 - 보석 glint의 light_emission은 주변 블록을 밝히는 동적 광원이 아닙니다.
 
 기존 `build_pack.py`로 재빌드할 수 있습니다. 이번 팩은 다른 기존 리소스를 보존하고
-20개 모델, 입체 도구용 팔레트, 도끼 RGBA 텍스처와 4개 단계 정의를 교체한 `tools/build/servercore_pack.zip`입니다.
+20개 모델, 입체 도구용 팔레트, 도끼 UV 텍스처와 4개 단계 정의를 교체한 `tools/build/servercore_pack.zip`입니다.
 서버 업로드와 resource-pack 설정 변경은 별도입니다.

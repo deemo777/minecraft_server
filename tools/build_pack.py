@@ -348,15 +348,6 @@ def main():
         for fn in os.listdir(tex_src):
             if fn.endswith((".png", ".png.mcmeta")):
                 shutil.copy(os.path.join(tex_src, fn), block_tex)
-        # The axe uses minecraft:item/handheld and an alpha sprite, so it must
-        # also be present in the item atlas. Other sculpted tools use block atlas textures.
-        item_tex = os.path.join(sc, "textures", "item")
-        os.makedirs(item_tex, exist_ok=True)
-        for tier in TOOL_TIERS:
-            name = f"village_axe_{tier}.png"
-            source = os.path.join(tex_src, name)
-            if os.path.isfile(source):
-                shutil.copy(source, item_tex)
     for tool, vanilla in VILLAGE_TOOLS.items():
         d, have = village_tool_def(jar, tool, vanilla)
         for t in have:
