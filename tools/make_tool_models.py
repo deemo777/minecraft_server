@@ -46,13 +46,17 @@ class Model:
         self.box((8,y,8),(width,.55,width),color,label='four sided shaft collar')
 
     def data(self):
+        if self.tool=='village_axe':
+            return {'credit':'ServerCore reference axe item sprite',
+                    'parent':'minecraft:item/handheld',
+                    'textures':{'layer0':f'servercore:item/village_axe_{self.tier}'}}
         can=self.tool=='village_watering_can'
         gui_scale=.42 if self.tool=='village_hoe' and self.tier==20 else .49
         result={'credit':'ServerCore fine sculpted volumetric tools',
             'textures':{'0':f'servercore:block/{self.tool}_{self.tier}','particle':f'servercore:block/{self.tool}_{self.tier}'},
             'gui_light':'side','elements':self.elements,
             'display':{
-                'gui':{'rotation':[15,-25,25 if self.tool=='village_axe' else 0 if can else -35],'translation':[0,-1,0],'scale':[gui_scale]*3},
+                'gui':{'rotation':[15,-25,0 if can else -35],'translation':[0,-1,0],'scale':[gui_scale]*3},
                 'ground':{'rotation':[0,0,0],'translation':[0,3,0],'scale':[.3]*3},
                 'fixed':{'rotation':[0,180,0],'translation':[0,-1,0],'scale':[.55]*3},
                 'thirdperson_righthand':{'rotation':[0,-90,0],'translation':[0,1.5,1],'scale':[.69]*3},
@@ -252,74 +256,15 @@ def leaf3d(m,x,y,z,scale=1,color='jade'):
     m.box((x,y+.3*scale,z+.48),(.12,2.6*scale,.12),'goldhi',-22.5)
 
 
-def make_ornate_axe(m,k):
-    """Build the complete new single-blade axe independently of the other tools."""
-    # Near-black straight haft with narrow gold inlay and a few fitted collars.
-    m.box((8,5.4,8),(.82,27,.82),'bark',label='black axe haft')
-    m.box((8,5.4,8),(.5,26.8,.5),'barkhi',45,axis='y',label='polished haft facet')
-    m.box((8.34,5.5,8.34),(.12,24,.12),'goldhi',label='continuous gold haft line')
-    for y in (-7.1,4.8,11.4,18.4):
-        m.box((8,y,8),(1.15,.22,1.15),'gold',label='slim haft band')
-        m.box((8,y+.14,8),(.88,.1,.88),'goldhi',label='band glint')
-    m.box((8,-8,8),(1,.75,1),'barklo',45,axis='y',label='faceted dark pommel')
-
-    # A compact poll on the back and a swept crescent blade on the cutting side.
-    scale=(.88,.92,.97,1.02,1.08)[k]
-    def tr(point):
-        x,y=point
-        return (8+(x-8)*scale,21+(y-21)*scale)
-    blade=path((8.1,23.2),[
-        ((12.2,25.3),(17.4,30.0),(20.1,30.2)),
-        ((23.0,27.2),(23.4,22.8),(21.7,19.3)),
-        ((20.1,16.4),(18.7,14.0),(17.0,13.7)),
-        ((20.0,17.2),(18.0,22.6),(8.1,23.2))])
-    sculpt(m,[tr(p) for p in blade],'silver','silverhi',2.8,step=.2,label='crescent forged blade')
-
-    poll=[(8,23),(6.5,25.3),(4.4,25.6),(3.1,24.8),(4.8,24.4),(5.4,22.5),(7.9,21.8)]
-    sculpt(m,[tr(p) for p in poll],'silverlo','silverhi',1.8,step=.2,label='short hooked poll')
-
-    # Dark recessed-looking spine and double gold engraving follow the crescent.
-    edge=cubic((11.2,23.4),(15.4,27.1),(19.0,29.2),(20.3,29.2),48)
-    edge += cubic((20.3,29.2),(22.2,27.0),(22.4,23.1),(21.1,20.8),48)[1:]
-    tube(m,[tr(p) for p in edge],1.5,'goldhi',.14,.18)
-    inner=cubic((12.4,20.7),(15.3,19.0),(17.0,17.1),(17.0,15.6),48)
-    inner+=cubic((17.0,15.6),(19.0,16.2),(20.3,18.2),(20.8,20.0),48)[1:]
-    tube(m,[tr(p) for p in inner],1.42,'navy',.2,.16)
-    tube(m,[tr(p) for p in inner],1.57,'gold',.08,.12)
-
-    # Small dark cheek plate and gold rivets anchor the blade to its ferrule.
-    cheek=[(9.3,23.5),(10.8,24.0),(12.1,23.0),(12.2,21.0),(10.8,20.1),(9.3,21.0)]
-    sculpt(m,[tr(p) for p in cheek],'navy','gold',.48,10.7,step=.18,label='engraved dark cheek')
-    for x,y in ((10.2,23.0),(11.1,21.4)):
-        xx,yy=tr((x,y));m.box((xx,yy,11.18),(.28,.42,.16),'goldhi',45,label='axe cheek rivet')
-
-    # New narrow collar: a gold clamp around the head, not the old shield socket.
-    clamp=[(7.5,23.8),(8.2,24.2),(8.8,23.2),(8.8,21.0),(8.1,20.1),(7.4,21.0)]
-    sculpt(m,[tr(p) for p in clamp],'gold','goldhi',1.4,10.0,step=.16,label='forged gold ferrule')
-    m.box((8,21.8,11.0),(.22,2.25,.18),'barklo',label='ferrule dark groove')
-    for y in (20.8,22.8):m.box((8,y,11.2),(.3,.3,.16),'goldhi',45,label='ferrule pin')
-    m.box((8.1,24.1,11.1),(.42,.5,.16),'ruby',45,label='red ferrule jewel')
-
-    if k>=3:
-        # Higher tiers refine the same silhouette with one fine scroll and extra rivets.
-        scroll=cubic((13.6,23.9),(15.2,24.2),(16.4,22.5),(15.2,21.7),42)
-        scroll+=cubic((15.2,21.7),(14.3,21.3),(13.9,22.4),(14.8,22.6),32)[1:]
-        tube(m,[tr(p) for p in scroll],1.58,'goldhi',.105,.14)
-        for x,y in ((18.4,26.7),(20.5,23.3),(17.1,17.1)):
-            xx,yy=tr((x,y));m.box((xx,yy,10.5),(.24,.24,.14),'goldhi',45,label='blade engraving rivet')
-
-
 def fine_make(tool,tier):
     m=Model(tool,tier);k=tier//5
+    if tool=='village_axe': return m
     accent={'village_pickaxe':('rose','rose','rose','rose','amethyst'),
-            'village_axe':('gold','gold','gold','gold','gold'),
             'village_hoe':('jade','jade','jade','jade','azure'),
             'village_watering_can':('azure','azure','azure','amethyst','azure')}[tool][k]
     metal=('amethyst','amethyst','amethyst','amethyst','amethyst')[k] if tool=='village_pickaxe' else ('silverlo','silver','navy','navy','silver')[k]
-    if tool not in ('village_watering_can','village_axe'): shaft(m,k,accent)
-    if tool=='village_axe':
-        make_ornate_axe(m,k)
-    elif tool=='village_pickaxe':
+    if tool!='village_watering_can': shaft(m,k,accent)
+    if tool=='village_pickaxe':
         # Broad, swept cutting wings with a clean bevel and restrained magenta inlay.
         scale=(.68,.74,.95,1.02,1.12)[k]
         blade_scale=scale*1.225
@@ -455,12 +400,6 @@ def palette_for(tool):
             'teal':'#9c2d82','jade':'#8b276e','jadehi':'#c74b9a','jadelo':'#501b44',
             'rose':'#a8328f','rosehi':'#dc73c1','roselo':'#642354',
             'amethyst':'#4d267e','amethysthi':'#7049a3','amethystlo':'#2e164f'})
-    elif tool=='village_axe':
-        colors.update({'gold':'#b18a3c','goldhi':'#f5d77b','goldlo':'#705326',
-            'bark':'#252329','barkhi':'#49424a','barklo':'#17161b',
-            'navy':'#34313a','navyhi':'#5a555c','navylo':'#222128',
-            'silver':'#777b82','silverhi':'#d8d7d2','silverlo':'#4d5058',
-            'leather':'#302d32'})
     elif tool=='village_hoe':
         colors.update({'gold':'#688d58','goldhi':'#c5dc9a','goldlo':'#46623e',
             'navy':'#304937','navyhi':'#567c4e','navylo':'#233832',
@@ -546,7 +485,7 @@ def main():
     for row,tool in enumerate(TOOLS):
         for col,tier in enumerate(TIERS):
             model=make(tool,tier);name=f'{tool}_{tier}';data=model.data()
-            for e in data['elements']:
+            for e in data.get('elements',[]):
                 assert all(-16<=a<b<=32 for a,b in zip(e['from'],e['to']))
                 if 'rotation' in e: assert e['rotation']['angle'] in (-45,-22.5,0,22.5,45)
             (out/(name+'.json')).write_text(json.dumps(data,separators=(',',':')),encoding='utf-8')
@@ -554,17 +493,32 @@ def main():
             for idx,key in enumerate(KEYS):
                 x,y=(idx%8)*8,(idx//8)*8
                 palette_draw.rectangle((x,y,x+7,y+7),fill=palette_for(tool)[key])
-            palette.save(tex/(name+'.png'));print(name,len(data['elements']),'solid parts')
+            if tool=='village_axe':
+                art=tex/(name+'.png')
+                if not art.is_file(): raise FileNotFoundError(f'Missing axe sprite texture: {art}')
+                with Image.open(art) as sprite:
+                    if sprite.mode!='RGBA' or sprite.getchannel('A').getbbox() is None:
+                        raise ValueError(f'Axe sprite must be transparent RGBA: {art}')
+                print(name,'static alpha sprite')
+            else:
+                palette.save(tex/(name+'.png'))
+                print(name,len(data['elements']),'solid parts')
             if args.preview:
                 args.preview_dir.mkdir(parents=True,exist_ok=True)
-                front=render(model,(8,-18,27 if tool=='village_axe' else -27),(310,385),8.2)
-                side=render(model,(12,-65,0),(110,385),7.4)
                 tile=Image.new('RGB',(420,480),'#f1ece3')
-                tile.paste(front,(0,53),front);tile.paste(side,(310,53),side)
+                if tool=='village_axe':
+                    front=Image.open(tex/(name+'.png')).convert('RGBA')
+                    front.thumbnail((280,310),Image.Resampling.NEAREST)
+                    tile.paste(front,(20+(280-front.width)//2,78),front)
+                    td=ImageDraw.Draw(tile);td.rectangle((333,82,341,386),fill='#79563d',outline='#302a2b',width=2)
+                else:
+                    front=render(model,(8,-18,-27),(310,385),8.2)
+                    side=render(model,(12,-65,0),(110,385),7.4)
+                    tile.paste(front,(0,53),front);tile.paste(side,(310,53),side)
                 td=ImageDraw.Draw(tile);td.text((15,10),f'{names[row]} +{tier}',font=font,fill='#423e50')
                 td.text((15,35),labels[col],font=small,fill='#8b7c70')
                 td.line((15,60,400,60),fill='#dcd3c5')
-                td.text((15,451),'SCULPTED FACE',font=small,fill='#8b7c70');td.text((320,451),'SIDE',font=small,fill='#8b7c70')
+                td.text((15,451),'PIXEL TEXTURE' if tool=='village_axe' else 'SCULPTED FACE',font=small,fill='#8b7c70');td.text((320,451),'EXTRUDED EDGE' if tool=='village_axe' else 'SIDE',font=small,fill='#8b7c70')
                 tile.save(args.preview_dir/(name+'.png'));board.paste(tile,(col*420,65+row*485))
     if args.preview:
         board.save(args.preview_dir/'collection.png');board.save(HERE.parent/'collection.png')
@@ -572,7 +526,12 @@ def main():
         depth=Image.new('RGB',(1500,1440),'#e9e4da')
         for row,tool in enumerate(TOOLS):
             for col,tier in enumerate((0,10,20)):
-                im=render(make(tool,tier),(15,-45,-20),(500,360),7.5)
+                if tool=='village_axe':
+                    im=Image.new('RGBA',(500,360),(0,0,0,0))
+                    art=Image.open(tex/f'{tool}_{tier}.png').convert('RGBA');art.thumbnail((320,340),Image.Resampling.NEAREST)
+                    im.alpha_composite(art,((500-art.width)//2,(360-art.height)//2))
+                else:
+                    im=render(make(tool,tier),(15,-45,-20),(500,360),7.5)
                 depth.paste(im,(col*500,row*360),im)
                 ImageDraw.Draw(depth).text((col*500+10,row*360+6),f'{names[row]} +{tier}',font=small,fill='#423e50')
         depth.save(args.preview_dir/'depth_comparison.png')
