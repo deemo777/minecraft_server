@@ -1,6 +1,6 @@
 # Multiverse-Core — 월드 관리
 
-[플러그인 목록](README.md)
+월드 관리 명령어 정리입니다.
 
 여러 월드를 관리합니다. 설치 파일은 5.8.2-pre.2입니다. 아래는 운영에 자주 쓰는 명령어입니다.
 관리 권한이 필요합니다. 모든 하위 명령은 [공식 명령어 문서](https://mvplugins.org/core/fundamentals/commands-usage/)에서 확인합니다.
