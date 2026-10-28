@@ -62,6 +62,7 @@ public final class VillageToolFeature implements Feature, Listener {
     public void enable() {
         loadConfig();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        for(Player p:Bukkit.getOnlinePlayers())refreshFishingModels(p);
         PluginCommand cmd = plugin.getCommand("villagetool");
         if (cmd != null) {
             ToolCommand c = new ToolCommand();
@@ -188,6 +189,32 @@ public final class VillageToolFeature implements Feature, Listener {
     private static Component noItalic(Component c) {
         return c.decoration(TextDecoration.ITALIC, false);
     }
+
+    /** 기존 낚싯대의 이름·내구도·인챈트는 보존하고 표시 데이터만 연결. */
+    private void refreshFishingModels(Player player) {
+        if(!plugin.resourcePackEnabled())return;
+        var inv=player.getInventory();
+        for(int i=0;i<inv.getSize();i++) {
+            ItemStack item=inv.getItem(i);
+            if(typeOf(item)!=ToolType.FISHING_ROD)continue;
+            var meta=item.getItemMeta();var key=Glyphs.model("village_fishing_rod");
+            var data=meta.getCustomModelDataComponent();float level=Math.clamp(levelOf(item),0,maxLevel);
+            if(key.equals(meta.getItemModel()) && !data.getFloats().isEmpty() && data.getFloats().getFirst()==level)continue;
+            meta.setItemModel(key);data.setFloats(List.of(level));meta.setCustomModelDataComponent(data);
+            item.setItemMeta(meta);inv.setItem(i,item);
+        }
+    }
+    private void refreshNextTick(Player player) {
+        if(!plugin.isEnabled())return;
+        Bukkit.getScheduler().runTask(plugin,()->{if(player.isOnline())refreshFishingModels(player);});
+    }
+    @EventHandler public void onRodJoin(org.bukkit.event.player.PlayerJoinEvent e){refreshNextTick(e.getPlayer());}
+    @EventHandler public void onRodHeld(org.bukkit.event.player.PlayerItemHeldEvent e){refreshNextTick(e.getPlayer());}
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void onRodSwap(org.bukkit.event.player.PlayerSwapHandItemsEvent e){refreshNextTick(e.getPlayer());}
+    @EventHandler public void onRodInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent e){if(e.getPlayer() instanceof Player p)refreshNextTick(p);}
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void onRodPickup(org.bukkit.event.entity.EntityPickupItemEvent e){if(e.getEntity() instanceof Player p && typeOf(e.getItem().getItemStack())==ToolType.FISHING_ROD)refreshNextTick(p);}
 
     // ---------------- 인챈트 금지 ----------------
 

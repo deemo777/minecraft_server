@@ -1,3 +1,11 @@
+# 낚싯대 모델 (3.23.0)
+
+`python tools/make_fishing_models.py --preview`로 0/5/10/15/20강과 각 cast 모델을 생성합니다.
+`village_fishing_rod_<단계>.json` 및 `_cast.json`, 팔레트 텍스처는 `textures/`에 저장됩니다.
+통합 팩은 강화 단계와 `minecraft:fishing_rod/cast`를 함께 판정합니다. 다른 도구 모델은 다시 생성하지 않습니다.
+
+---
+
 # 1인칭 자세와 도구별 개성 조정
 
 - 일반 도구 오른손: rotation [-12, -12, -20], translation [0.6, 0.5, -2], scale 0.58.

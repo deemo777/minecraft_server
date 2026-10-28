@@ -185,14 +185,19 @@ def house_model():
 #   없는 단계는 그 아래 단계 모양, +0 도 없으면 바닐라 모양
 MODELS = os.path.join(HERE, "models")
 VILLAGE_TOOLS = {"village_pickaxe": "diamond_pickaxe", "village_axe": "diamond_axe", "village_hoe": "diamond_hoe",
-                 "village_watering_can": "carrot_on_a_stick"}
+                 "village_watering_can": "carrot_on_a_stick", "village_fishing_rod": "fishing_rod"}
 TOOL_TIERS = [0, 5, 10, 15, 20]
 
 
 def village_tool_def(jar, tool, vanilla):
     """도구 하나의 아이템 정의 + 모델이 있는 단계 목록"""
     have = [t for t in TOOL_TIERS if os.path.exists(os.path.join(MODELS, f"{tool}_{t}.json"))]
-    model = lambda t: {"type": "minecraft:model", "model": f"servercore:item/{tool}_{t}"}
+    def model(t):
+        normal={"type":"minecraft:model","model":f"servercore:item/{tool}_{t}"}
+        if tool=="village_fishing_rod":
+            return {"type":"minecraft:condition","property":"minecraft:fishing_rod/cast","on_false":normal,
+                    "on_true":{"type":"minecraft:model","model":f"servercore:item/{tool}_{t}_cast"}}
+        return normal
     v = jar.json(f"assets/minecraft/items/{vanilla}.json")
     fallback = v["model"] if v and "model" in v else {"type": "minecraft:model", "model": f"minecraft:item/{vanilla}"}
     if 0 in have:
@@ -347,6 +352,9 @@ def main():
         d, have = village_tool_def(jar, tool, vanilla)
         for t in have:
             shutil.copy(os.path.join(MODELS, f"{tool}_{t}.json"), os.path.join(sc, "models", "item", f"{tool}_{t}.json"))
+        if tool=="village_fishing_rod":
+            for t in have:
+                shutil.copy(os.path.join(MODELS,f"{tool}_{t}_cast.json"),os.path.join(sc,"models","item",f"{tool}_{t}_cast.json"))
         write_json(os.path.join(sc, "items", tool + ".json"), d)
         print(f"  {tool}: " + (", ".join(f"+{t}" for t in have) + " 모델" if have else "모델 없음 → 바닐라 모양"))
 
