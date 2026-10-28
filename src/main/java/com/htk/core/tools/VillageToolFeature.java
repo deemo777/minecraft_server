@@ -25,6 +25,10 @@ import org.bukkit.event.inventory.PrepareGrindstoneEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.Damageable;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.keys.tags.DamageTypeTagKeys;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -138,6 +142,10 @@ public final class VillageToolFeature implements Feature, Listener {
         return typeOf(item) == ToolType.WATERING_CAN ? WateringCanRules.capacity(levelOf(item)) : 0;
     }
 
+    public boolean infiniteWater(ItemStack item) {
+        return typeOf(item) == ToolType.WATERING_CAN && WateringCanRules.infinite(levelOf(item));
+    }
+
     public int waterUses(ItemStack item) {
         if (typeOf(item) != ToolType.WATERING_CAN) return 0;
         var pdc = item.getItemMeta().getPersistentDataContainer();
@@ -166,6 +174,12 @@ public final class VillageToolFeature implements Feature, Listener {
         ItemMeta meta = it.getItemMeta();
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(levelKey, PersistentDataType.INTEGER, lv);
+        boolean indestructible = ToolPerformance.indestructible(lv);
+        meta.setUnbreakable(indestructible);
+        meta.setDamageResistantTypes(indestructible
+                ? RegistryAccess.registryAccess().getRegistry(RegistryKey.DAMAGE_TYPE).getTag(DamageTypeTagKeys.IS_FIRE)
+                : null);
+        if (indestructible && meta instanceof Damageable damageable) damageable.setDamage(0);
 
         String name = nameFor(type, lv);
         if (lv > 0) name += cfg.getString("level-suffix", " +%level%").replace("%level%", String.valueOf(lv));
@@ -175,9 +189,11 @@ public final class VillageToolFeature implements Feature, Listener {
             pdc.set(waterUsesKey, PersistentDataType.INTEGER, waterUses);
             pdc.remove(waterFullKey);
             List<Component> lines = new ArrayList<>(meta.lore());
-            lines.add(noItalic(Text.mm("<aqua>물: " + waterUses + "/" + WateringCanRules.capacity(lv)
-                    + "회 · 범위 " + WateringCanRules.areaLabel(lv))));
-            lines.add(noItalic(Text.mm(waterUses > 0
+            lines.add(noItalic(Text.mm("<aqua>물: " + (WateringCanRules.infinite(lv) ? "무한"
+                    : waterUses + "/" + WateringCanRules.capacity(lv) + "회")
+                    + " · 범위 " + WateringCanRules.areaLabel(lv))));
+            lines.add(noItalic(Text.mm(WateringCanRules.infinite(lv) ? "<aqua>물 보충 없이 주변 물주기"
+                    : waterUses > 0
                     ? "<aqua>밭에 우클릭하여 주변 물주기 · 물에 우클릭하여 보충"
                     : "<gray>물: 비어 있음 · 물에 우클릭하여 채우기")));
             meta.lore(lines);
@@ -194,7 +210,7 @@ public final class VillageToolFeature implements Feature, Listener {
         if (type.model != null && plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model(type.model));
         CustomModelDataComponent cmd = meta.getCustomModelDataComponent();
         cmd.setFloats(List.of((float) lv));
-        if (type == ToolType.WATERING_CAN) cmd.setFlags(List.of(waterUses > 0));
+        if (type == ToolType.WATERING_CAN) cmd.setFlags(List.of(WateringCanRules.canWater(waterUses, lv)));
         meta.setCustomModelDataComponent(cmd);
         it.setItemMeta(meta);
         return true;
@@ -213,6 +229,7 @@ public final class VillageToolFeature implements Feature, Listener {
             lines.add("<gray>원목 2배 확률 "+String.format(java.util.Locale.ROOT,"%.1f",ToolPerformance.axeDoubleChance(lv)*100)+"%");
             if(lv>=20)lines.add("<green>자연 나무 전체 벌목");
         }
+        if (ToolPerformance.indestructible(lv)) lines.add("<gold>내구도 무한 · 용암/불 면역");
         // 별: 한 줄에 10칸씩 (최대 단계까지)
         String on = cfg.getString("stars.filled", "<#ffd34d>★");
         String off = cfg.getString("stars.empty", "<dark_gray>☆");
@@ -249,6 +266,34 @@ public final class VillageToolFeature implements Feature, Listener {
     private void refreshNextTick(Player player) {
         if(!plugin.isEnabled())return;
         Bukkit.getScheduler().runTask(plugin,()->{if(player.isOnline())refreshTools(player);});
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMaxToolDamage(org.bukkit.event.player.PlayerItemDamageEvent event) {
+        if (typeOf(event.getItem()) != null && ToolPerformance.indestructible(levelOf(event.getItem()))) {
+            event.setCancelled(true);
+            refreshNextTick(event.getPlayer());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMaxToolSpawn(org.bukkit.event.entity.ItemSpawnEvent event) {
+        ItemStack item = event.getEntity().getItemStack();
+        if (typeOf(item) != null && ToolPerformance.indestructible(levelOf(item))) {
+            ItemStack updated = item.clone();
+            setLevel(updated, levelOf(item));
+            event.getEntity().setItemStack(updated);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMaxToolFire(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.Item item)
+                || typeOf(item.getItemStack()) == null || !ToolPerformance.indestructible(levelOf(item.getItemStack()))) return;
+        switch (event.getCause()) {
+            case LAVA, FIRE, FIRE_TICK, HOT_FLOOR -> event.setCancelled(true);
+            default -> { }
+        }
     }
     @EventHandler public void onRodJoin(org.bukkit.event.player.PlayerJoinEvent e){refreshNextTick(e.getPlayer());}
     @EventHandler public void onRodHeld(org.bukkit.event.player.PlayerItemHeldEvent e){refreshNextTick(e.getPlayer());}

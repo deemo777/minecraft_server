@@ -7,6 +7,20 @@ public final class UpgradeRulesTest {
     }
     public static void main(String[] args) {
         for (int level = 0; level <= 20; level++) {
+            check(ToolPerformance.indestructible(level) == (level == 20), "max-tier durability and fire protection");
+            check(WateringCanRules.infinite(level) == (level == 20), "only max-tier water is infinite");
+            check(WateringCanRules.canWater(0, level) == (level == 20), "empty max-tier can needs no refill");
+            check(WateringCanRules.canWater(1, level), "watered can is usable");
+            check(WateringCanRules.afterUse(1, level) == (level == 20 ? 1 : 0), "last charge only consumed below max tier");
+        }
+        int unlimited = 0;
+        for (int use = 0; use < 1000; use++) {
+            check(WateringCanRules.canWater(unlimited, 20), "unlimited repeated watering without filling");
+            unlimited = WateringCanRules.afterUse(unlimited, 20);
+        }
+        check(!WateringCanRules.canWater(unlimited, 19), "downgrade removes infinite-water access");
+        check(!ToolPerformance.indestructible(19) && ToolPerformance.indestructible(20), "protection turns on/off at +20");
+        for (int level = 0; level <= 20; level++) {
             int count = level < 5 ? 1 : level < 10 ? 3 : level < 15 ? 9 : 16;
             for (float yaw : new float[]{0, 90, 180, 270, -90, 360, 44.9f, 45, -45}) {
                 var cells = WateringCanRules.offsets(level, yaw);

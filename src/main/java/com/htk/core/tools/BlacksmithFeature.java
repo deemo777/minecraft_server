@@ -349,7 +349,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         var hit = player.rayTraceBlocks(distance, FluidCollisionMode.ALWAYS);
         Block water = hit == null ? null : hit.getHitBlock();
         if (water != null && water.getType() == Material.WATER) {
-            if (tools.waterUses(expected) == tools.waterCapacity(expected)) return;
+            if (tools.infiniteWater(expected) || tools.waterUses(expected) == tools.waterCapacity(expected)) return;
             Bukkit.getScheduler().runTask(plugin, () -> {
                 if (!accepting || !player.isOnline() || water.getType() != Material.WATER
                         || !player.getInventory().getItemInMainHand().equals(expected)
@@ -367,7 +367,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         if (Tag.CROPS.isTagged(b.getType())) b = b.getRelative(org.bukkit.block.BlockFace.DOWN);
         if (!(b.getBlockData() instanceof Farmland)) return;
         final Block center = b;
-        if (tools.waterUses(expected) == 0) {
+        if (!WateringCanRules.canWater(tools.waterUses(expected), tools.levelOf(expected))) {
             player.sendActionBar(Text.mm("<gray>물뿌리개가 비어 있어요. 물에 우클릭해서 채워 주세요."));
             return;
         }
@@ -406,11 +406,11 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
             }
             if (watered == 0) return;
             ItemStack used = expected.clone();
-            tools.setWaterUses(used, tools.waterUses(expected) - 1);
+            tools.setWaterUses(used, WateringCanRules.afterUse(tools.waterUses(expected), tools.levelOf(expected)));
             player.getInventory().setItemInMainHand(used);
             player.playSound(center.getLocation(), Sound.ITEM_BUCKET_EMPTY, .6f, 1.3f);
             player.sendActionBar(Text.mm("<aqua>" + watered + "칸 물주기 · 남은 물 "
-                    + tools.waterUses(used) + "/" + tools.waterCapacity(used) + "회"));
+                    + (tools.infiniteWater(used) ? "무한" : tools.waterUses(used) + "/" + tools.waterCapacity(used) + "회")));
             reward(player, ToolType.WATERING_CAN, center.getLocation().add(.5,1,.5));
         });
     }

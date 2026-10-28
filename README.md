@@ -1,6 +1,6 @@
 # Minecraft 서버 문서
 
-ServerCore **3.32.1** · Paper **26.3** · Java **25**
+ServerCore **3.33.0** · Paper **26.3** · Java **25**
 
 필요한 내용만 아래 플러그인 명령어 문서와 기능 문서에서 확인하세요.
 

@@ -3,6 +3,7 @@ package com.htk.core.tools;
 /** 강화 성능 기준. 바닐라 인챈트 레벨은 정수 단위로 올린다. */
 public final class ToolPerformance {
     private ToolPerformance() {}
+    public static boolean indestructible(int level) { return level >= 20; }
     public static int efficiency(int level) {
         int n=Math.clamp(level,0,20);
         return n<=10?(int)Math.floor(n*.5):5+(int)Math.floor((n-10)*.2);

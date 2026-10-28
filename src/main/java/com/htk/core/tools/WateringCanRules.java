@@ -7,6 +7,15 @@ import java.util.List;
 public final class WateringCanRules {
     private WateringCanRules() {}
 
+    public static boolean infinite(int level) { return level >= 20; }
+
+    public static boolean canWater(int uses, int level) { return infinite(level) || uses > 0; }
+
+    public static int afterUse(int uses, int level) {
+        int bounded = Math.clamp(uses, 0, capacity(level));
+        return infinite(level) ? bounded : Math.max(0, bounded - 1);
+    }
+
     public static int capacity(int level) {
         return 20 + Math.clamp(level, 0, 20) / 5 * 5;
     }
