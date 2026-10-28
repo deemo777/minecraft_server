@@ -6,6 +6,19 @@ public final class UpgradeRulesTest {
         checks++; if (!condition) throw new AssertionError(message);
     }
     public static void main(String[] args) {
+        for (int level = 0; level <= 20; level++) {
+            int capacity = level < 5 ? 20 : level < 10 ? 25 : level < 15 ? 30 : level < 20 ? 35 : 40;
+            check(WateringCanRules.capacity(level) == capacity, "water capacity at level " + level);
+            check(WateringCanRules.remaining(null, true, level) == capacity, "legacy full can migration");
+            check(WateringCanRules.remaining(null, false, level) == 0, "new/legacy empty can stays empty");
+            check(WateringCanRules.remaining(7, true, level) == 7, "counter overrides legacy full flag");
+            check(WateringCanRules.remaining(0, true, level) == 0, "empty counter cannot resurrect old water");
+            check(WateringCanRules.remaining(-5, false, level) == 0, "negative water count clamps");
+            check(WateringCanRules.remaining(999, false, level) == capacity, "overfilled count clamps");
+        }
+        check(WateringCanRules.capacity(-1) == 20 && WateringCanRules.capacity(999) == 40, "water capacity level bounds");
+        check(WateringCanRules.remaining(20, false, 5) == 20, "upgrade preserves remaining water without refilling");
+        check(WateringCanRules.remaining(40, false, 0) == 20, "downgrade caps water to new capacity");
         check(ToolPerformance.efficiency(0)==0&&ToolPerformance.fortune(0)==0,"base diamond has no bonus");
         check(ToolPerformance.efficiency(10)==5&&ToolPerformance.efficiency(20)==7,"efficiency anchor levels");
         check(ToolPerformance.fortune(10)==3&&ToolPerformance.fortune(15)==4,"fortune anchor levels");

@@ -49,6 +49,7 @@ public final class VillageToolFeature implements Feature, Listener {
     private final NamespacedKey typeKey;
     private final NamespacedKey levelKey;
     private final NamespacedKey waterFullKey;
+    private final NamespacedKey waterUsesKey;
     private final com.htk.core.skill.PlacedBlocks placedLogs,legacyPlaced,enhancementPlaced;
     private final java.util.Set<org.bukkit.Location> placedBreaks=new java.util.HashSet<>();
     private YamlConfiguration cfg = new YamlConfiguration();
@@ -63,6 +64,7 @@ public final class VillageToolFeature implements Feature, Listener {
         this.typeKey = new NamespacedKey(plugin, "village_tool");
         this.levelKey = new NamespacedKey(plugin, "tool_level");
         this.waterFullKey = new NamespacedKey(plugin, "watering_can_full");
+        this.waterUsesKey = new NamespacedKey(plugin, "watering_can_uses");
     }
 
     @Override
@@ -132,17 +134,23 @@ public final class VillageToolFeature implements Feature, Listener {
         return maxLevel;
     }
 
-    /** Missing state on new or existing cans means empty. */
-    public boolean waterFull(ItemStack item) {
-        return typeOf(item) == ToolType.WATERING_CAN
-                && item.getItemMeta().getPersistentDataContainer()
-                .getOrDefault(waterFullKey, PersistentDataType.BYTE, (byte) 0) == 1;
+    public int waterCapacity(ItemStack item) {
+        return typeOf(item) == ToolType.WATERING_CAN ? WateringCanRules.capacity(levelOf(item)) : 0;
     }
 
-    public void setWaterFull(ItemStack item, boolean full) {
+    public int waterUses(ItemStack item) {
+        if (typeOf(item) != ToolType.WATERING_CAN) return 0;
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        return WateringCanRules.remaining(pdc.get(waterUsesKey, PersistentDataType.INTEGER),
+                pdc.getOrDefault(waterFullKey, PersistentDataType.BYTE, (byte) 0) == 1, levelOf(item));
+    }
+
+    public void setWaterUses(ItemStack item, int uses) {
         if (typeOf(item) != ToolType.WATERING_CAN) return;
         ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(waterFullKey, PersistentDataType.BYTE, (byte) (full ? 1 : 0));
+        meta.getPersistentDataContainer().set(waterUsesKey, PersistentDataType.INTEGER,
+                Math.clamp(uses, 0, waterCapacity(item)));
+        meta.getPersistentDataContainer().remove(waterFullKey);
         item.setItemMeta(meta);
         setLevel(item, levelOf(item));
     }
@@ -152,6 +160,9 @@ public final class VillageToolFeature implements Feature, Listener {
         ToolType type = typeOf(it);
         if (type == null) return false;
         int lv = Math.max(0, Math.min(maxLevel, level));
+        // Read old capacity before changing level, so upgrades cannot refill the can.
+        int waterUses = type == ToolType.WATERING_CAN
+                ? Math.min(waterUses(it), WateringCanRules.capacity(lv)) : 0;
         ItemMeta meta = it.getItemMeta();
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(levelKey, PersistentDataType.INTEGER, lv);
@@ -161,9 +172,12 @@ public final class VillageToolFeature implements Feature, Listener {
         meta.displayName(noItalic(Text.mm(name)));
         meta.lore(lore(type, lv));
         if (type == ToolType.WATERING_CAN) {
+            pdc.set(waterUsesKey, PersistentDataType.INTEGER, waterUses);
+            pdc.remove(waterFullKey);
             List<Component> lines = new ArrayList<>(meta.lore());
-            lines.add(noItalic(Text.mm(waterFull(it)
-                    ? "<aqua>물: 가득 참 · 마른 밭에 우클릭하여 물주기"
+            lines.add(noItalic(Text.mm("<aqua>물: " + waterUses + "/" + WateringCanRules.capacity(lv) + "회 · 범위 3×3")));
+            lines.add(noItalic(Text.mm(waterUses > 0
+                    ? "<aqua>밭에 우클릭하여 주변 물주기 · 물에 우클릭하여 보충"
                     : "<gray>물: 비어 있음 · 물에 우클릭하여 채우기")));
             meta.lore(lines);
         }
@@ -179,7 +193,7 @@ public final class VillageToolFeature implements Feature, Listener {
         if (type.model != null && plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model(type.model));
         CustomModelDataComponent cmd = meta.getCustomModelDataComponent();
         cmd.setFloats(List.of((float) lv));
-        if (type == ToolType.WATERING_CAN) cmd.setFlags(List.of(waterFull(it)));
+        if (type == ToolType.WATERING_CAN) cmd.setFlags(List.of(waterUses > 0));
         meta.setCustomModelDataComponent(cmd);
         it.setItemMeta(meta);
         return true;

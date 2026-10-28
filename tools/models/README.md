@@ -14,7 +14,8 @@
 부모 모델은 병합하고 텍스처 경로를 `servercore:block/village_watering_can_<단계>[_full]`로 옮깁니다.
 형상·UV·display·원본 credit와 PNG 바이트는 유지합니다. 일반 도구 생성기도 이 생성기를 사용합니다.
 강화 단계는 custom_model_data floats[0], 물 보유 여부는 flags[0]로 선택합니다.
-플러그인의 `watering_can_full` PDC가 물 보유 상태를 저장하고 강화·재접속 시에도 flags[0]에 반영합니다.
+플러그인의 `watering_can_uses` PDC가 남은 물주기 횟수를 저장하고 1회 이상일 때 flags[0]을 켭니다.
+강화·재접속 시 잔여 횟수를 유지하며, 기존 `watering_can_full` PDC는 최초 갱신 때 해당 단계의 최대 횟수 또는 0회로 이전합니다.
 이전 팔레트·조각형 물뿌리개 설명은 이전 디자인 기록입니다.
 
 ---
