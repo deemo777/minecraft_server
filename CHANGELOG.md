@@ -8,6 +8,10 @@
 버전은 `build.gradle.kts` 의 `version` 한 곳만 바꾸면 jar 이름과 plugin.yml 에 같이 들어가요.
 서버에서는 `/version ServerCore` 로 지금 돌고 있는 버전을 확인할 수 있어요.
 
+## 3.31.19 — 2026-10-29
+
+- 낚싯대를 제공된 `fishing_rod_wing_progress_lv00/05/10/15/20` 성장 단계 모델로 교체합니다. 단계마다 일반 모델과 `_cast` 모델을 각각 적용하고 원본 형상·UV·표시 자세·PNG 색상을 유지합니다. 기존 강화 단계 및 던진 상태 전환 규칙은 유지하며 생성기도 제공된 원본을 사용하도록 갱신합니다.
+
 ## 3.31.18 — 2026-10-28
 
 - 낫 +15·+20을 `revenants_darkscepter`로 교체합니다. 이번에 제공된 PNG와 기존 제공 무기 파일의 같은 이름 JSON을 사용하며, 원본 형상·UV·표시 자세·PNG 색상을 유지합니다. +0 `iron_hay_sickle`, +5 `windreaper`, +10 `crystal_frostcythe`는 재작업 폴더 파일과 기존 적용본이 같아 그대로 유지합니다.

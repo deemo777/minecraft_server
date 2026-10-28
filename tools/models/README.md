@@ -71,10 +71,13 @@
 
 ---
 
-# 낚싯대 모델 (3.23.0)
+# 낚싯대 모델 (3.31.19)
 
-`python tools/make_fishing_models.py --preview`로 0/5/10/15/20강과 각 cast 모델을 생성합니다.
-`village_fishing_rod_<단계>.json` 및 `_cast.json`, 팔레트 텍스처는 `textures/`에 저장됩니다.
+`references/fishing_rods/`에 제공된 `fishing_rod_wing_progress_lv00/05/10/15/20` 일반·cast JSON과 PNG를 보관합니다.
+`python tools/make_fishing_models.py`로 0/5/10/15/20강과 각 cast 모델을 생성합니다.
+`village_fishing_rod_<단계>.json` 및 `_cast.json`, 각각의 원본 PNG 복사본은 `textures/`에 저장됩니다.
+텍스처 경로만 `servercore:block/village_fishing_rod_<단계>[_cast]`로 바꾸고 형상·UV·display·원본 PNG 바이트를 유지합니다.
+팩 빌드 후 `python tools/verify_fishing_models.py`로 일반·cast 모델 원본 일치와 42가지 단계·상태 전환을 검증합니다.
 통합 팩은 강화 단계와 `minecraft:fishing_rod/cast`를 함께 판정합니다. 다른 도구 모델은 다시 생성하지 않습니다.
 
 ---
