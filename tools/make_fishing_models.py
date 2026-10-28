@@ -1,6 +1,7 @@
 """Import the supplied winged fishing rods without changing geometry or PNGs."""
 import json
 from pathlib import Path
+from first_person_display import adjust_first_person
 
 HERE = Path(__file__).resolve().parent
 MODELS = HERE / 'models'
@@ -16,7 +17,7 @@ def model_data(tier, cast=False):
     data = json.loads(source_path(tier, cast).with_suffix('.json').read_text(encoding='utf-8'))
     name = f'village_fishing_rod_{tier}' + ('_cast' if cast else '')
     data['textures'] = {key: f'servercore:block/{name}' for key in data['textures']}
-    return data
+    return adjust_first_person(data)
 
 
 def generate():

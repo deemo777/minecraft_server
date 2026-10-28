@@ -1,3 +1,15 @@
+# 모든 도구의 1인칭 위치 (3.33.2)
+
+모든 5종 도구·강화 단계·상태의 원본을 읽은 뒤 `tools/first_person_display.py`의 공통 보정을 한 번 적용합니다.
+`firstperson_righthand`와 `firstperson_lefthand`의 translation은 원본 대비 X +3, Y -4이며 Z는 유지합니다.
+Minecraft의 왼손 X 반전 때문에 오른손은 화면 오른쪽, 왼손은 화면 왼쪽으로 내려서 듭니다.
+회전·배율·형상·PNG 색상과 인벤토리·3인칭 등 나머지 display는 유지합니다.
+아래의 원본 display 유지 설명에는 이 공통 1인칭 위치 보정만 추가됩니다.
+`python tools/verify_first_person.py`로 35개 모델·70개 손 자세와 나머지 데이터 보존을 검증합니다.
+화면 원근·휘두르는 중 가림은 클라이언트 안에서 최종 확인해야 합니다.
+
+---
+
 # 제공된 물뿌리개 디자인 (3.31.17)
 
 | 강화 | 원본 모델 |

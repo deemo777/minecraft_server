@@ -8,6 +8,7 @@ import math
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
+from first_person_display import adjust_first_person
 
 HERE=Path(__file__).resolve().parent
 TOOLS=('village_pickaxe','village_axe','village_hoe','village_watering_can')
@@ -93,7 +94,7 @@ class Model:
             result['textures']={key:texture for key in result['textures']}
             self.elements=result['elements']
             self.colors=sample_element_colors(self.elements,source.with_suffix('.png'))
-            return result
+            return adjust_first_person(result)
         if self.tool=='village_pickaxe':
             name=PICKAXE_DESIGNS[self.tier]
             source=HERE/'models'/'references'/'pickaxes'/name
@@ -102,7 +103,7 @@ class Model:
             result['textures']={key:texture for key in result['textures']}
             self.elements=result['elements']
             self.colors=sample_element_colors(self.elements,source.with_suffix('.png'))
-            return result
+            return adjust_first_person(result)
         if self.tool=='village_axe':
             name=AXE_DESIGNS[self.tier]
             source=HERE/'models'/'references'/'axes'/name
@@ -111,7 +112,7 @@ class Model:
             result['textures']={key:texture for key in result['textures']}
             self.elements=result['elements']
             self.colors=sample_element_colors(self.elements,source.with_suffix('.png'))
-            return result
+            return adjust_first_person(result)
         can=self.tool=='village_watering_can'
         gui_scale=.42 if self.tool=='village_hoe' and self.tier==20 else .49
         result={'credit':'ServerCore fine sculpted volumetric tools',

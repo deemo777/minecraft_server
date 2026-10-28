@@ -6,6 +6,7 @@ import zipfile
 from PIL import Image
 
 from make_fishing_models import MODELS, REFERENCES
+from first_person_display import adjust_first_person
 
 
 def verify(pack_path):
@@ -33,6 +34,7 @@ def verify(pack_path):
                 suffix = '_cast' if cast else ''
                 source = REFERENCES / f'fishing_rod_wing_progress_lv{tier:02}{suffix}'
                 original = json.loads(source.with_suffix('.json').read_text(encoding='utf-8'))
+                adjust_first_person(original)
                 name = f'village_fishing_rod_{tier}{suffix}'
                 model = json.loads(pack.read(f'assets/servercore/models/item/{name}.json'))
                 assert set(model) == set(original), name
@@ -52,7 +54,7 @@ def verify(pack_path):
                         assert element['rotation']['angle'] in (-45, -22.5, 0, 22.5, 45)
                     for face in element.get('faces', {}).values():
                         assert face['texture'].removeprefix('#') in model['textures']
-    print('PASS: 42 level/cast selections; 10 original models, UVs, displays and byte-identical PNGs; valid bounds, rotations and texture keys.')
+    print('PASS: 42 level/cast selections; 10 original models, UVs, adjusted displays and byte-identical PNGs; valid bounds, rotations and texture keys.')
 
 
 if __name__ == '__main__':
