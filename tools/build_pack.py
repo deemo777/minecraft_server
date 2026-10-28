@@ -194,6 +194,9 @@ def village_tool_def(jar, tool, vanilla):
     have = [t for t in TOOL_TIERS if os.path.exists(os.path.join(MODELS, f"{tool}_{t}.json"))]
     def model(t):
         normal={"type":"minecraft:model","model":f"servercore:item/{tool}_{t}"}
+        if tool=="village_watering_can":
+            return {"type":"minecraft:condition","property":"minecraft:custom_model_data","index":0,
+                    "on_false":normal,"on_true":{"type":"minecraft:model","model":f"servercore:item/{tool}_{t}_full"}}
         if tool=="village_fishing_rod":
             return {"type":"minecraft:condition","property":"minecraft:fishing_rod/cast","on_false":normal,
                     "on_true":{"type":"minecraft:model","model":f"servercore:item/{tool}_{t}_cast"}}
@@ -352,6 +355,9 @@ def main():
         d, have = village_tool_def(jar, tool, vanilla)
         for t in have:
             shutil.copy(os.path.join(MODELS, f"{tool}_{t}.json"), os.path.join(sc, "models", "item", f"{tool}_{t}.json"))
+        if tool=="village_watering_can":
+            for t in have:
+                shutil.copy(os.path.join(MODELS,f"{tool}_{t}_full.json"),os.path.join(sc,"models","item",f"{tool}_{t}_full.json"))
         if tool=="village_fishing_rod":
             for t in have:
                 shutil.copy(os.path.join(MODELS,f"{tool}_{t}_cast.json"),os.path.join(sc,"models","item",f"{tool}_{t}_cast.json"))

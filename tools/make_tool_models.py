@@ -79,6 +79,12 @@ class Model:
         self.box((8,y,8),(width,.55,width),color,label='four sided shaft collar')
 
     def data(self):
+        if self.tool=='village_watering_can':
+            from make_watering_models import model_data, source_paths
+            result=model_data(self.tier)
+            self.elements=result['elements']
+            self.colors=sample_element_colors(self.elements,source_paths(self.tier)[1])
+            return result
         if self.tool=='village_hoe':
             name=SCYTHE_DESIGNS[self.tier]
             source=HERE/'models'/'references'/'scythes'/name
@@ -529,6 +535,8 @@ def render(m,angles=(18,-35,-25),size=(280,300),zoom=7.3):
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--preview',action='store_true')
     ap.add_argument('--preview-dir',type=Path,default=HERE/'build/model_preview');args=ap.parse_args()
+    from make_watering_models import generate
+    generate()
     out=HERE/'models';tex=out/'textures';tex.mkdir(parents=True,exist_ok=True)
     palette=Image.new('RGBA',(64,64));draw=ImageDraw.Draw(palette)
     for i,key in enumerate(KEYS):
@@ -543,7 +551,8 @@ def main():
         for col,tier in enumerate(TIERS):
             model=make(tool,tier);name=f'{tool}_{tier}';data=model.data()
             for e in data.get('elements',[]):
-                assert all(-16<=a<b<=32 for a,b in zip(e['from'],e['to']))
+                # Imported watering cans include valid zero-thickness UV planes.
+                assert all(-16<=a<=b<=32 for a,b in zip(e['from'],e['to']))
                 if 'rotation' in e: assert e['rotation']['angle'] in (-45,-22.5,0,22.5,45)
             (out/(name+'.json')).write_text(json.dumps(data,separators=(',',':')),encoding='utf-8')
             palette=Image.new('RGBA',(64,64));palette_draw=ImageDraw.Draw(palette)
@@ -561,6 +570,8 @@ def main():
             elif tool=='village_axe':
                 source=out/'references'/'axes'/(AXE_DESIGNS[tier]+'.png')
                 (tex/(name+'.png')).write_bytes(source.read_bytes())
+                print(name,len(data['elements']),'imported UV parts')
+            elif tool=='village_watering_can':
                 print(name,len(data['elements']),'imported UV parts')
             else:
                 palette.save(tex/(name+'.png'))

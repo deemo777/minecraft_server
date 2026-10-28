@@ -8,6 +8,11 @@
 버전은 `build.gradle.kts` 의 `version` 한 곳만 바꾸면 jar 이름과 plugin.yml 에 같이 들어가요.
 서버에서는 `/version ServerCore` 로 지금 돌고 있는 버전을 확인할 수 있어요.
 
+## 3.31.17 — 2026-10-28
+
+- 물뿌리개 외형을 +0 bucket 기반 3D 물뿌리개, +5 gilded_phoenix, +10 demons_blood, +15 viridian, +20 winterthorn으로 교체하고 각 단계의 빈 모델과 full 모델을 구분합니다. 제공된 PNG 색상·UV·형상·표시 자세는 유지합니다.
+- 새 물뿌리개와 물 보유 정보가 없는 기존 물뿌리개는 빈 상태로 시작합니다. 물을 바라보고 우클릭하면 물 블록을 없애지 않고 가득 채우며, 마른 경작지에 한 번 물을 주면 빈 상태로 돌아갑니다. 물 상태는 아이템에 저장되고 강화·재접속 후에도 유지되며 설명과 외형에 반영됩니다. 이미 젖은 밭이나 취소된 경작지 상호작용에는 물을 소모하지 않습니다.
+
 ## 3.31.16 — 2026-10-28
 
 - 도끼 디자인을 제공된 원본 모델·텍스처로 교체합니다. +0은 `viridian_greataxe`, +5는 `black_iron_greataxe`, +10은 `gloomsteel_greataxe`, +15는 `berserkers_greataxe`, +20은 `gilded_phoenix_greataxe`입니다. 원본 형상·UV·색상·표시 자세를 사용하며 이전 iron_greataxe용 확대·1인칭 보정은 제거합니다. 재생성에도 단계별 원본을 반영합니다.

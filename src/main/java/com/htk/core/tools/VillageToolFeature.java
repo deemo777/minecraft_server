@@ -48,6 +48,7 @@ public final class VillageToolFeature implements Feature, Listener {
     private final ServerCore plugin;
     private final NamespacedKey typeKey;
     private final NamespacedKey levelKey;
+    private final NamespacedKey waterFullKey;
     private final com.htk.core.skill.PlacedBlocks placedLogs,legacyPlaced,enhancementPlaced;
     private final java.util.Set<org.bukkit.Location> placedBreaks=new java.util.HashSet<>();
     private YamlConfiguration cfg = new YamlConfiguration();
@@ -61,6 +62,7 @@ public final class VillageToolFeature implements Feature, Listener {
         enhancementPlaced=new com.htk.core.skill.PlacedBlocks(new NamespacedKey(plugin,"enhancement_placed"));
         this.typeKey = new NamespacedKey(plugin, "village_tool");
         this.levelKey = new NamespacedKey(plugin, "tool_level");
+        this.waterFullKey = new NamespacedKey(plugin, "watering_can_full");
     }
 
     @Override
@@ -130,6 +132,21 @@ public final class VillageToolFeature implements Feature, Listener {
         return maxLevel;
     }
 
+    /** Missing state on new or existing cans means empty. */
+    public boolean waterFull(ItemStack item) {
+        return typeOf(item) == ToolType.WATERING_CAN
+                && item.getItemMeta().getPersistentDataContainer()
+                .getOrDefault(waterFullKey, PersistentDataType.BYTE, (byte) 0) == 1;
+    }
+
+    public void setWaterFull(ItemStack item, boolean full) {
+        if (typeOf(item) != ToolType.WATERING_CAN) return;
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(waterFullKey, PersistentDataType.BYTE, (byte) (full ? 1 : 0));
+        item.setItemMeta(meta);
+        setLevel(item, levelOf(item));
+    }
+
     /** 강화 단계를 바꾸고 이름·별·모양을 다시 그려요 (마을 도구가 아니면 false) */
     public boolean setLevel(ItemStack it, int level) {
         ToolType type = typeOf(it);
@@ -143,6 +160,13 @@ public final class VillageToolFeature implements Feature, Listener {
         if (lv > 0) name += cfg.getString("level-suffix", " +%level%").replace("%level%", String.valueOf(lv));
         meta.displayName(noItalic(Text.mm(name)));
         meta.lore(lore(type, lv));
+        if (type == ToolType.WATERING_CAN) {
+            List<Component> lines = new ArrayList<>(meta.lore());
+            lines.add(noItalic(Text.mm(waterFull(it)
+                    ? "<aqua>물: 가득 참 · 마른 밭에 우클릭하여 물주기"
+                    : "<gray>물: 비어 있음 · 물에 우클릭하여 채우기")));
+            meta.lore(lines);
+        }
         if(type==ToolType.PICKAXE) {
             meta.removeEnchant(org.bukkit.enchantments.Enchantment.EFFICIENCY);
             meta.removeEnchant(org.bukkit.enchantments.Enchantment.FORTUNE);
@@ -155,6 +179,7 @@ public final class VillageToolFeature implements Feature, Listener {
         if (type.model != null && plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model(type.model));
         CustomModelDataComponent cmd = meta.getCustomModelDataComponent();
         cmd.setFloats(List.of((float) lv));
+        if (type == ToolType.WATERING_CAN) cmd.setFlags(List.of(waterFull(it)));
         meta.setCustomModelDataComponent(cmd);
         it.setItemMeta(meta);
         return true;

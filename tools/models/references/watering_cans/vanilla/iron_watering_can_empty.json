@@ -1,0 +1,6 @@
+{
+	"parent": "minecraft:item/3d_watering_can",
+	"textures": {
+		"0": "minecraft:item/bucket"
+	}
+}

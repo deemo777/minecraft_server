@@ -332,16 +332,50 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
             fishingHands.remove(id);
         }
     }
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true) public void onWater(PlayerInteractEvent e) {
-        if (e.getHand() != EquipmentSlot.HAND || e.getAction() != Action.RIGHT_CLICK_BLOCK || e.getClickedBlock() == null
-                || e.useInteractedBlock() == Event.Result.DENY || tools.typeOf(e.getItem()) != ToolType.WATERING_CAN) return;
+    @EventHandler(priority = EventPriority.MONITOR) public void onWater(PlayerInteractEvent e) {
+        if (!accepting || e.getHand() != EquipmentSlot.HAND
+                || (e.getAction() != Action.RIGHT_CLICK_BLOCK && e.getAction() != Action.RIGHT_CLICK_AIR)
+                || tools.typeOf(e.getItem()) != ToolType.WATERING_CAN) return;
+        // Air interactions with this inert base item can be predictively cancelled by Bukkit.
+        // Block interactions must still respect protection plugins' cancellation.
+        if (e.getAction() == Action.RIGHT_CLICK_BLOCK
+                && (e.isCancelled() || e.useInteractedBlock() == Event.Result.DENY)) return;
+        Player player = e.getPlayer();
+        ItemStack expected = player.getInventory().getItemInMainHand().clone();
+        if (expected.getAmount() != 1 || !expected.equals(e.getItem())) return;
+        var reach = player.getAttribute(org.bukkit.attribute.Attribute.BLOCK_INTERACTION_RANGE);
+        double distance = reach == null ? 4.5 : reach.getValue();
+        var hit = player.rayTraceBlocks(distance, FluidCollisionMode.ALWAYS);
+        Block water = hit == null ? null : hit.getHitBlock();
+        if (water != null && water.getType() == Material.WATER) {
+            if (tools.waterFull(expected)) return;
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (!accepting || !player.isOnline() || water.getType() != Material.WATER
+                        || !player.getInventory().getItemInMainHand().equals(expected)
+                        || (e.getAction() == Action.RIGHT_CLICK_BLOCK && e.isCancelled())) return;
+                ItemStack filled = expected.clone();
+                tools.setWaterFull(filled, true);
+                player.getInventory().setItemInMainHand(filled);
+                player.playSound(player.getLocation(), Sound.ITEM_BUCKET_FILL, 1, 1);
+                player.sendActionBar(Text.mm("<aqua>물뿌리개에 물을 가득 채웠어요."));
+            });
+            return;
+        }
         Block b = e.getClickedBlock();
+        if (b == null) return;
         if (!(b.getBlockData() instanceof Farmland farm) || farm.getMoisture() == farm.getMaximumMoisture()) return;
+        if (!tools.waterFull(expected)) {
+            player.sendActionBar(Text.mm("<gray>물뿌리개가 비어 있어요. 물에 우클릭해서 채워 주세요."));
+            return;
+        }
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!accepting || e.isCancelled() || !e.getPlayer().isOnline() || e.useInteractedBlock() == Event.Result.DENY
-                    || tools.typeOf(e.getPlayer().getInventory().getItemInMainHand()) != ToolType.WATERING_CAN) return;
+                    || !player.getInventory().getItemInMainHand().equals(expected)) return;
             if (!(b.getBlockData() instanceof Farmland current) || current.getMoisture() == current.getMaximumMoisture()) return;
+            ItemStack empty = expected.clone();
+            tools.setWaterFull(empty, false);
             current.setMoisture(current.getMaximumMoisture()); b.setBlockData(current);
+            player.getInventory().setItemInMainHand(empty);
             b.getWorld().spawnParticle(Particle.SPLASH, b.getLocation().add(.5,1,.5), 8, .3,.1,.3);
             reward(e.getPlayer(), ToolType.WATERING_CAN, b.getLocation().add(.5,1,.5));
         });
