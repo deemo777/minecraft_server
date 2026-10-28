@@ -99,6 +99,7 @@ class Model:
                 if display:
                     translation=display.setdefault('translation',[0,0,0])
                     translation[1]=round(translation[1]-3,4)
+                    display['scale']=[0.8,0.8,0.8]
             self.colors=sample_element_colors(self.elements, HERE/'models'/'textures'/'village_axe_0.png')
             return result
         can=self.tool=='village_watering_can'
