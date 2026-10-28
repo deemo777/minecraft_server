@@ -442,7 +442,7 @@ def palette_for(tool):
             'copper':'#287c83','lightgold':'#bceee2',
             'azure':'#20c7b5','azurehi':'#8affdf','azurelo':'#167c8d',
             'teal':'#29aa9c','jade':'#328d83','jadehi':'#7be0bd','jadelo':'#235d62',
-            'amethyst':'#7542bd','amethysthi':'#c5a0ff','amethystlo':'#492774'})
+            'amethyst':'#4d267e','amethysthi':'#7049a3','amethystlo':'#2e164f'})
     elif tool=='village_axe':
         colors.update({'gold':'#967a4c','goldhi':'#dbc997','goldlo':'#63563e',
             'copper':'#8b7256','bark':'#554032','barkhi':'#8b6850','barklo':'#322f2c',
