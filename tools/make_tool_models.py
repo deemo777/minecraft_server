@@ -80,6 +80,25 @@ class Model:
             result['credit']='Iron Greataxe model from the user-provided Nongko Fantasy Weapons pack'
             result['textures']={key:texture for key in result.get('textures',{})}
             self.elements=result.get('elements',[])
+            # Enlarge the whole axe slightly, then widen and lengthen the blade
+            # around its socket. Element 9 is the haft; 48-51 are its pommel.
+            blade_pivot=(8+(9-8)*1.12,9.5+(15.5-9.5)*1.12,8)
+            for index,element in enumerate(self.elements):
+                blade=index<9 or 10<=index<48
+                for key in ('from','to'):
+                    point=element[key]
+                    scaled=[8+(point[0]-8)*1.12,
+                            9.5+(point[1]-9.5)*1.12,
+                            8+(point[2]-8)*1.12]
+                    if blade:
+                        scaled[0]=blade_pivot[0]+(scaled[0]-blade_pivot[0])*1.45
+                        scaled[1]=blade_pivot[1]+(scaled[1]-blade_pivot[1])*1.25
+                    element[key]=[round(value,4) for value in scaled]
+            for hand in ('firstperson_righthand','firstperson_lefthand'):
+                display=result.get('display',{}).get(hand)
+                if display:
+                    translation=display.setdefault('translation',[0,0,0])
+                    translation[1]=round(translation[1]-3,4)
             self.colors=sample_element_colors(self.elements, HERE/'models'/'textures'/'village_axe_0.png')
             return result
         can=self.tool=='village_watering_can'
