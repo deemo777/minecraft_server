@@ -36,12 +36,14 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
-/** 구매 농지: 집 부지에서만 설치되며 작물 성장과 밟힘을 관리한다. */
+/** 구매 농지: 집 부지에서만 설치되며 수분 유지와 밟힘을 관리한다. */
 public final class FarmPlotFeature implements Feature, Listener {
     private final ServerCore plugin;
     private final NamespacedKey itemKey;
     private final NamespacedKey plotsKey;
+    private final NamespacedKey dryPlotsKey;
     private final Set<org.bukkit.Location> plots = new HashSet<>();
     private BukkitTask hydrationTask;
 
@@ -49,6 +51,7 @@ public final class FarmPlotFeature implements Feature, Listener {
         this.plugin = plugin;
         itemKey = new NamespacedKey(plugin, "farm_plot_item");
         plotsKey = new NamespacedKey(plugin, "farm_plot_blocks");
+        dryPlotsKey = new NamespacedKey(plugin, "farm_plot_dry_blocks");
     }
 
     @Override public void enable() {
@@ -67,7 +70,7 @@ public final class FarmPlotFeature implements Feature, Listener {
     public ItemStack createItem(int amount) {
         ItemStack item = Items.of(Material.MOSS_BLOCK, amount,
                 "<#91d46b><bold>비옥한 농지",
-                java.util.List.of("<gray>내 집 부지에 설치", "<gray>수분 유지 · 성장 속도 2배 · 밟힘 방지"),
+                java.util.List.of("<gray>내 집 부지에 설치", "<gray>물 공급 유지 · 일반 밭 속도 · 밟힘 방지"),
                 plugin.resourcePackEnabled() ? Glyphs.model("farm_plot") : null);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -95,13 +98,8 @@ public final class FarmPlotFeature implements Feature, Listener {
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (event.isCancelled() || block.getType() != Material.MOSS_BLOCK) return;
             block.setType(Material.FARMLAND, false);
-            BlockData data = block.getBlockData();
-            if (data instanceof Farmland farmland) {
-                farmland.setMoisture(farmland.getMaximumMoisture());
-                block.setBlockData(farmland, false);
-            }
             mark(block, true);
-            player.sendActionBar(Text.mm("<#91d46b>비옥한 농지 설치 · 작물 성장 속도 2배"));
+            player.sendActionBar(Text.mm("<#91d46b>비옥한 농지 설치 · 물을 공급하면 수분을 유지해요"));
         });
     }
 
@@ -123,21 +121,66 @@ public final class FarmPlotFeature implements Feature, Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void grow(BlockGrowEvent event) {
         Block soil = event.getBlock().getRelative(BlockFace.DOWN);
-        if (!marked(soil)) return;
-        keepMoist(soil);
-        BlockData next = event.getNewState().getBlockData();
-        if (next instanceof Ageable grown) {
-            grown.setAge(Math.min(grown.getMaximumAge(), grown.getAge() + 1));
-            event.getNewState().setBlockData(grown);
+        if (soil.getType() != Material.FARMLAND) return;
+        if (marked(soil)) {
+            if (!dryLocked(soil)) keepMoistWhileGrowing(soil);
+            return;
         }
+        // Ordinary hoe-tilled farmland grows at half its current rate.
+        if (ThreadLocalRandom.current().nextBoolean()) event.setCancelled(true);
     }
 
-    private void keepMoist(Block soil) {
+    private void keepMoistWhileGrowing(Block soil) {
+        if (!isAgeableCrop(soil.getRelative(BlockFace.UP))) return;
         BlockData data = soil.getBlockData();
-        if (data instanceof Farmland farmland && farmland.getMoisture() < farmland.getMaximumMoisture()) {
+        if (data instanceof Farmland farmland && farmland.getMoisture() > 0
+                && farmland.getMoisture() < farmland.getMaximumMoisture()) {
             farmland.setMoisture(farmland.getMaximumMoisture());
             soil.setBlockData(farmland, false);
         }
+    }
+
+    private boolean isAgeableCrop(Block block) {
+        return block.getBlockData() instanceof Ageable;
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void resetMoistureAfterMatureHarvest(BlockBreakEvent event) {
+        Block crop = event.getBlock();
+        if (!(crop.getBlockData() instanceof Ageable ageable)
+                || ageable.getAge() < ageable.getMaximumAge()) return;
+        Block soil = crop.getRelative(BlockFace.DOWN);
+        if (!marked(soil)) return;
+        BlockData data = soil.getBlockData();
+        if (data instanceof Farmland farmland) {
+            farmland.setMoisture(0);
+            soil.setBlockData(farmland, false);
+            setDryLocked(soil, true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void waterPlaced(BlockPlaceEvent event) {
+        Block water = event.getBlockPlaced();
+        if (water.getType() != Material.WATER) return;
+        for (org.bukkit.Location location : Set.copyOf(plots)) {
+            if (location.getWorld() == null || !location.getWorld().equals(water.getWorld())) continue;
+            Block soil = water.getWorld().getBlockAt(location);
+            if (!dryLocked(soil) || !waterCanHydrate(water, soil)) continue;
+            setDryLocked(soil, false);
+            BlockData data = soil.getBlockData();
+            if (data instanceof Farmland farmland) {
+                farmland.setMoisture(farmland.getMaximumMoisture());
+                soil.setBlockData(farmland, false);
+            }
+        }
+    }
+
+    private boolean waterCanHydrate(Block water, Block soil) {
+        int dx = water.getX() - soil.getX();
+        int dz = water.getZ() - soil.getZ();
+        int dy = water.getY() - soil.getY();
+        return dx * dx + dz * dz <= 16 && dy >= 0 && dy <= 1;
     }
 
     private void hydratePlots() {
@@ -149,10 +192,17 @@ public final class FarmPlotFeature implements Feature, Listener {
             Block block = world.getBlockAt(location);
             if (block.getType() != Material.FARMLAND) {
                 iterator.remove();
+                setDryLocked(block, false);
                 mark(block, false);
                 continue;
             }
-            keepMoist(block);
+            if (dryLocked(block)) {
+                BlockData data = block.getBlockData();
+                if (data instanceof Farmland farmland && farmland.getMoisture() != 0) {
+                    farmland.setMoisture(0);
+                    block.setBlockData(farmland, false);
+                }
+            } else keepMoistWhileGrowing(block);
         }
     }
 
@@ -216,6 +266,25 @@ public final class FarmPlotFeature implements Feature, Listener {
         return values != null && Arrays.stream(values).anyMatch(value -> value == packed(block));
     }
 
+    private boolean dryLocked(Block block) {
+        int[] values = block.getChunk().getPersistentDataContainer().get(dryPlotsKey, PersistentDataType.INTEGER_ARRAY);
+        return values != null && Arrays.stream(values).anyMatch(value -> value == packed(block));
+    }
+
+    private void setDryLocked(Block block, boolean lock) {
+        var data = block.getChunk().getPersistentDataContainer();
+        int[] values = data.get(dryPlotsKey, PersistentDataType.INTEGER_ARRAY);
+        if (values == null) values = new int[0];
+        int location = packed(block);
+        boolean exists = Arrays.stream(values).anyMatch(value -> value == location);
+        if (exists == lock) return;
+        int[] updated = lock ? Arrays.copyOf(values, values.length + 1)
+                : Arrays.stream(values).filter(value -> value != location).toArray();
+        if (lock) updated[updated.length - 1] = location;
+        if (updated.length == 0) data.remove(dryPlotsKey);
+        else data.set(dryPlotsKey, PersistentDataType.INTEGER_ARRAY, updated);
+    }
+
     private void mark(Block block, boolean add) {
         var data = block.getChunk().getPersistentDataContainer();
         int[] values = data.get(plotsKey, PersistentDataType.INTEGER_ARRAY);
@@ -229,6 +298,9 @@ public final class FarmPlotFeature implements Feature, Listener {
         if (updated.length == 0) data.remove(plotsKey);
         else data.set(plotsKey, PersistentDataType.INTEGER_ARRAY, updated);
         if (add) plots.add(block.getLocation());
-        else plots.remove(block.getLocation());
+        else {
+            plots.remove(block.getLocation());
+            setDryLocked(block, false);
+        }
     }
 }

@@ -10,6 +10,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -29,6 +31,8 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * NPC 상점
@@ -89,7 +93,39 @@ public final class ShopFeature implements Feature, Listener {
     public void disable() { }
 
     private void loadConfig() {
-        config = ShopConfig.load(plugin.loadYaml("shops.yml"), plugin.getLogger());
+        YamlConfiguration yaml = plugin.loadYaml("shops.yml");
+        YamlConfiguration defaults = plugin.loadDefaultYaml("shops.yml");
+        boolean migrated = false;
+        ConfigurationSection farmPlots = defaults.getConfigurationSection("shops.farmplots");
+        if (farmPlots != null && !yaml.isConfigurationSection("shops.farmplots")) {
+            copySection(farmPlots, yaml, "shops.farmplots");
+            migrated = true;
+        }
+        if ("farm_plot".equalsIgnoreCase(yaml.getString("shops.crops.items.farm_plot.product", ""))) {
+            yaml.set("shops.crops.items.farm_plot", null);
+            migrated = true;
+        }
+        if (migrated) {
+            try {
+                yaml.save(new File(plugin.getDataFolder(), "shops.yml"));
+                plugin.getLogger().info("비옥한 농지 상점을 shops.yml에 추가했어요.");
+            } catch (IOException e) {
+                plugin.getLogger().warning("shops.yml 농지 상점 갱신 실패: " + e.getMessage());
+            }
+        }
+        config = ShopConfig.load(yaml, plugin.getLogger());
+    }
+
+    private void copySection(ConfigurationSection source, YamlConfiguration target, String path) {
+        for (String key : source.getKeys(false)) {
+            String child = path + "." + key;
+            ConfigurationSection nested = source.getConfigurationSection(key);
+            if (nested == null) target.set(child, source.get(key));
+            else {
+                target.createSection(child);
+                copySection(nested, target, child);
+            }
+        }
     }
 
     // ---------------- 열기 ----------------
@@ -313,7 +349,7 @@ public final class ShopFeature implements Feature, Listener {
     }
 
     private String role(String id) {
-        return switch(id) { case "fish" -> "fish";case "crops" -> "crops";case "ores" -> "ores";default -> "merchant"; };
+        return switch(id) { case "fish" -> "fish";case "crops" -> "crops";case "farmplots" -> "farmplots";case "ores" -> "ores";default -> "merchant"; };
     }
     private org.bukkit.entity.Interaction spawnNpc(Location loc,ShopConfig.Shop shop) {
         return plugin.npcModels().spawn(loc,role(shop.id()),v -> {

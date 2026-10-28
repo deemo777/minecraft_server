@@ -57,6 +57,7 @@ public final class NpcModelService implements Listener {
         setVisibleName(root, switch (role) {
             case "blacksmith" -> "대장장이";
             case "crops" -> "농부";
+            case "farmplots" -> "농지 상인";
             case "fish" -> "어부";
             case "ores" -> "광부";
             case "mayor" -> "이장";
@@ -76,7 +77,8 @@ public final class NpcModelService implements Listener {
             });
             if(!display.isValid())return false;
         }else { display=found.getFirst();for(int i=1;i<found.size();i++)found.get(i).remove(); }
-        ItemStack item=new ItemStack(Material.PAPER);var meta=item.getItemMeta();meta.setItemModel(Glyphs.model("npc_"+role));item.setItemMeta(meta);display.setItemStack(item);
+        String modelRole=role.equals("farmplots")?"crops":role;
+        ItemStack item=new ItemStack(Material.PAPER);var meta=item.getItemMeta();meta.setItemModel(Glyphs.model("npc_"+modelRole));item.setItemMeta(meta);display.setItemStack(item);
         Location at=root.getLocation();at.setYaw(0);at.setPitch(0);display.teleport(at);
         float yaw=root.getPersistentDataContainer().getOrDefault(yawKey,PersistentDataType.FLOAT,0f);
         display.setBillboard(Display.Billboard.FIXED);

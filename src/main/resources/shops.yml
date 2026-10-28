@@ -50,7 +50,6 @@ shops:
     npc-profession: farmer
     skill: farming
     items:
-      farm_plot:      { material: MOSS_BLOCK, buy: 500, product: farm_plot }
       wheat:          { material: WHEAT, sell: 10 }
       carrot:         { material: CARROT, sell: 8 }
       potato:         { material: POTATO, sell: 8 }
@@ -69,6 +68,14 @@ shops:
       poisonous_potato: { material: POISONOUS_POTATO, sell: 16 }
       egg:            { material: EGG, sell: 6 }
       honeycomb:      { material: HONEYCOMB, sell: 30 }
+
+  farmplots:
+    title: "<#4f7d2a>비옥한 농지 상점"
+    theme: crops
+    npc-name: "<#91d46b><bold>농지 상인"
+    npc-profession: farmer
+    items:
+      farm_plot: { material: MOSS_BLOCK, buy: 500, product: farm_plot }
 
   ores:
     title: "<#5a5048>광물 가게"

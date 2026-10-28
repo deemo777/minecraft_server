@@ -1,6 +1,6 @@
 # ServerCore 명령어
 
-[문서 홈](../../README.md) · **3.29.0 / 2026-10-28**
+[문서 홈](../../README.md) · **3.30.0 / 2026-10-28**
 
 명령어·도구 ID·분야 ID는 **영어로만 입력**합니다.
 
@@ -43,7 +43,7 @@
 | `/servercore delpoint <name>` · `/servercore points` | 이동 지점 삭제·목록 |
 | `/npc create mayor` | 이장 생성 |
 | `/npc reset mayor <player>` | 이장 첫 대화 초기화 |
-| `/npc create <shop>` · `/npc remove <shop>` · `/npc face <shop>` | 상점 NPC 생성·제거·방향 변경 (기본: fish, crops, ores) |
+| `/npc create <shop>` · `/npc remove <shop>` · `/npc face <shop>` | 상점 NPC 생성·제거·방향 변경 (기본: fish, crops, farmplots, ores) |
 | `/shop <shop> [player]` | 상점 창 열기 |
 | `/npc create blacksmith` · `/npc remove blacksmith` · `/npc face blacksmith` | 대장장이 생성·제거·방향 변경 |
 | `/enhance [player]` | 강화 창 열기 |
