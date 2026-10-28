@@ -8,6 +8,10 @@
 버전은 `build.gradle.kts` 의 `version` 한 곳만 바꾸면 jar 이름과 plugin.yml 에 같이 들어가요.
 서버에서는 `/version ServerCore` 로 지금 돌고 있는 버전을 확인할 수 있어요.
 
+## 3.28.0 — 2026-10-28
+
+- NPC 7종의 머리 위 이름표를 표시합니다: 대장장이, 농부, 어부, 광부, 이장, 광쿠키 요리사, 모험가. 기존 NPC도 청크가 로드되면 이름표가 적용됩니다.
+
 ## 3.27.0 — 2026-10-28
 
 - NPC 관리 명령을 `/npc <create|remove|face> <type>`으로 통일하고 이장 첫 대화 초기화도 `/npc reset mayor <player>`로 옮겼습니다. 상점 NPC는 종류를 지정해 제거·방향 변경할 수 있습니다.

@@ -139,6 +139,7 @@ public final class WeaponMerchantFeature implements Feature,Listener,TabExecutor
         return root;
     }
     private boolean ensureVisual(Entity root) {
+        com.htk.core.npc.NpcModelService.setVisibleName(root, "모험가");
         String id = root.getUniqueId().toString();
         List<ItemDisplay> found = root.getWorld().getNearbyEntities(root.getLocation(), 1, 1, 1).stream()
                 .filter(e -> e instanceof ItemDisplay && id.equals(e.getPersistentDataContainer().get(visualKey, PersistentDataType.STRING)))

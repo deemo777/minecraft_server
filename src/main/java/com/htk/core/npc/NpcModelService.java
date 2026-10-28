@@ -2,6 +2,7 @@ package com.htk.core.npc;
 
 import com.htk.core.ServerCore;
 import com.htk.core.common.Glyphs;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.*;
@@ -39,6 +40,10 @@ public final class NpcModelService implements Listener {
         if(!ensure(root)){root.remove();return null;}
         return root;
     }
+    public static void setVisibleName(Entity entity, String name) {
+        entity.customName(Component.text(name));
+        entity.setCustomNameVisible(true);
+    }
     public void face(Entity root,float yaw) {
         root.getPersistentDataContainer().set(yawKey,PersistentDataType.FLOAT,yaw);ensure(root);
     }
@@ -49,6 +54,14 @@ public final class NpcModelService implements Listener {
     }
     private boolean ensure(Entity root) {
         String role=root.getPersistentDataContainer().get(roleKey,PersistentDataType.STRING);if(role==null)return false;
+        setVisibleName(root, switch (role) {
+            case "blacksmith" -> "대장장이";
+            case "crops" -> "농부";
+            case "fish" -> "어부";
+            case "ores" -> "광부";
+            case "mayor" -> "이장";
+            default -> "상인";
+        });
         String id=root.getUniqueId().toString();
         var found=root.getWorld().getNearbyEntities(root.getLocation(),1,1,1).stream()
             .filter(e->e instanceof ItemDisplay && id.equals(e.getPersistentDataContainer().get(visualKey,PersistentDataType.STRING)))

@@ -4,7 +4,7 @@
 
 | 플러그인 | 담당 | 명령어 |
 |---|---|---|
-| ServerCore 3.27.0 | 집터·이장·상점·강화·광쿠키·순위·스킬·메뉴·도감 | [보기](ServerCore.md) |
+| ServerCore 3.28.0 | 집터·이장·상점·강화·광쿠키·순위·스킬·메뉴·도감 | [보기](ServerCore.md) |
 | Multiverse-Core | 월드 등록·이동·스폰·난이도 | [보기](Multiverse-Core.md) |
 | FastAsyncWorldEdit | 블록 편집·복사·스키매틱 | [보기](FastAsyncWorldEdit.md) |
 | WorldGuard | 공공 구역의 건축·상호작용·폭발 보호 | [보기](WorldGuard.md) |
