@@ -9,10 +9,10 @@
 #   theme            배경 그림: fish(바다) / crops(농장) / ores(광산)
 #   npc-name         상점 주인 머리 위 이름
 #   npc-profession   상점 주인 옷: fisherman, farmer, toolsmith, armorer, weaponsmith, butcher, librarian ... (none = 기본)
-#   items            품목 (적은 순서대로 칸에 놓여요)
+#   items            품목 (적은 순서대로 칸에 놓여요; product는 ServerCore 커스텀 구매 아이템 ID)
 #     sell: 플레이어가 팔 때 받는 골드 (1개 값) — 처음 값의 2배로 올림 (빚 기준에 맞춤)
 #     skill: (상점마다) 이 분야 레벨이 높을수록 판매가 보너스 (skills.yml → perks.sell-bonus-per-level)
-#     buy:  플레이어가 살 때 내는 골드 (1개 값) — 지금은 사들이기만 하는 상점이라 비워 둠
+#     buy:  플레이어가 상점에서 살 때 내는 골드 (1개 값)
 #
 # 화면: 주민 교환처럼 [아이템] → [골드] 줄이 왼쪽 5개 + 오른쪽 5개 (10개 넘으면 페이지)
 # 조작 (주민 교환처럼):
@@ -50,6 +50,7 @@ shops:
     npc-profession: farmer
     skill: farming
     items:
+      farm_plot:      { material: MOSS_BLOCK, buy: 500, product: farm_plot }
       wheat:          { material: WHEAT, sell: 10 }
       carrot:         { material: CARROT, sell: 8 }
       potato:         { material: POTATO, sell: 8 }

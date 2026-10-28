@@ -18,7 +18,7 @@ public final class ShopConfig {
      * sell = 플레이어가 상점에 팔 때 받는 값 (0이면 못 팖)
      * buy  = 플레이어가 상점에서 살 때 내는 값 (0이면 못 삼)
      */
-    public record Item(String id, Material material, long sell, long buy) {}
+    public record Item(String id, Material material, long sell, long buy, String product) {}
 
     /** skill = 판매가 보너스를 주는 레벨링 분야 (farming, mining ... 없으면 빈 글자) */
     public record Shop(String id, String title, String theme, String npcName, String npcProfession, List<Item> items,
@@ -51,7 +51,7 @@ public final class ShopConfig {
                     long sell = Math.max(0, i.getLong("sell", 0));
                     long buy = Math.max(0, i.getLong("buy", 0));
                     if (sell == 0 && buy == 0) continue;
-                    items.add(new Item(itemId, mat, sell, buy));
+                    items.add(new Item(itemId, mat, sell, buy, i.getString("product", "")));
                 }
             }
             cfg.shops.put(id.toLowerCase(), new Shop(id.toLowerCase(),

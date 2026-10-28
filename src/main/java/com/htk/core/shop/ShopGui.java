@@ -80,10 +80,10 @@ public final class ShopGui extends Gui {
 
     /** 왼쪽 칸: 그 아이템 (이름은 게임 기본 이름). 살 수 있으면 가격 한 줄 */
     private ItemStack itemIcon(ShopConfig.Item it) {
-        ItemStack item = new ItemStack(it.material());
+        ItemStack item = feature.purchaseItem(it, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
-        List<Component> lore = new ArrayList<>();
+        List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
         if (it.buy() > 0) {
             lore.add(line(feature.msg("lore-buy", "<gray>클릭: <#ffd34d>%price%</#ffd34d>로 1개 사기 <dark_gray>(Shift: 한 묶음)")
                     .replace("%price%", Economy.format(it.buy()))));

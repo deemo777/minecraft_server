@@ -132,11 +132,11 @@ public final class ShopFeature implements Feature, Listener {
     }
 
     /** 가방에 이 아이템이 몇 개 더 들어가는지 */
-    private int space(Player p, Material mat) {
-        int max = mat.getMaxStackSize(), free = 0;
+    private int space(Player p, ItemStack add) {
+        int max = add.getMaxStackSize(), free = 0;
         for (ItemStack it : p.getInventory().getStorageContents()) {
             if (it == null || it.getType().isAir()) free += max;
-            else if (plain(it, mat)) free += Math.max(0, max - it.getAmount());
+            else if (it.isSimilar(add)) free += Math.max(0, max - it.getAmount());
         }
         return free;
     }
@@ -208,12 +208,12 @@ public final class ShopFeature implements Feature, Listener {
         if (item.buy() <= 0) return false;
         int amount = toCursor ? 1 : item.material().getMaxStackSize();
         long cost = item.buy() * amount;
-        ItemStack bought = new ItemStack(item.material(), amount);
+        ItemStack bought = purchaseItem(item, amount);
         if (toCursor && !fitsCursor(p, bought)) {
             cursorBusy(p);
             return false;
         }
-        if (!toCursor && space(p, item.material()) < amount) {
+        if (!toCursor && space(p, bought) < amount) {
             p.sendActionBar(Text.mm(msg("inventory-full", "<red>가방에 자리가 없어요.")));
             return false;
         }
@@ -231,6 +231,14 @@ public final class ShopFeature implements Feature, Listener {
         p.sendActionBar(Text.mm(msg("bought", "<gray>%count%개 구매 <dark_gray>(-%amount%)")
                 .replace("%amount%", Economy.format(cost)).replace("%count%", String.valueOf(amount))));
         return true;
+    }
+
+    ItemStack purchaseItem(ShopConfig.Item item, int amount) {
+        if (item.product().equalsIgnoreCase("farm_plot")) {
+            com.htk.core.farm.FarmPlotFeature plots = plugin.feature(com.htk.core.farm.FarmPlotFeature.class);
+            if (plots != null) return plots.createItem(amount);
+        }
+        return new ItemStack(item.material(), amount);
     }
 
     private long pouchTotal(Player p) {

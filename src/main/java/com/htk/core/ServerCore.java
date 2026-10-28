@@ -6,6 +6,7 @@ import com.htk.core.common.Placeholders;
 import com.htk.core.common.Points;
 import com.htk.core.common.Text;
 import com.htk.core.dogam.DogamFeature;
+import com.htk.core.farm.FarmPlotFeature;
 import com.htk.core.economy.EconomyFeature;
 import com.htk.core.shop.ShopFeature;
 import com.htk.core.skill.SkillFeature;
@@ -60,6 +61,7 @@ public final class ServerCore extends JavaPlugin {
         }
         if (getConfig().getBoolean("features.cookie", true))
             features.add(new com.htk.core.cookie.CookieFeature(this));
+        features.add(new FarmPlotFeature(this));
         if (getConfig().getBoolean("features.ranking", true))
             features.add(new com.htk.core.ranking.RankingFeature(this));
         SkillFeature skills = null;
