@@ -220,9 +220,11 @@ def shaft(m,k,accent):
     wood='bark' if k<2 or m.tool=='village_axe' else 'navy'
     m.box((8,5.5,8),(1.03,26.5,1.03),wood)
     m.box((8,5.5,8),(.87,26.5,.87),wood+'hi',45,axis='y')
-    for y in np.arange(-5.8,5.4,1.3 if m.tool=='village_axe' else .85):
+    grip_step=1.3 if m.tool=='village_axe' else 1.25 if m.tool=='village_pickaxe' else .85
+    for y in np.arange(-5.8,5.4,grip_step):
         for sign in (-1,1):
-            m.box((8,y,8+sign*.65),(1.35,.2,.2),'leather',-22.5,label='leather winding')
+            wrap_width=.14 if m.tool=='village_pickaxe' else .2
+            m.box((8,y,8+sign*.65),(1.35,wrap_width,.2),'leather',-22.5,label='leather winding')
     metal='copper' if k<2 else 'gold'
     for y in (-6.6,5.8,11.9,14):
         m.box((8,y,8),(1.55,.25,1.55),metal)
@@ -268,27 +270,28 @@ def fine_make(tool,tier):
     metal=('silverlo','silver','navy','navy','silver')[k]
     if tool!='village_watering_can': shaft(m,k,accent)
     if tool=='village_pickaxe':
-        # Raised central head and shallow monotonic taper: no drooping bird wings.
+        # Broad, swept cutting wings with a clean bevel and restrained cyan inlay.
         scale=(.68,.74,.95,1.02,1.12)[k]
-        m.box((8,19.7,8),(1.15,6.4,1.15),'navy',label='pick head neck')
+        blade_width=(1.0 if k<2 else 1.35)*1.5
+        m.box((8,19.9,8),(1.45,6.6,1.35),'navy',label='reinforced pick neck')
         for sign in (-1,1):
-            pts=ribbon((8,23.5),(8+sign*4.2,23.6),(8+sign*9.2,22.5),(8+sign*11.5,20.3),lambda t: (1.35 if k>=2 else 1.0)*(1-t)**.75+.05)
+            pts=ribbon((8,22.9),(8+sign*4.2,24.0),(8+sign*9.2,23.1),(8+sign*11.5,20.3),lambda t: blade_width*(1-t)**.72+.08)
             pts=[(8+(x-8)*scale,21+(y-21)*scale) for x,y in pts]
-            sculpt(m,pts,metal,'silverhi' if k<2 else accent+'hi',2.8 if k>=2 else 1.9,label='swept pick wing')
+            sculpt(m,pts,metal,'silverhi' if k<2 else accent+'hi',3.1 if k>=2 else 2.5,label='broad swept cutting blade')
             if k>=1:
-                line=cubic((8+sign*1.6*scale,21+2.55*scale),(8+sign*5*scale,21+2.5*scale),(8+sign*8.5*scale,21+1.5*scale),(8+sign*10.4*scale,21+.15*scale))
-                tube(m,line,1.6,'goldhi',.1)
+                line=cubic((8+sign*1.6*scale,21+2.15*scale),(8+sign*5*scale,21+2.6*scale),(8+sign*8.5*scale,21+1.7*scale),(8+sign*10.4*scale,21-.15*scale))
+                tube(m,line,1.6,'azurehi',.12)
             if k>=2:
-                leaf3d(m,8+sign*7*scale,22.5,8,.48,accent)
+                for z in (6.7,9.3):
+                    m.box((8+sign*7.2*scale,22.35,z),(1.15,.22,.16),'azurehi',-22.5,glow=True,label='precision blade inlay')
         if k==3:
-            for x,y in ((2,23.8),(5,24.3),(11,24.3),(14,23.8)):
-                sculpt(m,[(x-.4,y),(x,y+1.5),(x+.45,y+.3)],'cinder','fire',1.2,step=.17,label='flame crest')
+            for sign in (-1,1): jewel(m,8+sign*4.7*scale,23.0,.36,'cinder')
         if k==4:
-            sculpt(m,[(6.9,24),(8,27.8),(9.1,24)],'gold','goldhi',1.7,label='central crystal crest')
-            for sign in (-1,1): leaf3d(m,8+sign*9,21.7,8,.6,'amethyst')
-            fine_halo(m,8,23.8,8,2.1)
-            for z in (5.5,10.5): jewel(m,8,25.7,.45,'amethyst',z)
-        socket(m,k,accent,21+2.5*scale)
+            sculpt(m,[(7.2,24.5),(8,27.3),(8.8,24.5)],'azure','azurehi',1.5,label='crystal spine')
+            for sign in (-1,1):
+                m.box((8+sign*9.3*scale,21.9,6.5),(1.1,.2,.18),'amethysthi',-22.5,glow=True,label='tier crest inlay')
+                m.box((8+sign*9.3*scale,21.9,9.5),(1.1,.2,.18),'amethysthi',-22.5,glow=True,label='tier crest inlay')
+        socket(m,k,accent,20.5+2.3*scale)
     elif tool=='village_axe':
         for sign in ((-1,1) if k==4 else (-1,)):
             scale=(.65,.72,.96,1.04,1.05)[k]
