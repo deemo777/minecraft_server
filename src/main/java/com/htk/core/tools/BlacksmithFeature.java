@@ -55,7 +55,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
     @Override public void reload() {
         config = plugin.loadYaml("tools.yml");
         config.setDefaults(plugin.loadDefaultYaml("tools.yml"));
-        dropChance = Math.clamp(config.getDouble("enhancement.drop-chance", .10), 0, 1);
+        dropChance = Math.clamp(config.getDouble("enhancement.drop-chance", .02), 0, 1);
         for (EnhancementGui gui : sessions.values()) gui.refresh();
     }
     @Override public void disable() {
