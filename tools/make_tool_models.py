@@ -297,11 +297,11 @@ def fine_make(tool,tier):
         for sign in ((-1,1) if k==4 else (-1,)):
             scale=(.65,.72,.96,1.04,1.05)[k]
             outline=path((8,24),[
-                ((5,24),(1,28),(-3,27)),
-                ((-2,24),(-5,22),(-5,18)),
-                ((-5,14),(-2,11),(1,11)),
-                ((-1,15),(4,16),(8,16)),
-                ((7,19),(7,22),(8,24))])
+                ((4,26),(0,30),(-5,30)),
+                ((-4,25),(-8,21),(-8,17)),
+                ((-7,14),(-1,12),(4,13)),
+                ((5,14),(6,16),(8,17)),
+                ((7,20),(7,22),(8,24))])
             pts=[(8+(x-8)*scale*(-sign),20+(y-20)*scale) for x,y in outline]
             sculpt(m,pts,'jade' if k==4 else metal,'silverhi' if k<2 else 'ivory' if k==4 else accent+'hi',3.6 if k>=2 else 2.4,label='curved axe cheek')
             if k>=2:
