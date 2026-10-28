@@ -1,9 +1,9 @@
 # 마을 도구 (대장장이에게 사는 곡괭이·도끼·괭이·낚싯대) — 자세한 설계는 강화도구_설계.md
 # 성능은 다이아 도구 그대로 (낚싯대는 낚싯대). 강화 능력은 나중에 더해요
 # 지금 들어간 것: 도구 아이템(이름·별·3D 모양), 인챈트 금지, 관리자 명령어
-#   /villagetool give <종류> [단계] [플레이어]   종류: pickaxe axe hoe fishing_rod watering_can (또는 곡괭이 도끼 괭이 낚싯대 물뿌리개)
-#   /villagetool level <단계>                    손에 든 마을 도구의 강화 단계 바꾸기 (모양 확인용)
-# 대장장이·재료 드롭·확률 강화는 3.15.0부터 지원해요. 특수 능력·수리는 아직 없어요. 바꾼 뒤 /코어 reload
+#   /villagetool give <type> [level] [player]   종류: pickaxe axe hoe fishing_rod watering_can
+#   /villagetool level <level>                    손에 든 마을 도구의 강화 단계 바꾸기 (모양 확인용)
+# 대장장이·재료 드롭·확률 강화는 3.15.0부터 지원해요. 특수 능력·수리는 아직 없어요. 바꾼 뒤 /servercore reload
 #   (이미 만들어진 도구의 이름·별은 다음에 단계가 바뀔 때 새로 그려져요)
 
 max-level: 20          # 최대 강화 단계

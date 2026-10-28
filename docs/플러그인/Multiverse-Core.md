@@ -12,8 +12,8 @@
 | `/mv list` | 등록 월드 |
 | `/mv info [월드]` | 월드 정보 |
 | `/mv tp <월드>` | 이동 |
-| `/mv create <이름> normal` | 새 월드 |
-| `/mv import <이름> normal` | 기존 월드 등록 |
+| `/mv create <name> normal` | 새 월드 |
+| `/mv import <name> normal` | 기존 월드 등록 |
 | `/mv load <월드>` | 로드 |
 | `/mv unload <월드>` | 언로드 |
 | `/mv setspawn` | 현재 위치를 스폰으로 |

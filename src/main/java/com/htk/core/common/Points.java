@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 /**
  * 이름 붙인 위치 (메뉴의 "집으로", "마을로" 같은 이동 버튼용)
- * plugins/ServerCore/points.yml 에 저장. 게임에서 /servercore setpoint <이름> 으로 지금 서 있는 곳을 저장해요.
+ * plugins/ServerCore/points.yml 에 저장. 게임에서 /servercore setpoint <name> 으로 지금 서 있는 곳을 저장해요.
  */
 public final class Points {
 

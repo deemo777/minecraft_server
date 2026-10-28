@@ -50,12 +50,12 @@ import java.util.function.BiConsumer;
 /**
  * 레벨링: 농사·채광·벌목·낚시·전투
  * 경험치 표, 필요 경험치 공식, 칭호, 레벨 효과는 plugins/ServerCore/skills.yml
- * 관리자: /skill set <플레이어> <분야> <레벨>,  /skill reset <플레이어>
+ * 관리자: /skill set <player> <category> <level>,  /skill reset <player>
  *
  * 레벨 효과 (아주 작게 시작, skills.yml → perks 에서 조절)
  *   농사·채광·벌목: 캔 것이 2배로 나올 확률    낚시: 두 마리 낚을 확률
  *   전투: 몹에게 주는 피해 +%                   상점: 그 분야 상점의 판매가 +%
- * 칭호: 10레벨마다 (skills.yml → titles). /칭호 로 고르면 채팅·탭 목록 이름 앞에 붙어요
+ * 칭호: 10레벨마다 (skills.yml → titles). /honor 로 고르면 채팅·탭 목록 이름 앞에 붙어요
  */
 public final class SkillFeature implements Feature, Listener {
 
@@ -161,7 +161,7 @@ public final class SkillFeature implements Feature, Listener {
             titles.put(s, t);
         }
         titleFormat = yml.getString("title-format", "<dark_gray>[</dark_gray>%title%<dark_gray>]</dark_gray> ");
-        titleUnlocked = yml.getString("title-unlocked", "<#ffd34d>🏅 <gray>새 칭호 <white>%title%</white> 을(를) 얻었어요! <dark_gray>(/칭호 로 바꾸기)");
+        titleUnlocked = yml.getString("title-unlocked", "<#ffd34d>🏅 <gray>새 칭호 <white>%title%</white> 을(를) 얻었어요! <dark_gray>(/honor 로 바꾸기)");
         titleBroadcast = yml.getString("title-broadcast", "<#ffd34d>🏅 <white>%player%</white><gray>님이 <white>%title%</white> 칭호를 얻었어요!");
     }
 
@@ -333,7 +333,7 @@ public final class SkillFeature implements Feature, Listener {
 
     /** 상점 판매가 추가 비율 (skillKey: shops.yml 의 skill, 비어 있으면 0) */
     public double sellBonus(Player p, String skillKey) {
-        Skill s = Skill.of(skillKey);
+        Skill s = Skill.fromConfig(skillKey);
         return s == null ? 0 : sellBonusPerLevel * progress(p.getUniqueId(), s).level;
     }
 

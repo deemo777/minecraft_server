@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * 서버 안내서 (글이 쓰인 책)
  *   - 처음 접속하면 1권 (플레이어마다 한 번만)
- *   - /guide (별칭 /가이드, /안내서) 로 언제든 다시 받기
+ *   - /guide (별칭 /guide, /guide) 로 언제든 다시 받기
  * 내용은 plugins/ServerCore/guide.yml 에서 바꿔요 (바꾼 뒤 /servercore reload)
  */
 public final class GuideFeature implements Feature, Listener {

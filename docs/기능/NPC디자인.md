@@ -4,7 +4,7 @@
 
 | NPC | 특징 | 생성 |
 |---|---|---|
-| 무기 상인 | 고글·청록 작업복·가죽 앞치마·검집 | `/무기상인 create` |
+| 무기 상인 | 고글·청록 작업복·가죽 앞치마·검집 | `/weaponmerchantnpc create` |
 | 이장 | 흰 머리·올리브 코트·버건디 조끼·열쇠·장부 | `/mayornpc create` |
 | 대장장이 | 검은 머리·작업 앞치마·장갑·망치 | `/blacksmithnpc create` |
 | 생선 상인 | 낚시 모자·푸른 스카프·생선 바구니 | `/shopnpc create fish` |
@@ -24,7 +24,7 @@
 /blacksmithnpc face
 /shopnpc face
 /cookienpc face
-/무기상인 face
+/weaponmerchantnpc face
 ```
 
 원하는 NPC 방향의 반대를 보고 실행하세요. `shopnpc face`는 가장 가까운 상점 상인의 방향을 바꿉니다.

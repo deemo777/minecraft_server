@@ -10,8 +10,8 @@ import java.util.List;
 
 /**
  * /servercore reload            : config.yml, menu.yml, dogam.yml, points.yml 다시 불러오기
- * /servercore setpoint <이름>   : 지금 서 있는 곳을 이동 지점으로 저장 (menu.yml 의 teleport: <이름>)
- * /servercore delpoint <이름>   : 이동 지점 지우기
+ * /servercore setpoint <name>   : 지금 서 있는 곳을 이동 지점으로 저장 (menu.yml 의 teleport: <name>)
+ * /servercore delpoint <name>   : 이동 지점 지우기
  * /servercore points            : 이동 지점 목록
  */
 public final class CoreCommand implements TabExecutor {
@@ -55,7 +55,7 @@ public final class CoreCommand implements TabExecutor {
                     : "<gray>이동 지점: <white>" + String.join(", ", names)));
             return true;
         }
-        sender.sendMessage(Text.mm("<gray>사용법: /" + label + " reload | setpoint <이름> | delpoint <이름> | points"));
+        sender.sendMessage(Text.mm("<gray>사용법: /" + label + " reload | setpoint <name> | delpoint <name> | points"));
         return true;
     }
 

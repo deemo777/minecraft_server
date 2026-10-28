@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 마을 메뉴: Shift + F, /메뉴 → MenuGui */
+/** 마을 메뉴: Shift + F, /menu → MenuGui */
 public final class MenuFeature implements Feature, Listener {
 
     private final ServerCore plugin;

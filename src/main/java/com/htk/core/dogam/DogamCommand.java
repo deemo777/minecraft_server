@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-/** /도감 [페이지] , /도감 reset <플레이어> */
+/** /dogam [page] , /dogam reset <player> */
 public final class DogamCommand implements TabExecutor {
 
     private final DogamFeature feature;
@@ -49,7 +49,7 @@ public final class DogamCommand implements TabExecutor {
             return true;
         }
 
-        sender.sendMessage(Text.mm("<gray>사용법: /" + label + " [페이지] | reset <플레이어>"));
+        sender.sendMessage(Text.mm("<gray>사용법: /" + label + " [page] | reset <player>"));
         return true;
     }
 

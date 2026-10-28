@@ -20,18 +20,18 @@ import java.util.UUID;
  * /land home                  집으로 이동
  * /land sethome               지금 자리를 집 스폰으로
  * (빚 갚기는 로비의 이장님께 — /land pay 는 안내만)
- * /land trust <이름>          이웃 허가 (내 땅에서 전부 할 수 있음)
- * /land untrust <이름>        허가 취소
+ * /land trust <name>          이웃 허가 (내 땅에서 전부 할 수 있음)
+ * /land untrust <name>        허가 취소
  * /land show                  내 땅 테두리 보기
  * /land abandon confirm       집 땅 포기
  * /land confirm · cancel · preview   청크 해방 확인 · 취소 · 경계 다시 보기 (지도에서 + 를 누른 뒤, 채팅 버튼)
- * 관리자: /land bypass (남의 땅도 만지기 켜기/끄기), /land delete <이름>, /land give <이름> (집터 주기)
+ * 관리자: /land bypass (남의 땅도 만지기 켜기/끄기), /land delete <name>, /land give <name> (집터 주기)
  *   /land zone pos1 · pos2         집 구역 네모의 두 모서리 (지금 서 있는 청크)
  *   /land zone add · remove        네모 안(없으면 지금 청크)을 집 구역에 넣기 · 빼기
  *   /land zone show · info         근처 집 구역 보기 · 정보
- *   /land admin addchunk <이름>    지금 서 있는 청크를 그 사람 땅에 붙이기 (빚 그대로)
- *   /land admin removechunk <이름> 지금 서 있는 청크를 그 사람 땅에서 떼기 (집터 청크 제외)
- *   /land admin setdebt <이름> <금액>
+ *   /land admin addchunk <name>    지금 서 있는 청크를 그 사람 땅에 붙이기 (빚 그대로)
+ *   /land admin removechunk <name> 지금 서 있는 청크를 그 사람 땅에서 떼기 (집터 청크 제외)
+ *   /land admin setdebt <name> <amount>
  */
 final class LandCommand implements TabExecutor {
 
@@ -49,7 +49,7 @@ final class LandCommand implements TabExecutor {
         boolean admin = sender.hasPermission("servercore.admin");
         if (sub.equals("delete") && admin) {
             if (args.length < 2) {
-                sender.sendMessage(Text.mm("<gray>/" + label + " delete <플레이어>"));
+                sender.sendMessage(Text.mm("<gray>/" + label + " delete <player>"));
                 return true;
             }
             OfflinePlayer t = find(args[1]);
@@ -68,7 +68,7 @@ final class LandCommand implements TabExecutor {
             return true;
         }
         if (!(sender instanceof Player p)) {
-            sender.sendMessage("게임 안에서만 쓸 수 있어요. (관리자: /" + label + " delete <플레이어>)");
+            sender.sendMessage("게임 안에서만 쓸 수 있어요. (관리자: /" + label + " delete <player>)");
             return true;
         }
         switch (sub) {
@@ -101,7 +101,7 @@ final class LandCommand implements TabExecutor {
             }
             case "trust" -> {
                 if (args.length < 2) {
-                    p.sendMessage(Text.mm("<gray>/" + label + " trust <플레이어>"));
+                    p.sendMessage(Text.mm("<gray>/" + label + " trust <player>"));
                     return true;
                 }
                 OfflinePlayer t = find(args[1]);
@@ -110,7 +110,7 @@ final class LandCommand implements TabExecutor {
             }
             case "untrust" -> {
                 if (args.length < 2) {
-                    p.sendMessage(Text.mm("<gray>/" + label + " untrust <플레이어>"));
+                    p.sendMessage(Text.mm("<gray>/" + label + " untrust <player>"));
                     return true;
                 }
                 OfflinePlayer t = find(args[1]);
@@ -140,7 +140,7 @@ final class LandCommand implements TabExecutor {
                         + "청크, 빚 <#ffd34d>" + Economy.format(land.debt()) + "</#ffd34d>, 이웃 " + land.members().size() + "명"));
             }
             default -> p.sendMessage(Text.mm("<gray>/" + label
-                    + " [kit|home|sethome|trust <이름>|untrust <이름>|show|info|abandon confirm]"));
+                    + " [kit|home|sethome|trust <name>|untrust <name>|show|info|abandon confirm]"));
         }
         return true;
     }
@@ -203,7 +203,7 @@ final class LandCommand implements TabExecutor {
             }
             default -> { }
         }
-        p.sendMessage(Text.mm("<gray>/" + label + " admin addchunk <이름> | removechunk <이름> | setdebt <이름> <금액>"
+        p.sendMessage(Text.mm("<gray>/" + label + " admin addchunk <name> | removechunk <name> | setdebt <name> <amount>"
                 + "  <dark_gray>(지금 서 있는 청크 기준)"));
     }
 

@@ -13,8 +13,8 @@ import java.util.List;
 /**
  * /skill                                 스킬 창 열기
  * /skill info                            내 레벨을 채팅으로
- * /skill set <플레이어> <분야> <레벨>     (관리자)  분야: farming mining woodcutting fishing combat (또는 한글)
- * /skill reset <플레이어>                 (관리자)
+ * /skill set <player> <category> <level>     (관리자)  분야: farming mining woodcutting fishing combat
+ * /skill reset <player>                 (관리자)
  */
 final class SkillCommand implements TabExecutor {
 
@@ -32,7 +32,7 @@ final class SkillCommand implements TabExecutor {
         }
         if (args.length == 0 || args[0].equalsIgnoreCase("info")) {
             if (!(sender instanceof Player p)) {
-                sender.sendMessage("사용법: /" + label + " set <플레이어> <분야> <레벨> | reset <플레이어>");
+                sender.sendMessage("사용법: /" + label + " set <player> <category> <level> | reset <player>");
                 return true;
             }
             StringBuilder sb = new StringBuilder("<gray>");
@@ -44,7 +44,7 @@ final class SkillCommand implements TabExecutor {
             p.sendMessage(Text.mm(sb.toString().trim()));
             net.kyori.adventure.text.Component prefix = f.prefix(p.getUniqueId());
             if (!prefix.equals(net.kyori.adventure.text.Component.empty()))
-                p.sendMessage(Text.mm("<gray>칭호: ").append(prefix).append(Text.mm("<dark_gray>(/칭호 로 바꾸기)")));
+                p.sendMessage(Text.mm("<gray>칭호: ").append(prefix).append(Text.mm("<dark_gray>(/honor 로 바꾸기)")));
             return true;
         }
         if (!sender.hasPermission("servercore.admin")) {
@@ -78,7 +78,7 @@ final class SkillCommand implements TabExecutor {
             sender.sendMessage(Text.mm("<green>" + t.getName() + "의 레벨을 모두 1로 되돌렸어요."));
             return true;
         }
-        sender.sendMessage(Text.mm("<gray>사용법: /" + label + " set <플레이어> <분야> <레벨> | reset <플레이어>"));
+        sender.sendMessage(Text.mm("<gray>사용법: /" + label + " set <player> <category> <level> | reset <player>"));
         return true;
     }
 

@@ -1,6 +1,6 @@
 # 레벨링: 농사(farming) · 채광(mining) · 벌목(woodcutting) · 낚시(fishing) · 전투(combat)
 # 바꾼 뒤에는 /servercore reload
-# 관리자: /skill set <플레이어> <분야> <레벨>, /skill reset <플레이어>,  내 레벨: /skill
+# 관리자: /skill set <player> <category> <level>, /skill reset <player>,  내 레벨: /skill
 #
 # 플레이어가 직접 놓은 원목·광석·수박·호박 등을 다시 캐면 경험치를 안 줘요 (무한 반복 방지)
 
@@ -25,9 +25,9 @@ perks:
   sell-bonus-per-level: 0.0002      # 그 분야 상점(shops.yml 의 skill) 판매가 +% (Lv.50 = +1%)
   show-message: true                # 보너스가 터지면 화면 아래에 알림
 
-# 칭호 — 레벨: 이름. 받으면 자동으로 달리고, /칭호 로 바꿀 수 있어요 (채팅·탭 목록 이름 앞)
+# 칭호 — 레벨: 이름. 받으면 자동으로 달리고, /honor 로 바꿀 수 있어요 (채팅·탭 목록 이름 앞)
 title-format: "<dark_gray>[</dark_gray>%title%<dark_gray>]</dark_gray> "
-title-unlocked: "<#ffd34d>🏅 <gray>새 칭호 <white>%title%</white><gray>을(를) 얻었어요! <dark_gray>(/칭호 로 바꾸기)"
+title-unlocked: "<#ffd34d>🏅 <gray>새 칭호 <white>%title%</white><gray>을(를) 얻었어요! <dark_gray>(/honor 로 바꾸기)"
 title-broadcast: "<#ffd34d>🏅 <white>%player%</white><gray>님이 <white>%title%</white> <gray>칭호를 얻었어요!"   # 비우면 다른 사람에게 안 알림
 titles:
   farming:

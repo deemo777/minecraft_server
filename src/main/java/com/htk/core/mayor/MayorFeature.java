@@ -44,7 +44,7 @@ import java.util.List;
  *   - 그 뒤: 말을 걸면 빚 갚기 창 (빚은 이장에게만 갚아요). 집터를 잃어버렸으면 다시 받기
  *   /mayornpc create      지금 서 있는 곳에 이장 세우기 (나를 바라보게)
  *   /mayornpc remove      5칸 안의 이장 없애기
- *   /mayornpc reset <이름>  그 사람의 첫 대화를 처음부터 다시 (테스트용)
+ *   /mayornpc reset <name>  그 사람의 첫 대화를 처음부터 다시 (테스트용)
  * 대사·버튼 글자: config.yml → mayor
  */
 public final class MayorFeature implements Feature, Listener {
@@ -339,7 +339,7 @@ public final class MayorFeature implements Feature, Listener {
                 p.sendMessage(Text.mm("<green>이장님을 없앴어요."));
                 return true;
             }
-            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create | remove | face | reset <플레이어>"));
+            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create | remove | face | reset <player>"));
             return true;
         }
 

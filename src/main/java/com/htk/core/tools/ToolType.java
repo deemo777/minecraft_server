@@ -31,10 +31,10 @@ public enum ToolType {
         this.defaultName = defaultName;
     }
 
-    /** 영어 이름(pickaxe) 또는 한글(곡괭이) */
+    /** 영문 도구 ID (예: pickaxe) */
     public static ToolType parse(String s) {
         if (s == null) return null;
-        for (ToolType t : values()) if (t.id.equalsIgnoreCase(s) || t.korean.equals(s)) return t;
+        for (ToolType t : values()) if (t.id.equalsIgnoreCase(s)) return t;
         return null;
     }
 

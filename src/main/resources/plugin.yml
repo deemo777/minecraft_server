@@ -8,93 +8,81 @@ commands:
   weaponmerchantnpc:
     description: 무기 상인 NPC 생성·제거·방향 변경
     usage: /<command> create|remove|face
-    aliases: [무기상인]
     permission: servercore.admin
   weaponshop:
     description: 0강 마을 도구 구매 창 열기 (관리자)
-    usage: /<command> [플레이어]
-    aliases: [무기상점]
+    usage: /<command> [player]
     permission: servercore.admin
   rankboard:
     description: 누적 순위 홀로그램 게시판 관리
-    usage: /<command> create <이름> farming|mining|woodcutting|fishing | remove <이름> | list
-    aliases: [순위게시판]
+    usage: /<command> create <name> farming|mining|woodcutting|fishing | remove <name> | list
     permission: servercore.admin
   ranking:
     description: 농사·채광·벌목·낚시 누적 순위 보기
     usage: /<command> farming|mining|woodcutting|fishing
-    aliases: [순위]
   cookienpc:
     description: 무료 얼굴 쿠키 NPC 생성 및 제거
     usage: /<command> create|remove|face
-    aliases: [쿠키npc]
     permission: servercore.admin
   blacksmithnpc:
     description: 대장장이 NPC 생성 및 제거
     usage: /<command> create|remove|face
-    aliases: [대장장이]
     permission: servercore.admin
   enhance:
     description: 강화 화면 열기 및 전용 재료 지급 (관리자)
-    usage: /<command> [플레이어] | material <종류> <1~64> [플레이어]
-    aliases: [강화]
+    usage: /<command> [player] | material <type> <1~64> [player]
     permission: servercore.admin
   menu:
     description: 마을 메뉴를 엽니다
-    aliases: [메뉴]
   dogam:
     description: 도감을 엽니다
-    usage: /<command> [페이지] | reset <플레이어>
-    aliases: [도감, collection]
+    usage: /<command> [page] | reset <player>
+    aliases: [collection]
   money:
     description: 골드 보기 / 골드 주머니 꺼내기
-    usage: /<command> [금액] | give|take|set <플레이어> <금액>
-    aliases: [돈, gold]
+    usage: /<command> [amount] | give|take|set <player> <amount>
+    aliases: [gold]
     permission: servercore.money
   shop:
     description: 상점 열기 (관리자)
-    usage: /<command> <상점> [플레이어]
+    usage: /<command> <shop> [player]
     permission: servercore.admin
   shopnpc:
     description: 상점 주인 NPC 세우기/없애기 (관리자)
-    usage: /<command> create <상점> | remove | face
+    usage: /<command> create <shop> | remove | face
     permission: servercore.admin
   skill:
     description: 스킬 창 열기 / 레벨 설정 (관리자)
-    usage: /<command> [info] | set <플레이어> <분야> <레벨> | reset <플레이어>
-    aliases: [skills, 스킬, 레벨]
+    usage: /<command> [info] | set <player> <category> <level> | reset <player>
+    aliases: [skills]
   honor:
     description: 칭호 목록 / 칭호 달기
-    usage: /<command> [분야:레벨|off]
-    aliases: [칭호, titles]
+    usage: /<command> [category:level|off]
+    aliases: [titles]
   hud:
     description: HUD 켜기/끄기, 위치 맞추기
-    usage: /<command> [on|off] | left [칸] | right [칸] | pos <숫자> | reset
+    usage: /<command> [on|off] | left [steps] | right [steps] | pos <number> | reset
   guide:
     description: 서버 안내서(책) 받기
-    aliases: [가이드, 안내서]
   land:
     description: 내 집 땅 (집터, 지도 창, 넓히기·이웃 허가)
-    usage: /<command> [kit|home|sethome|trust <이름>|untrust <이름>|show|info|abandon confirm]
+    usage: /<command> [kit|home|sethome|trust <name>|untrust <name>|show|info|abandon confirm]
     aliases: [home, house]
   jumppad:
     description: 점프 패드 아이템 받기
-    usage: /<command> [개수] [플레이어]
-    aliases: [점프패드]
+    usage: /<command> [amount] [player]
     permission: servercore.admin
   mayornpc:
     description: 이장님 NPC 세우기/없애기, 첫 대화 되돌리기 (관리자)
-    usage: /<command> create | remove | face | reset <플레이어>
+    usage: /<command> create | remove | face | reset <player>
     permission: servercore.admin
   villagetool:
     description: 마을 도구 주기 / 강화 단계 바꾸기 (관리자, 모양 확인용)
-    usage: /<command> give <종류> [단계] [플레이어] | level <단계>
-    aliases: [마을도구]
+    usage: /<command> give <type> [level] [player] | level <level>
     permission: servercore.admin
   servercore:
     description: ServerCore 관리 명령어
-    usage: /<command> reload | setpoint <이름> | delpoint <이름> | points
-    aliases: [코어]
+    usage: /<command> reload | setpoint <name> | delpoint <name> | points
 
 permissions:
   servercore.menu:

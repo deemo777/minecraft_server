@@ -1,4 +1,4 @@
-# 마을 메뉴 (Shift + F, /메뉴)
+# 마을 메뉴 (Shift + F, /menu)
 #
 # 메뉴 그림(칠판 간판, 큰 버튼 5개)은 리소스팩 배경이고,
 # 여기서는 "어느 칸을 누르면 무엇을 할지"와 마우스를 올렸을 때 설명을 정해요.
@@ -15,7 +15,7 @@
 #   name / lore  마우스를 올렸을 때 보이는 이름과 설명 (%player%, %dogam_found%, %dogam_total% 사용 가능)
 #   command      누르면 실행할 명령어 (앞에 / 빼고)
 #   teleport     누르면 이동할 지점 이름. "@land" 면 각자 내 집 (/land).
-#                그 밖의 지점은 게임에서 /servercore setpoint <이름> 으로 지금 서 있는 곳을 저장
+#                그 밖의 지점은 게임에서 /servercore setpoint <name> 으로 지금 서 있는 곳을 저장
 #                (권한 없이 누구나 이동돼요. 지점 목록: /servercore points)
 #                누르면 화면에 3, 2, 1 을 센 뒤 이동해요 (초는 config.yml 의 teleport.countdown-seconds)
 #   teleport-title / teleport-subtitle   도착했을 때 화면 가운데에 크게 뜨는 글자

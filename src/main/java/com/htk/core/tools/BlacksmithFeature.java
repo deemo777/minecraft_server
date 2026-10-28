@@ -248,13 +248,13 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
                 try { amount = Integer.parseInt(args[2]); } catch (NumberFormatException ex) { amount = 0; }
                 Player target = args.length >= 4 ? Bukkit.getPlayerExact(args[3]) : sender instanceof Player p ? p : null;
                 if (type == null || target == null || amount < 1 || amount > 64) {
-                    sender.sendMessage(Text.mm("<red>/enhance material <종류> <1~64> [플레이어]")); return true;
+                    sender.sendMessage(Text.mm("<red>/enhance material <type> <1~64> [player]")); return true;
                 }
                 returnItem(target, material(type, amount));
                 sender.sendMessage(Text.mm("<green>강화 결정을 지급했어요.")); return true;
             }
             Player target = args.length >= 1 ? Bukkit.getPlayerExact(args[0]) : sender instanceof Player p ? p : null;
-            if (target != null) open(target); else sender.sendMessage(Text.mm("<red>/enhance [플레이어]"));
+            if (target != null) open(target); else sender.sendMessage(Text.mm("<red>/enhance [player]"));
             return true;
         }
         if (!(sender instanceof Player p)) { sender.sendMessage("게임 안에서 사용해 주세요."); return true; }

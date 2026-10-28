@@ -26,7 +26,7 @@ public record MenuConfig(int headSlot, String headName, List<String> headLore, S
             List<Integer> slots = b.getIntegerList("slots");
             Button button = new Button(id, slots,
                     b.getString("name", id), b.getStringList("lore"),
-                    b.getString("command", ""), b.getString("teleport", ""),
+                    com.htk.core.common.CommandNames.configured(b.getString("command", "")), b.getString("teleport", ""),
                     b.getString("teleport-title", ""), b.getString("teleport-subtitle", ""),
                     b.getBoolean("coming-soon", false), b.getBoolean("close", false));
             buttons.add(button);
@@ -34,7 +34,7 @@ public record MenuConfig(int headSlot, String headName, List<String> headLore, S
         }
         return new MenuConfig(yml.getInt("head-slot", 0),
                 yml.getString("head-name", "%player%"), yml.getStringList("head-lore"),
-                yml.getString("head-command", "skill"),
+                com.htk.core.common.CommandNames.configured(yml.getString("head-command", "skill")),
                 Map.copyOf(bySlot), List.copyOf(buttons));
     }
 }

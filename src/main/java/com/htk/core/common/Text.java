@@ -14,7 +14,7 @@ public final class Text {
     private Text() {}
 
     public static Component mm(String miniMessage) {
-        return MM.deserialize(miniMessage == null ? "" : miniMessage);
+        return MM.deserialize(CommandNames.inText(miniMessage));
     }
 
     /** 여러 줄을 줄바꿈으로 이어 붙인 하나의 Component (툴팁용) */

@@ -12,14 +12,14 @@
 | `/rg list` | 목록 |
 | `/rg info <구역>` | 정보 |
 | `/rg select <구역>` | 영역 선택 |
-| `/rg addmember <구역> <이름>` | 멤버 추가 |
-| `/rg removemember <구역> <이름>` | 멤버 제거 |
-| `/rg addowner <구역> <이름>` | 소유자 추가 |
-| `/rg removeowner <구역> <이름>` | 소유자 제거 |
+| `/rg addmember <구역> <name>` | 멤버 추가 |
+| `/rg removemember <구역> <name>` | 멤버 제거 |
+| `/rg addowner <구역> <name>` | 소유자 추가 |
+| `/rg removeowner <구역> <name>` | 소유자 제거 |
 | `/rg flag <구역> pvp deny` | PVP 차단 |
 | `/rg flag <구역> tnt deny` | TNT 차단 |
 | `/rg flag <구역> creeper-explosion deny` | 크리퍼 폭발 차단 |
-| `/rg setpriority <구역> <숫자>` | 우선순위 |
+| `/rg setpriority <구역> <number>` | 우선순위 |
 | `/rg setparent <자식> <부모>` | 상속 |
 | `/rg remove <구역>` | 보호 영역 삭제 |
 

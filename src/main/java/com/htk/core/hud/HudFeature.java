@@ -133,9 +133,9 @@ public final class HudFeature implements Feature, Listener {
     /**
      * /hud              켜기/끄기
      * /hud on | off
-     * /hud left [칸]    왼쪽으로 (기본 10칸)
-     * /hud right [칸]   오른쪽으로
-     * /hud pos <숫자>   위치를 숫자로 (화면 가운데 기준, 음수 = 왼쪽)
+     * /hud left [steps]    왼쪽으로 (기본 10칸)
+     * /hud right [steps]   오른쪽으로
+     * /hud pos <number>   위치를 숫자로 (화면 가운데 기준, 음수 = 왼쪽)
      * /hud reset        서버 기본 위치로
      */
     private void command(Player p, String label, String[] args) {
@@ -164,7 +164,7 @@ public final class HudFeature implements Feature, Listener {
                 Integer n = args.length >= 2 ? parse(args[1]) : null;
                 if (n == null) {
                     p.sendMessage(Text.mm("<gray>지금 위치: <white>" + offset(p)
-                            + "</white>  (바꾸려면 /" + label + " pos <숫자>, 서버 기본 " + offsetX + ")"));
+                            + "</white>  (바꾸려면 /" + label + " pos <number>, 서버 기본 " + offsetX + ")"));
                     return;
                 }
                 setOffset(p, n);
@@ -175,7 +175,7 @@ public final class HudFeature implements Feature, Listener {
                 p.sendMessage(Text.mm("<green>HUD 위치를 기본값(" + offsetX + ")으로 되돌렸어요."));
             }
             default -> p.sendMessage(Text.mm("<gray>사용법: /" + label
-                    + " [on|off] | left [칸] | right [칸] | pos <숫자> | reset"));
+                    + " [on|off] | left [steps] | right [steps] | pos <number> | reset"));
         }
     }
 

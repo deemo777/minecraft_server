@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * /칭호               받은 칭호 목록 (채팅에서 눌러서 달기)
- * /칭호 <분야:레벨>    그 칭호 달기 (예: /칭호 farming:30)
- * /칭호 off           칭호 떼기
+ * /honor               받은 칭호 목록 (채팅에서 눌러서 달기)
+ * /honor <category:level>    그 칭호 달기 (예: /honor farming:30)
+ * /honor off           칭호 떼기
  */
 final class HonorCommand implements TabExecutor {
 

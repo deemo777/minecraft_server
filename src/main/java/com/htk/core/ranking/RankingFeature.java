@@ -177,7 +177,7 @@ public final class RankingFeature implements Feature,Listener,TabExecutor {
             if(store.boards.remove(args[1])==null){s.sendMessage("해당 게시판이 없어요.");return true;}
             TextDisplay d=displays.remove(args[1]);if(d!=null)d.remove();store.dirty();store.save();s.sendMessage("게시판을 제거했어요. 누적 점수는 유지돼요.");
         } else if(args.length==1 && args[0].equalsIgnoreCase("list")) s.sendMessage("순위 게시판: "+String.join(", ",store.boards.keySet()));
-        else s.sendMessage("/rankboard create <이름> farming|mining|woodcutting|fishing | remove <이름> | list");
+        else s.sendMessage("/rankboard create <name> farming|mining|woodcutting|fishing | remove <name> | list");
         return true;
     }
     @Override public List<String> onTabComplete(CommandSender s,Command cmd,String label,String[] args) {

@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "3.23.0"
+version = "3.24.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -80,3 +80,10 @@ val verifyNpcFacing by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.npc.NpcFacingTest")
 }
 tasks.check { dependsOn(verifyNpcFacing) }
+
+val verifyCommandNames by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.common.CommandNamesTest")
+}
+tasks.check { dependsOn(verifyCommandNames) }

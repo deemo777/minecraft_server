@@ -18,9 +18,17 @@ public enum Skill {
         return name().toLowerCase();
     }
 
+    /** 기존 설정 파일의 분야 이름만 호환한다. */
+    public static Skill fromConfig(String s) {
+        Skill english = of(s);
+        if (english != null) return english;
+        for (Skill k : values()) if (k.korean.equals(s)) return k;
+        return null;
+    }
+
     public static Skill of(String s) {
         if (s == null) return null;
-        for (Skill k : values()) if (k.key().equalsIgnoreCase(s) || k.korean.equals(s)) return k;
+        for (Skill k : values()) if (k.key().equalsIgnoreCase(s)) return k;
         return null;
     }
 }

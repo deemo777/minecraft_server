@@ -33,9 +33,9 @@ import java.util.List;
 /**
  * 골드(G)
  *   /money                       내 골드 보기
- *   /money <금액>                골드를 "골드 주머니" 아이템으로 꺼내기 (던져서 남에게 줄 수 있어요)
+ *   /money <amount>                골드를 "골드 주머니" 아이템으로 꺼내기 (던져서 남에게 줄 수 있어요)
  *   골드 주머니 우클릭            내 잔액에 넣기 (Shift+우클릭: 손에 든 묶음 전부)
- *   /money give|take|set <플레이어> <금액>   관리자
+ *   /money give|take|set <player> <amount>   관리자
  */
 public final class EconomyFeature implements Feature, Listener, TabExecutor {
 
@@ -154,13 +154,13 @@ public final class EconomyFeature implements Feature, Listener, TabExecutor {
             return admin(sender, label, args);
         }
         if (!(sender instanceof Player p)) {
-            sender.sendMessage("사용법: /" + label + " give|take|set <플레이어> <금액>");
+            sender.sendMessage("사용법: /" + label + " give|take|set <player> <amount>");
             return true;
         }
         if (args.length == 0) {
             p.sendMessage(Text.mm(msg("balance", "<gray>보유 골드: <#ffd34d>%balance%")
                     .replace("%balance%", Economy.format(economy.balance(p.getUniqueId())))));
-            p.sendMessage(Text.mm("<dark_gray>/" + label + " <금액> 으로 골드 주머니를 꺼낼 수 있어요."));
+            p.sendMessage(Text.mm("<dark_gray>/" + label + " <amount> 으로 골드 주머니를 꺼낼 수 있어요."));
             return true;
         }
         long amount = parseAmount(args[0]);
@@ -187,7 +187,7 @@ public final class EconomyFeature implements Feature, Listener, TabExecutor {
             return true;
         }
         if (args.length < 3) {
-            sender.sendMessage(Text.mm("<gray>사용법: /" + label + " " + args[0] + " <플레이어> <금액>"));
+            sender.sendMessage(Text.mm("<gray>사용법: /" + label + " " + args[0] + " <player> <amount>"));
             return true;
         }
         OfflinePlayer target = Bukkit.getPlayerExact(args[1]);

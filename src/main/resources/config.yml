@@ -8,7 +8,7 @@ features:
   cookie: true     # 무료 얼굴 쿠키 NPC
   menu: true
   dogam: true
-  jumppad: true   # 점프 패드 (/점프패드 로 아이템 받기)
+  jumppad: true   # 점프 패드 (/jumppad 로 아이템 받기)
   longjump: true  # 도약: 달리면서 점프하면 멀리 뛰기
   economy: true   # 골드(G), /money
   shop: true      # NPC 상점 (shops.yml, 골드 기능이 켜져 있어야 해요)
@@ -32,7 +32,7 @@ menu:
   join-hint: "<#f3c060>🌾 <white>Shift + F</white><gray>를 누르면 마을 메뉴가 열려요."
 
 # 점프 패드: 중량 무게 압력판과 똑같이 생긴 "점프 패드" 아이템을 설치하면, 밟을 때 앞+위로 튕겨요 (모든 월드)
-# 바꾼 뒤 /코어 reload
+# 바꾼 뒤 /servercore reload
 jump-pad:
   item-name: "<#7ad1ff><bold>점프 패드"
   forward: 1.6            # 앞으로 튀는 세기 (0이면 제자리 위로만)
@@ -62,8 +62,8 @@ long-jump:
 
 # 골드(G)
 #   /money            내 골드 보기
-#   /money <금액>      골드 주머니 아이템으로 꺼내기 (던져서 다른 사람에게 줄 수 있어요. 우클릭하면 다시 잔액으로)
-#   /money give|take|set <플레이어> <금액>   (관리자)
+#   /money <amount>      골드 주머니 아이템으로 꺼내기 (던져서 다른 사람에게 줄 수 있어요. 우클릭하면 다시 잔액으로)
+#   /money give|take|set <player> <amount>   (관리자)
 # 잔액은 plugins/ServerCore/money.yml
 economy:
   starting-balance: 1000          # 처음 접속할 때 주는 골드
@@ -108,8 +108,8 @@ hud:
 #   처음 접속하면 "집터" 블록을 받아요 (잃어버리면 /land kit). 설치하면 그 청크가 바로 내 집이 돼요.
 #   집터를 우클릭하면 집 지도 창 → 붙어 있는 청크를 골라 하나씩 넓혀요. 집터는 아무도 못 부숴요.
 #   넓히면 땅은 바로 생기고 그 값만큼 빚이 생겨요. 빚을 다 갚아야 다음 확장 가능.
-#   이웃(/land trust <이름>)은 내 땅에서 전부 할 수 있고, 나머지 사람은 아무것도 못 해요.
-#   관리자: /land bypass (남의 땅도 만지기 켜기/끄기), /land delete <이름>, /land give <이름> (집터 주기)
+#   이웃(/land trust <name>)은 내 땅에서 전부 할 수 있고, 나머지 사람은 아무것도 못 해요.
+#   관리자: /land bypass (남의 땅도 만지기 켜기/끄기), /land delete <name>, /land give <name> (집터 주기)
 land:
   # 집을 지을 수 있는 월드는 마을(village)로 고정이에요 (코드에서 정해요, 다른 월드에서는 집터를 못 놓아요)
   core-block: LODESTONE    # 집터 아이템의 바탕 블록 (리소스팩이 있으면 집 모형으로 보이고, 설치하면 방벽+집 모형으로 바뀌어요)
@@ -119,12 +119,12 @@ land:
   first-cost: 50000            # 처음 집 짓기 빚 (0 = 무료)
   expand-costs: [150000, 500000, 1000000]   # 2·3·4번째 청크를 해방할 때 생기는 빚 (현재 빚을 먼저 전액 상환)
   protect-from-explosions: true      # 크리퍼·TNT 폭발에서 땅 보호
-  # 문구는 land.messages.<이름> 으로 바꿀 수 있어요 (README 참고)
+  # 문구는 land.messages.<name> 으로 바꿀 수 있어요 (README 참고)
 
 # 이장님 (로비) — /mayornpc create 로 세우기
 #   처음 말을 걸면 intro 의 장(page)을 "다음 ▶"으로 넘기고, 마지막 장에서 집터를 받아요.
 #   중간에 닫으면 다음에 말을 걸 때 그 장부터 이어서. 그 뒤로는 빚 갚기 창이 열려요.
-#   테스트: /mayornpc reset <플레이어>  (집이 이미 있는 사람은 첫 대화를 건너뛰어요)
+#   테스트: /mayornpc reset <player>  (집이 이미 있는 사람은 첫 대화를 건너뛰어요)
 mayor:
   npc-name: "<#f3c060><bold>이장님"
   npc-profession: cartographer      # 주민 옷 (librarian, cleric ... none)

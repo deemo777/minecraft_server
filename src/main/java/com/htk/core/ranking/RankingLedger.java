@@ -5,10 +5,10 @@ import java.util.*;
 final class RankingLedger {
     enum Category { FARMING, MINING, WOODCUTTING, FISHING;
         static Category parse(String v) {
-            if (v.equalsIgnoreCase("farming") || v.equals("농사")) return FARMING;
-            if (v.equalsIgnoreCase("mining") || v.equals("채광")) return MINING;
-            if (v.equalsIgnoreCase("woodcutting") || v.equals("벌목") || v.equals("나무")) return WOODCUTTING;
-            if (v.equalsIgnoreCase("fishing") || v.equals("낚시")) return FISHING;
+            if (v.equalsIgnoreCase("farming")) return FARMING;
+            if (v.equalsIgnoreCase("mining")) return MINING;
+            if (v.equalsIgnoreCase("woodcutting")) return WOODCUTTING;
+            if (v.equalsIgnoreCase("fishing")) return FISHING;
             return null;
         }
         String title() { return switch(this) { case FARMING -> "농사"; case MINING -> "채광"; case WOODCUTTING -> "벌목"; case FISHING -> "낚시"; }; }

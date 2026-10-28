@@ -32,9 +32,9 @@ import java.util.List;
 
 /**
  * NPC 상점
- *   /shopnpc create <상점>   지금 서 있는 곳에 상점 주인(주민) 세우기. 나를 바라보게 서요
+ *   /shopnpc create <shop>   지금 서 있는 곳에 상점 주인(주민) 세우기. 나를 바라보게 서요
  *   /shopnpc remove          가까이(5칸) 있는 상점 주인 없애기
- *   /shop <상점> [플레이어]  상점 열기 (관리자·콘솔용. 다른 NPC 플러그인에 연결할 때도 이걸 실행)
+ *   /shop <shop> [player]  상점 열기 (관리자·콘솔용. 다른 NPC 플러그인에 연결할 때도 이걸 실행)
  * 상점 내용은 plugins/ServerCore/shops.yml
  */
 public final class ShopFeature implements Feature, Listener {
@@ -322,7 +322,7 @@ public final class ShopFeature implements Feature, Listener {
                 return true;
             }
             if (args.length == 0) {
-                sender.sendMessage(Text.mm("<gray>사용법: /" + label + " <상점> [플레이어]  <dark_gray>상점: " + String.join(", ", config.ids())));
+                sender.sendMessage(Text.mm("<gray>사용법: /" + label + " <shop> [player]  <dark_gray>상점: " + String.join(", ", config.ids())));
                 return true;
             }
             ShopConfig.Shop shop = config.shop(args[0]);
@@ -392,7 +392,7 @@ public final class ShopFeature implements Feature, Listener {
                 p.sendMessage(Text.mm("<green>상점 주인을 없앴어요: <white>" + id));
                 return true;
             }
-            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create <상점> | remove | face  <dark_gray>상점: " + String.join(", ", config.ids())));
+            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create <shop> | remove | face  <dark_gray>상점: " + String.join(", ", config.ids())));
             return true;
         }
 

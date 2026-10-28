@@ -20,8 +20,8 @@ FAWE 2.16.1은 WorldEdit 호환 명령어를 제공합니다. `//` 두 개를 �
 | `//paste -a` | 공기 제외 붙여넣기 |
 | `//rotate 90` | 클립보드 회전 |
 | `//undo`, `//redo` | 취소·재실행 |
-| `//schem save <이름>` | 구조 저장 |
-| `//schem load <이름>` | 구조 불러오기 |
+| `//schem save <name>` | 구조 저장 |
+| `//schem load <name>` | 구조 불러오기 |
 | `//schem list` | 구조 목록 |
 | `//help` | 전체 도움말 |
 | `/we version` | 버전 |

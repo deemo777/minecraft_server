@@ -18,13 +18,14 @@ public final class RankingRulesTest {
         check(ledger.top(mine,10).size()==1 && ledger.top(mine,10).getFirst().id.equals(b),"categories separate");
         check(ledger.top(farm,1).size()==1,"top limit");
         check(RankingLedger.addSafe(Long.MAX_VALUE-2,20)==Long.MAX_VALUE,"score cannot wrap negative");
-        check(RankingLedger.Category.parse("농사")==farm && RankingLedger.Category.parse("MINING")==mine && RankingLedger.Category.parse("oops")==null,"command categories");
+        check(RankingLedger.Category.parse("farming")==farm && RankingLedger.Category.parse("MINING")==mine && RankingLedger.Category.parse("oops")==null,"command categories");
         var wood=RankingLedger.Category.WOODCUTTING;var fish=RankingLedger.Category.FISHING;
         ledger.add(a,"renamed",wood,1);ledger.add(a,"renamed",wood,1);ledger.add(a,"renamed",fish,8);ledger.add(b,"B",fish,20);
         check(ledger.players.get(a).score(wood)==2 && ledger.players.get(a).count(wood)==2,"equal wood points per block");
         check(ledger.top(fish,10).getFirst().id.equals(b),"rare fishing catch outranks common catches");
         check(ledger.players.get(a).score(farm)==3 && ledger.players.get(a).score(fish)==8,"new categories do not change existing points");
-        check(RankingLedger.Category.parse("낚시")==fish && RankingLedger.Category.parse("나무")==wood && RankingLedger.Category.parse("WOODCUTTING")==wood,"new category aliases");
+        check(RankingLedger.Category.parse("fishing")==fish && RankingLedger.Category.parse("woodcutting")==wood && RankingLedger.Category.parse("WOODCUTTING")==wood,"English category names");
+        check(RankingLedger.Category.parse("농사")==null && RankingLedger.Category.parse("낚시")==null,"public ranking categories English only");
         var oldConfig=new org.bukkit.configuration.file.YamlConfiguration();
         oldConfig.set("points.farming.WHEAT",1);
         var defaults=new org.bukkit.configuration.file.YamlConfiguration();defaults.set("points.fishing.COD",1);defaults.set("woodcutting-points",1);

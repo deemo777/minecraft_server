@@ -46,7 +46,7 @@ import java.util.UUID;
  * - 아이템: 중량 무게 압력판 + 아이템 데이터 표시(servercore:jump_pad). 이름만 달라요.
  * - 설치한 자리는 청크 데이터(servercore:jump_pads)에 기억해요. 일반 압력판은 그대로 일반 압력판이에요.
  * - 부수면 점프 패드 아이템으로 돌려줘요. 피스톤으로 밀거나 폭발로 사라지는 건 막아요.
- * - 수치(세기, 쿨타임, 소리, 파티클)는 config.yml 의 jump-pad 에서 바꾸고 /코어 reload
+ * - 수치(세기, 쿨타임, 소리, 파티클)는 config.yml 의 jump-pad 에서 바꾸고 /servercore reload
  */
 public final class JumpPadFeature implements Feature, Listener {
 
@@ -82,13 +82,13 @@ public final class JumpPadFeature implements Feature, Listener {
         PluginCommand cmd = plugin.getCommand("jumppad");
         if (cmd != null) {
             cmd.setExecutor((sender, command, label, args) -> {
-                // /점프패드 [개수] [플레이어]
+                // /jumppad [amount] [player]
                 int amount = 1;
                 Player target = sender instanceof Player p ? p : null;
                 try {
                     if (args.length >= 1) amount = Math.max(1, Math.min(64, Integer.parseInt(args[0])));
                 } catch (NumberFormatException e) {
-                    sender.sendMessage(Text.mm("<red>개수는 숫자로 적어 주세요. 예: /점프패드 16"));
+                    sender.sendMessage(Text.mm("<red>개수는 숫자로 적어 주세요. 예: /jumppad 16"));
                     return true;
                 }
                 if (args.length >= 2) target = Bukkit.getPlayerExact(args[1]);
