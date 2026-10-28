@@ -52,7 +52,7 @@ class Model:
             'textures':{'0':f'servercore:block/{self.tool}_{self.tier}','particle':f'servercore:block/{self.tool}_{self.tier}'},
             'gui_light':'side','elements':self.elements,
             'display':{
-                'gui':{'rotation':[15,-25,0 if can else -35],'translation':[0,-1,0],'scale':[gui_scale]*3},
+                'gui':{'rotation':[15,-25,25 if self.tool=='village_axe' else 0 if can else -35],'translation':[0,-1,0],'scale':[gui_scale]*3},
                 'ground':{'rotation':[0,0,0],'translation':[0,3,0],'scale':[.3]*3},
                 'fixed':{'rotation':[0,180,0],'translation':[0,-1,0],'scale':[.55]*3},
                 'thirdperson_righthand':{'rotation':[0,-90,0],'translation':[0,1.5,1],'scale':[.69]*3},
@@ -217,22 +217,11 @@ def jewel(m,x,y,r,color='azure',z=8):
 
 def shaft(m,k,accent):
     # Octagonal shaft, fine diagonal leather winding and sculpted end fittings.
-    if m.tool=='village_axe':
-        m.box((8,5.5,8),(.94,26.5,.94),'bark')
-        m.box((8,5.5,8),(.62,26.5,.62),'barkhi',45,axis='y')
-        m.box((8.38,5.5,8.38),(.13,23,.13),'goldhi',label='long gold haft inlay')
-        for y in (-6.5,5.5,11.5,14):
-            m.box((8,y,8),(1.32,.24,1.32),'gold',label='gold haft collar')
-            m.box((8,y+.16,8),(.98,.12,.98),'goldhi',label='collar highlight')
-        m.box((8,-7.4,8),(1.2,1.1,1.2),'barklo',45,axis='y',label='dark axe pommel')
-        m.box((8,-8.05,8),(1.05,.22,1.05),'gold',label='pommel ring')
-        return
-    wood='bark' if k<2 or m.tool=='village_axe' else 'navy'
+    wood='bark' if k<2 else 'navy'
     m.box((8,5.5,8),(1.03,26.5,1.03),wood)
     m.box((8,5.5,8),(.87,26.5,.87),wood+'hi',45,axis='y')
     if m.tool!='village_pickaxe':
-        grip_step=1.3 if m.tool=='village_axe' else .85
-        for y in np.arange(-5.8,5.4,grip_step):
+        for y in np.arange(-5.8,5.4,.85):
             for sign in (-1,1):
                 m.box((8,y,8+sign*.65),(1.35,.2,.2),'leather',-22.5,label='leather winding')
     metal='copper' if k<2 else 'gold'
@@ -248,31 +237,76 @@ def shaft(m,k,accent):
         tube(m,cubic((7.4,6),(5.2,8),(10.7,10),(8.6,12)),.95,'goldhi',.11)
         for y in (7,9.8,12.6):
             m.box((8,y,6.75),(.3,.5,.2),'pearl',45)
-    if m.tool=='village_axe' and k>=1:
-        for y in (7.5,10.2,13):
-            m.box((8.2,y,8),(2.2,.35,1.5),'barkhi',-22.5,label='carved wooden haft')
-            for z in (7,9): m.box((8,y,z),(.5,.55,.3),'gold',45,label='bronze haft stud')
-
-
 def socket(m,k,accent,cy=20):
     # Elegant layered teardrop collar, narrow at the handle and broad at the head.
     shape=path((8,cy+3),[((10.7,cy+1),(10,cy-1),(8,cy-3)),((6,cy-1),(5.3,cy+1),(8,cy+3))])
-    if m.tool=='village_axe':
-        shape=[(6.8,cy+2.8),(9.2,cy+2.8),(9.5,cy+.7),(8.8,cy-2.4),(8,cy-3.2),(7.2,cy-2.4),(6.5,cy+.7)]
-    elif m.tool=='village_pickaxe':
+    if m.tool=='village_pickaxe':
         shape=[(8,cy+2.7),(10,cy+1),(10,cy-1),(8,cy-2.7),(6,cy-1),(6,cy+1)]
     sculpt(m,shape,'gold' if k>=2 else 'copper','goldhi' if k>=2 else 'silverhi',3.5,step=.18,label='head socket')
-    if m.tool=='village_axe':
-        m.box((8,cy,10.15),(.62,.9,.35),'navy',45,label='dark socket inset')
-        for x in (6.9,9.1): m.box((x,cy+1.9,10.1),(.28,.28,.25),'goldhi',45,label='socket rivet')
-    else:
-        jewel(m,8,cy,1 if k<2 else 1.35,accent)
+    jewel(m,8,cy,1 if k<2 else 1.35,accent)
 
 
 def leaf3d(m,x,y,z,scale=1,color='jade'):
     outline=path((x,y-1.6*scale),[((x-1.5*scale,y),(x-.8*scale,y+1.8*scale),(x,y+2.2*scale)),((x+1.1*scale,y+.6*scale),(x+scale,y),(x,y-1.6*scale))])
     sculpt(m,outline,color,color+'hi',.7,z,step=.17,label='carved leaf')
     m.box((x,y+.3*scale,z+.48),(.12,2.6*scale,.12),'goldhi',-22.5)
+
+
+def make_ornate_axe(m,k):
+    """Build the complete new single-blade axe independently of the other tools."""
+    # Near-black straight haft with narrow gold inlay and a few fitted collars.
+    m.box((8,5.4,8),(.82,27,.82),'bark',label='black axe haft')
+    m.box((8,5.4,8),(.5,26.8,.5),'barkhi',45,axis='y',label='polished haft facet')
+    m.box((8.34,5.5,8.34),(.12,24,.12),'goldhi',label='continuous gold haft line')
+    for y in (-7.1,4.8,11.4,18.4):
+        m.box((8,y,8),(1.15,.22,1.15),'gold',label='slim haft band')
+        m.box((8,y+.14,8),(.88,.1,.88),'goldhi',label='band glint')
+    m.box((8,-8,8),(1,.75,1),'barklo',45,axis='y',label='faceted dark pommel')
+
+    # A compact poll on the back and a swept crescent blade on the cutting side.
+    scale=(.88,.92,.97,1.02,1.08)[k]
+    def tr(point):
+        x,y=point
+        return (8+(x-8)*scale,21+(y-21)*scale)
+    blade=path((8.1,23.2),[
+        ((12.2,25.3),(17.4,30.0),(20.1,30.2)),
+        ((23.0,27.2),(23.4,22.8),(21.7,19.3)),
+        ((20.1,16.4),(18.7,14.0),(17.0,13.7)),
+        ((20.0,17.2),(18.0,22.6),(8.1,23.2))])
+    sculpt(m,[tr(p) for p in blade],'silver','silverhi',2.8,step=.2,label='crescent forged blade')
+
+    poll=[(8,23),(6.5,25.3),(4.4,25.6),(3.1,24.8),(4.8,24.4),(5.4,22.5),(7.9,21.8)]
+    sculpt(m,[tr(p) for p in poll],'silverlo','silverhi',1.8,step=.2,label='short hooked poll')
+
+    # Dark recessed-looking spine and double gold engraving follow the crescent.
+    edge=cubic((11.2,23.4),(15.4,27.1),(19.0,29.2),(20.3,29.2),48)
+    edge += cubic((20.3,29.2),(22.2,27.0),(22.4,23.1),(21.1,20.8),48)[1:]
+    tube(m,[tr(p) for p in edge],1.5,'goldhi',.14,.18)
+    inner=cubic((12.4,20.7),(15.3,19.0),(17.0,17.1),(17.0,15.6),48)
+    inner+=cubic((17.0,15.6),(19.0,16.2),(20.3,18.2),(20.8,20.0),48)[1:]
+    tube(m,[tr(p) for p in inner],1.42,'navy',.2,.16)
+    tube(m,[tr(p) for p in inner],1.57,'gold',.08,.12)
+
+    # Small dark cheek plate and gold rivets anchor the blade to its ferrule.
+    cheek=[(9.3,23.5),(10.8,24.0),(12.1,23.0),(12.2,21.0),(10.8,20.1),(9.3,21.0)]
+    sculpt(m,[tr(p) for p in cheek],'navy','gold',.48,10.7,step=.18,label='engraved dark cheek')
+    for x,y in ((10.2,23.0),(11.1,21.4)):
+        xx,yy=tr((x,y));m.box((xx,yy,11.18),(.28,.42,.16),'goldhi',45,label='axe cheek rivet')
+
+    # New narrow collar: a gold clamp around the head, not the old shield socket.
+    clamp=[(7.5,23.8),(8.2,24.2),(8.8,23.2),(8.8,21.0),(8.1,20.1),(7.4,21.0)]
+    sculpt(m,[tr(p) for p in clamp],'gold','goldhi',1.4,10.0,step=.16,label='forged gold ferrule')
+    m.box((8,21.8,11.0),(.22,2.25,.18),'barklo',label='ferrule dark groove')
+    for y in (20.8,22.8):m.box((8,y,11.2),(.3,.3,.16),'goldhi',45,label='ferrule pin')
+    m.box((8.1,24.1,11.1),(.42,.5,.16),'ruby',45,label='red ferrule jewel')
+
+    if k>=3:
+        # Higher tiers refine the same silhouette with one fine scroll and extra rivets.
+        scroll=cubic((13.6,23.9),(15.2,24.2),(16.4,22.5),(15.2,21.7),42)
+        scroll+=cubic((15.2,21.7),(14.3,21.3),(13.9,22.4),(14.8,22.6),32)[1:]
+        tube(m,[tr(p) for p in scroll],1.58,'goldhi',.105,.14)
+        for x,y in ((18.4,26.7),(20.5,23.3),(17.1,17.1)):
+            xx,yy=tr((x,y));m.box((xx,yy,10.5),(.24,.24,.14),'goldhi',45,label='blade engraving rivet')
 
 
 def fine_make(tool,tier):
@@ -282,8 +316,10 @@ def fine_make(tool,tier):
             'village_hoe':('jade','jade','jade','jade','azure'),
             'village_watering_can':('azure','azure','azure','amethyst','azure')}[tool][k]
     metal=('amethyst','amethyst','amethyst','amethyst','amethyst')[k] if tool=='village_pickaxe' else ('silverlo','silver','navy','navy','silver')[k]
-    if tool!='village_watering_can': shaft(m,k,accent)
-    if tool=='village_pickaxe':
+    if tool not in ('village_watering_can','village_axe'): shaft(m,k,accent)
+    if tool=='village_axe':
+        make_ornate_axe(m,k)
+    elif tool=='village_pickaxe':
         # Broad, swept cutting wings with a clean bevel and restrained magenta inlay.
         scale=(.68,.74,.95,1.02,1.12)[k]
         blade_scale=scale*1.225
@@ -307,30 +343,6 @@ def fine_make(tool,tier):
                 m.box((8+sign*9.3*scale,21.9,6.5),(1.1,.2,.18),'amethysthi',-22.5,glow=True,label='tier crest inlay')
                 m.box((8+sign*9.3*scale,21.9,9.5),(1.1,.2,.18),'amethysthi',-22.5,glow=True,label='tier crest inlay')
         socket(m,k,accent,20.5+2.3*blade_scale)
-    elif tool=='village_axe':
-        scale=(.78,.84,.92,1,1.06)[k]
-        outline=path((8,23),[
-            ((5,26),(1,30),(-4,30)),
-            ((-3,26),(-6,23),(-8,20)),
-            ((-7,17),(-4,14),(-1,13)),
-            ((2,13),(5,15),(7,18)),
-            ((7,20),(7.5,22),(8,23))])
-        pts=[(8+(x-8)*scale,20+(y-20)*scale) for x,y in outline]
-        sculpt(m,pts,'silver','silverhi',3.15,label='crescent silver axe blade')
-        # Engraved dark inner sweep and restrained antique-gold edge engraving.
-        line=cubic((6.2,22.2),(3.1,25.2),(-.4,27.1),(-3.1,28.0))
-        line=[(8+(x-8)*scale,20+(y-20)*scale) for x,y in line]
-        tube(m,line,1.86,'goldhi',.12,.18)
-        inner=cubic((-4.2,17.1),(-1.5,15.8),(3.5,17.0),(6.5,19.5))
-        inner=[(8+(x-8)*scale,20+(y-20)*scale) for x,y in inner]
-        tube(m,inner,1.88,'navy',.2,.2)
-        tube(m,inner,1.98,'gold',.075,.14)
-        plaque=[(3.5,24.5),(6.1,23.5),(6.4,21),(5.4,19),(3.6,19.3),(2.8,21.7)]
-        plaque=[(8+(x-8)*scale,20+(y-20)*scale) for x,y in plaque]
-        sculpt(m,plaque,'navy','gold',.56,10.75,step=.2,label='dark engraved axe cheek')
-        for x,y in ((4.4,23.1),(5.1,20.1)):
-            m.box((8+(x-8)*scale,20+(y-20)*scale,11.0),(.28,.48,.18),'goldhi',45,label='gold cheek engraving')
-        socket(m,k,accent,20.5)
     elif tool=='village_hoe':
         if k<2:
             pts=ribbon((9,21),(5,23),(1,23),(-1,20),lambda t:1.05*(1-t)+.06)
@@ -445,10 +457,8 @@ def palette_for(tool):
             'amethyst':'#4d267e','amethysthi':'#7049a3','amethystlo':'#2e164f'})
     elif tool=='village_axe':
         colors.update({'gold':'#b18a3c','goldhi':'#f5d77b','goldlo':'#705326',
-            'copper':'#987548','bark':'#252329','barkhi':'#49424a','barklo':'#17161b',
+            'bark':'#252329','barkhi':'#49424a','barklo':'#17161b',
             'navy':'#34313a','navyhi':'#5a555c','navylo':'#222128',
-            'jade':'#3e4847','jadehi':'#84918c','jadelo':'#293132',
-            'rose':'#a16b49','rosehi':'#e3ae7a','roselo':'#665044',
             'silver':'#777b82','silverhi':'#d8d7d2','silverlo':'#4d5058',
             'leather':'#302d32'})
     elif tool=='village_hoe':
@@ -547,7 +557,7 @@ def main():
             palette.save(tex/(name+'.png'));print(name,len(data['elements']),'solid parts')
             if args.preview:
                 args.preview_dir.mkdir(parents=True,exist_ok=True)
-                front=render(model,(8,-18,-27),(310,385),8.2)
+                front=render(model,(8,-18,27 if tool=='village_axe' else -27),(310,385),8.2)
                 side=render(model,(12,-65,0),(110,385),7.4)
                 tile=Image.new('RGB',(420,480),'#f1ece3')
                 tile.paste(front,(0,53),front);tile.paste(side,(310,53),side)
