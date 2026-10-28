@@ -8,6 +8,10 @@
 버전은 `build.gradle.kts` 의 `version` 한 곳만 바꾸면 jar 이름과 plugin.yml 에 같이 들어가요.
 서버에서는 `/version ServerCore` 로 지금 돌고 있는 버전을 확인할 수 있어요.
 
+## 3.31.16 — 2026-10-28
+
+- 도끼 디자인을 제공된 원본 모델·텍스처로 교체합니다. +0은 `viridian_greataxe`, +5는 `black_iron_greataxe`, +10은 `gloomsteel_greataxe`, +15는 `berserkers_greataxe`, +20은 `gilded_phoenix_greataxe`입니다. 원본 형상·UV·색상·표시 자세를 사용하며 이전 iron_greataxe용 확대·1인칭 보정은 제거합니다. 재생성에도 단계별 원본을 반영합니다.
+
 ## 3.31.15 — 2026-10-28
 
 - 낫(괭이) 디자인을 제공된 원본 모델·텍스처로 교체합니다. +0은 `iron_hay_sickle`, +5는 `windreaper`, +10은 `crystal_frostcythe`, +15와 +20은 `azure_scythe`를 사용합니다. 원본 형상·UV·색상·표시 자세를 유지하고 재생성에도 반영합니다.

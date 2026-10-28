@@ -16,6 +16,8 @@ PICKAXE_DESIGNS={0:"talonpick",5:"azure_pickaxe",10:"amethyst_greatpick",
                  15:"viridian_pickaxe",20:"viridian_pickaxe"}
 SCYTHE_DESIGNS={0:"iron_hay_sickle",5:"windreaper",10:"crystal_frostcythe",
                 15:"azure_scythe",20:"azure_scythe"}
+AXE_DESIGNS={0:"viridian_greataxe",5:"black_iron_greataxe",10:"gloomsteel_greataxe",
+              15:"berserkers_greataxe",20:"gilded_phoenix_greataxe"}
 COLORS={'wood':'#624336','leather':'#342c3f','iron':'#7e8a9e','steel':'#c5dbdf',
         'dark':'#292840','gold':'#dcb367','lightgold':'#fff0b6','copper':'#ad7855',
         'teal':'#38c4b2','ice':'#9cf5ff','blue':'#3871cb','violet':'#8a55d6',
@@ -96,33 +98,13 @@ class Model:
             self.colors=sample_element_colors(self.elements,source.with_suffix('.png'))
             return result
         if self.tool=='village_axe':
-            source=HERE/'models'/'references'/'iron_greataxe.json'
-            result=json.loads(source.read_text(encoding='utf-8'))
+            name=AXE_DESIGNS[self.tier]
+            source=HERE/'models'/'references'/'axes'/name
+            result=json.loads(source.with_suffix('.json').read_text(encoding='utf-8'))
             texture=f'servercore:block/village_axe_{self.tier}'
-            result['credit']='Iron Greataxe model from the user-provided Nongko Fantasy Weapons pack'
-            result['textures']={key:texture for key in result.get('textures',{})}
-            self.elements=result.get('elements',[])
-            # Enlarge the whole axe slightly, then widen and lengthen the blade
-            # around its socket. Element 9 is the haft; 48-51 are its pommel.
-            blade_pivot=(8+(9-8)*1.12,9.5+(15.5-9.5)*1.12,8)
-            for index,element in enumerate(self.elements):
-                blade=index<9 or 10<=index<48
-                for key in ('from','to'):
-                    point=element[key]
-                    scaled=[8+(point[0]-8)*1.12,
-                            9.5+(point[1]-9.5)*1.12,
-                            8+(point[2]-8)*1.12]
-                    if blade:
-                        scaled[0]=blade_pivot[0]+(scaled[0]-blade_pivot[0])*1.45
-                        scaled[1]=blade_pivot[1]+(scaled[1]-blade_pivot[1])*1.25
-                    element[key]=[round(value,4) for value in scaled]
-            for hand in ('firstperson_righthand','firstperson_lefthand'):
-                display=result.get('display',{}).get(hand)
-                if display:
-                    translation=display.setdefault('translation',[0,0,0])
-                    translation[1]=round(translation[1]-3,4)
-                    display['scale']=[0.8,0.8,0.8]
-            self.colors=sample_element_colors(self.elements, HERE/'models'/'textures'/'village_axe_0.png')
+            result['textures']={key:texture for key in result['textures']}
+            self.elements=result['elements']
+            self.colors=sample_element_colors(self.elements,source.with_suffix('.png'))
             return result
         can=self.tool=='village_watering_can'
         gui_scale=.42 if self.tool=='village_hoe' and self.tier==20 else .49
@@ -577,12 +559,9 @@ def main():
                 (tex/(name+'.png')).write_bytes(source.read_bytes())
                 print(name,len(data['elements']),'imported UV parts')
             elif tool=='village_axe':
-                art=tex/(name+'.png')
-                if not art.is_file(): raise FileNotFoundError(f'Missing axe sprite texture: {art}')
-                with Image.open(art) as sprite:
-                    if sprite.mode!='RGBA' or sprite.getchannel('A').getbbox() is None:
-                        raise ValueError(f'Axe sprite must be transparent RGBA: {art}')
-                print(name,'static alpha sprite')
+                source=out/'references'/'axes'/(AXE_DESIGNS[tier]+'.png')
+                (tex/(name+'.png')).write_bytes(source.read_bytes())
+                print(name,len(data['elements']),'imported UV parts')
             else:
                 palette.save(tex/(name+'.png'))
                 print(name,len(data['elements']),'solid parts')

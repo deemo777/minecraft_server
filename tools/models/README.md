@@ -1,3 +1,21 @@
+# 제공된 도끼 디자인 (3.31.16)
+
+| 강화 | 원본 모델 |
+|---|---|
+| +0~4 | viridian_greataxe |
+| +5~9 | black_iron_greataxe |
+| +10~14 | gloomsteel_greataxe |
+| +15~19 | berserkers_greataxe |
+| +20 | gilded_phoenix_greataxe |
+
+`references/axes/`에 사용자 제공 원본 JSON·PNG를 보관합니다.
+`make_tool_models.py`는 형상·UV·색상·display를 유지하고 텍스처 경로만
+`servercore:block/village_axe_<단계>`로 바꿉니다. 단계별 PNG는 원본 그대로 복사합니다.
+이전 iron_greataxe용 날 확대·1인칭 위치 및 배율 보정은 새 모델에 적용하지 않습니다.
+이전 원본 `references/iron_greataxe.json`은 디자인 기록으로 보관합니다.
+
+---
+
 # 제공된 낫 디자인 (3.31.15)
 
 | 강화 | 원본 모델 |
@@ -46,7 +64,7 @@
 - 왼손은 Y·Z 회전을 반대로 적용합니다.
 - 물뿌리개는 upright에 가까운 별도 자세 [-5, -20, 0], scale 0.75를 사용합니다.
 - 곡괭이: 위 표의 제공된 UV 모델·텍스처 및 원본 display를 사용합니다.
-- 도끼: 사용자가 제공한 `Nongko's Fantasy Weapons v1.20A` 팩의 `iron_greataxe` UV 모델과 텍스처. 전체 크기를 12% 키우고 날은 소켓을 기준으로 가로 45%·세로 25% 확대합니다. 1인칭 양손 위치는 3모델 단위 내리고 배율을 0.8로 줄여 휘두를 때 화면을 덜 가립니다. 3인칭 표시값은 유지합니다. 52개 원본 큐브 요소와 출처 모델은 `references/iron_greataxe.json`에 보관합니다.
+- 도끼: 위 표의 다섯 단계별 UV 모델·텍스처 및 원본 display를 사용합니다.
 - 낫(괭이): 위 표의 제공된 UV 모델·텍스처 및 원본 display를 사용합니다.
 - 물뿌리개: 남색 물통·물방울 무늬·운반 손잡이·긴 직선 주둥이·구멍 난 살수판.
   주전자형 몸통·굽은 주둥이·날개·큰 보석·궤도 장식은 제거했습니다.
@@ -75,7 +93,7 @@
 | 도구 | +0 / +5 | +10 | +15 | +20 |
 |---|---|---|---|---|
 | 곡괭이 | talonpick / azure_pickaxe | amethyst_greatpick | viridian_pickaxe | +15와 동일 |
-| 도끼 | iron_greataxe UV 모델·텍스처 | 같은 디자인 | 같은 디자인 | 같은 디자인 |
+| 도끼 | viridian_greataxe / black_iron_greataxe | gloomsteel_greataxe | berserkers_greataxe | gilded_phoenix_greataxe |
 | 괭이 | iron_hay_sickle / windreaper | crystal_frostcythe | azure_scythe | +15와 동일 |
 | 물뿌리개 | 둥근 은청색 통·작은 원석 / 세공 보석 | 청색 주전자·은빛 문양·잎 | 자수정 몸통·꽃 | 은청색 몸통·큰 보석·날개·입체 궤도 |
 
