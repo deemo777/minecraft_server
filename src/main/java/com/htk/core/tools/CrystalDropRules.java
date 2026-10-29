@@ -18,12 +18,12 @@ public final class CrystalDropRules {
         String name=material.startsWith("DEEPSLATE_")?material.substring(10):material;
         return switch(name) {
             case "STONE","DEEPSLATE" -> .02;
-            case "COAL_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE","LAPIS_ORE" -> .04;
-            case "COPPER_ORE" -> .03;
-            case "IRON_ORE","REDSTONE_ORE" -> .06;
+            case "COAL_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE","LAPIS_ORE" -> .08;
+            case "COPPER_ORE" -> .05;
+            case "IRON_ORE","REDSTONE_ORE" -> .10;
             case "GOLD_ORE" -> .08;
-            case "DIAMOND_ORE","EMERALD_ORE" -> .15;
-            case "ANCIENT_DEBRIS" -> .20;
+            case "DIAMOND_ORE" -> .15;
+            case "EMERALD_ORE","ANCIENT_DEBRIS" -> .50;
             default -> 0;
         };
     }

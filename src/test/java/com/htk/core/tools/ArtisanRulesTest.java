@@ -94,7 +94,7 @@ public final class ArtisanRulesTest {
             check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,10)-initial-.02)<1e-9,"ore gains two percentage points by skill level ten");
             check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,100)-initial-.10)<1e-9,"ore skill bonus caps at ten percentage points");
         }
-        check(CrystalDropRules.miningBase("ANCIENT_DEBRIS")==.20,"ancient debris has twenty percent base chance");
+        check(CrystalDropRules.miningBase("ANCIENT_DEBRIS")==.50,"ancient debris starts at fifty percent");
         for(int level=0;level<=100;level++) {
             double coal=CrystalDropRules.miningChance("COAL_ORE",.02,.002,.12,level);
             for(String same:new String[]{"LAPIS_ORE","DEEPSLATE_LAPIS_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE"})
@@ -102,11 +102,17 @@ public final class ArtisanRulesTest {
             check(CrystalDropRules.miningChance("COPPER_ORE",.02,.002,.12,level)<coal,"copper stays below coal at every level");
             check(CrystalDropRules.miningChance("REDSTONE_ORE",.02,.002,.12,level)==CrystalDropRules.miningChance("IRON_ORE",.02,.002,.12,level),"redstone matches iron at every level");
         }
-        check(CrystalDropRules.miningBase("COPPER_ORE")==.03,"copper base reduced to three percent");
+        check(CrystalDropRules.miningBase("COPPER_ORE")==.05,"copper starts at five percent");
+        check(CrystalDropRules.miningBase("COAL_ORE")==.08,"coal group starts at eight percent");
+        check(CrystalDropRules.miningBase("IRON_ORE")==.10,"iron group starts at ten percent");
+        check(CrystalDropRules.miningBase("GOLD_ORE")==.08 && CrystalDropRules.miningBase("DIAMOND_ORE")==.15,"gold and diamond base rates unchanged");
         for(String rare:new String[]{"EMERALD_ORE","DEEPSLATE_EMERALD_ORE","ANCIENT_DEBRIS"}) {
             double base=CrystalDropRules.miningBase(rare), last=base;
+            check(base==.50,"both rare ores share the requested fifty-percent base");
+            check(Math.abs(CrystalDropRules.miningChance(rare,.02,.002,.12,10)-.60)<1e-12,"rare ores reach sixty percent at level ten");
+            check(Math.abs(CrystalDropRules.miningChance(rare,.02,.002,.12,30)-.80)<1e-12,"rare ores reach eighty percent at level thirty");
             check(CrystalDropRules.miningChance(rare,.02,.002,.12,-1)==base,"negative rare-ore level clamps to base");
-            check(Math.abs(CrystalDropRules.miningChance(rare,.02,.002,.12,1)-(rare.equals("ANCIENT_DEBRIS")?.216:.167))<1e-12,"rare-ore level-one chance");
+            check(Math.abs(CrystalDropRules.miningChance(rare,.02,.002,.12,1)-.51)<1e-12,"rare-ore level-one chance");
             for(int level=0;level<=100;level++) {
                 double chance=CrystalDropRules.miningChance(rare,.02,.002,.12,level);
                 check(chance>=last && chance<=1,"rare-ore chance rises monotonically without exceeding one");
