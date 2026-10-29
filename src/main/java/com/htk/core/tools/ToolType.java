@@ -4,7 +4,7 @@ import org.bukkit.Material;
 import com.htk.core.skill.Skill;
 
 /**
- * 마을 도구 5종. 곡괭이·도끼·괭이는 +0~4 철, +5부터 다이아 바탕이며 물뿌리개·낚싯대 바탕은 고정입니다.
+ * 곡괭이·도끼·괭이: +0~4 철, +5~19 다이아, +20부터 네더라이트. 나머지 바탕은 고정.
  * model: 리소스팩 아이템 모델 (⚠ tools/build_pack.py 의 VILLAGE_TOOLS 와 약속, null 이면 바닐라 모양)
  * defaultName: tools.yml 에 이름이 없을 때 (+0 이름)
  */
@@ -45,6 +45,12 @@ public enum ToolType {
     }
 
     public Material materialAt(int level) {
+        if (level >= 20) return switch (this) {
+            case PICKAXE -> Material.NETHERITE_PICKAXE;
+            case AXE -> Material.NETHERITE_AXE;
+            case HOE -> Material.NETHERITE_HOE;
+            default -> material;
+        };
         if(level>=5)return material;
         return switch(this) {
             case PICKAXE -> Material.IRON_PICKAXE;

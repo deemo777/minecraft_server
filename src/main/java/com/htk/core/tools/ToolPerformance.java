@@ -4,6 +4,9 @@ package com.htk.core.tools;
 public final class ToolPerformance {
     private ToolPerformance() {}
     public static boolean indestructible(int level) { return level >= 25; }
+    public static int unbreaking(int level) {
+        return level >= 25 ? 0 : level >= 20 ? 4 : level >= 15 ? 3 : level >= 10 ? 1 : 0;
+    }
     public static int efficiency(int level) {
         return level>=25?7:level>=20?6:level>=15?5:level>=10?3:0;
     }

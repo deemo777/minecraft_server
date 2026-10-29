@@ -41,7 +41,7 @@ import java.util.List;
 
 /**
  * 마을 도구 (대장장이에게 사는 곡괭이·도끼·괭이·낚싯대·물뿌리개) — 자세한 설계는 강화도구_설계.md
- *   - 아이템: 철/다이아 도구 + 광 도구 이름 + 별(강화 단계) + 3D 모양
+ *   - 아이템: 철/다이아/네더라이트 도구 + 광 도구 이름 + 별(강화 단계) + 3D 모양
  *   - 아이템 데이터: servercore:village_tool = 종류(pickaxe…), servercore:tool_level = 강화 단계
  *   - 모양: 아이템 모델 servercore:village_pickaxe + custom_model_data floats[0] = 강화 단계
  *     (리소스팩이 0/5/10/15/20 으로 모델을 골라요, ⚠ tools/build_pack.py 의 TOOL_TIERS 와 약속)
@@ -192,11 +192,13 @@ public final class VillageToolFeature implements Feature, Listener {
                 ? Math.min(waterUses(it), WateringCanRules.capacity(lv)) : 0;
         org.bukkit.Material material=type.materialAt(lv);
         if(it.getType()!=material) {
-            int oldMax=it.getType().getMaxDurability();
-            int oldDamage=it.getItemMeta() instanceof Damageable d?d.getDamage():0;
+            ItemMeta previous = it.getItemMeta();
+            int oldMax=previous instanceof Damageable d && d.hasMaxDamage()?d.getMaxDamage():it.getType().getMaxDurability();
+            int oldDamage=previous instanceof Damageable d?d.getDamage():0;
             it.setType(material);
-            if(oldMax>0 && it.getItemMeta() instanceof Damageable d){
-                d.setDamage((int)Math.min(material.getMaxDurability()-1L,(long)oldDamage*material.getMaxDurability()/oldMax));it.setItemMeta(d);
+            if(it.getItemMeta() instanceof Damageable d){
+                int newMax=d.hasMaxDamage()?d.getMaxDamage():material.getMaxDurability();
+                d.setDamage(ToolDurability.convertedDamage(oldDamage,oldMax,newMax));it.setItemMeta(d);
             }
         }
         ItemMeta meta = it.getItemMeta();
@@ -210,6 +212,10 @@ public final class VillageToolFeature implements Feature, Listener {
                 ? RegistryAccess.registryAccess().getRegistry(RegistryKey.DAMAGE_TYPE).getTag(DamageTypeTagKeys.IS_FIRE)
                 : null);
         if (indestructible && meta instanceof Damageable damageable) damageable.setDamage(0);
+        // These are managed effects on all five tools, including fishing rods and watering cans.
+        meta.removeEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING);
+        int unbreaking = ToolPerformance.unbreaking(lv);
+        if (unbreaking > 0) meta.addEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING, unbreaking, true);
 
         String name = nameFor(type, lv);
         if (lv > 0) name += cfg.getString("level-suffix", " +%level%").replace("%level%", String.valueOf(lv));

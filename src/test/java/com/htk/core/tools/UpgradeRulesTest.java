@@ -142,12 +142,24 @@ public final class UpgradeRulesTest {
         check(ConnectedBlocks.collect(0,10,n->n==0?java.util.List.of(1):java.util.List.of()).equals(java.util.List.of(0,1)),"excluded neighbors cannot bridge into other resources");
         check(ConnectedBlocks.collect(0,4096,n->java.util.List.of(n+1)).size()==4096,"even an unbounded vein stops at the safety cap");
         for(int lv=0;lv<=25;lv++){
-            check(ToolType.PICKAXE.materialAt(lv)==(lv<5?org.bukkit.Material.IRON_PICKAXE:org.bukkit.Material.DIAMOND_PICKAXE),"pickaxe base material matches milestone");
-            check(ToolType.AXE.materialAt(lv)==(lv<5?org.bukkit.Material.IRON_AXE:org.bukkit.Material.DIAMOND_AXE),"axe base material matches milestone");
-            check(ToolType.HOE.materialAt(lv)==(lv<5?org.bukkit.Material.IRON_HOE:org.bukkit.Material.DIAMOND_HOE),"hoe base material matches milestone");
+            check(ToolType.PICKAXE.materialAt(lv)==(lv<5?org.bukkit.Material.IRON_PICKAXE:lv<20?org.bukkit.Material.DIAMOND_PICKAXE:org.bukkit.Material.NETHERITE_PICKAXE),"pickaxe base material matches milestone");
+            check(ToolType.AXE.materialAt(lv)==(lv<5?org.bukkit.Material.IRON_AXE:lv<20?org.bukkit.Material.DIAMOND_AXE:org.bukkit.Material.NETHERITE_AXE),"axe base material matches milestone");
+            check(ToolType.HOE.materialAt(lv)==(lv<5?org.bukkit.Material.IRON_HOE:lv<20?org.bukkit.Material.DIAMOND_HOE:org.bukkit.Material.NETHERITE_HOE),"hoe base material matches milestone");
             check(ToolType.FISHING_ROD.materialAt(lv)==org.bukkit.Material.FISHING_ROD,"fishing rod material preserved");
             check(ToolType.WATERING_CAN.materialAt(lv)==org.bukkit.Material.CARROT_ON_A_STICK,"watering can material preserved");
+            int durability = lv<10?0:lv<15?1:lv<20?3:lv<25?4:0;
+            check(ToolPerformance.unbreaking(lv)==durability,"shared unbreaking effect changes exactly at requested thresholds");
+            check(lv<25 || ToolPerformance.indestructible(lv),"last tier uses infinite durability instead of unbreaking");
         }
+        check(ToolDurability.convertedDamage(125,250,1561)==780,"iron-to-diamond migration preserves half wear");
+        check(ToolDurability.convertedDamage(780,1561,2031)==1014,"diamond-to-netherite migration preserves wear without free repair");
+        check(ToolDurability.convertedDamage(1014,2031,1561)==779,"downgrade rescales wear to diamond");
+        check(ToolDurability.convertedDamage(200,1300,1300)==200,"custom maximum durability is preserved during material conversion");
+        check(ToolDurability.convertedDamage(0,1561,2031)==0,"new undamaged tool stays undamaged");
+        check(ToolDurability.convertedDamage(9999,250,1561)==1560,"invalid old damage cannot create a broken destination");
+        check(ToolDurability.convertedDamage(-1,250,1561)==0,"negative damage is clamped");
+        check(ToolDurability.convertedDamage(200,0,100)==99 && ToolDurability.convertedDamage(200,100,0)==0,"invalid maximum durability boundaries");
+        check(ToolDurability.convertedDamage(Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE)==Integer.MAX_VALUE-1,"large values do not overflow");
         System.out.println("Enhancement rule regression checks passed: "+checks);
     }
 }
