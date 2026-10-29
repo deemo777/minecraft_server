@@ -39,8 +39,8 @@ public final class ArtisanRules {
     }
     public static int failureCeiling(int target,double base) {
         int ceiling=extendedFailureCeiling(base);
-        // Keep custom lower probabilities' longer ceilings while extending the middle tiers.
-        return target>=16 && target<=20?Math.max(ceiling,16+(target-16)*4):ceiling;
+        // Start +16 at forty failures and keep later tiers increasing without shortening custom ceilings.
+        return target>=16 && target<=24?Math.max(ceiling,40+(target-16)*4):ceiling;
     }
     public static Attempt attempt(int current,double base,Progress progress,double roll) {
         UpgradeRules.required(current+1);

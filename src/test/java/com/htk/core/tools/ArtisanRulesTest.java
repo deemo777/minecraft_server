@@ -50,9 +50,9 @@ public final class ArtisanRulesTest {
         check(new ArtisanRules.Progress(-5,-5).equals(empty),"negative saved state clamps safely");
         check(new ArtisanRules.Progress(Integer.MAX_VALUE,Integer.MAX_VALUE).guaranteed(),"overflow-sized saved energy clamps safely");
         int[] unchangedAttempts={1,2,3,3,4,4,4,4,4};
-        int[] extended={8,8,8,8,8,8,16,20,24,28,32,34,42,50,60,78};
+        int[] extended={8,8,8,8,8,8,40,44,48,52,56,60,64,68,72,78};
         check(ArtisanRules.failureCeiling(16,0)==200,"custom lower probability retains its longer ceiling in the middle tiers");
-        check(ArtisanRules.attempt(19,10,new ArtisanRules.Progress(10,500000),.99).progress().energy()==531250,"middle-tier extension preserves earned energy");
+        check(ArtisanRules.attempt(19,10,new ArtisanRules.Progress(10,500000),.99).progress().energy()==517858,"middle-tier extension preserves earned energy");
         for(int current=0;current<25;current++){
             var progress=empty;int attempts=0;
             while(true){
