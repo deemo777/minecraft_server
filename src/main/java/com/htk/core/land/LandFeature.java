@@ -190,13 +190,11 @@ public final class LandFeature implements Feature, Listener {
     }
 
     /** 이 플레이어가 그 자리에서 블록·상자·동물 등을 건드려도 되는지 */
-    boolean canBuild(Player p, Land land) {
-        return land == null || land.trusts(p.getUniqueId()) || bypass.contains(p.getUniqueId());
-    }
-
-    boolean canBuildAt(Player p, Land land, Location where) {
-        if (bypass.contains(p.getUniqueId())) return true;
-        return canBuild(p, land) && (land == null || land.has(where.getBlockX() >> 4, where.getBlockZ() >> 4));
+    public boolean canBuildAt(Player p, Land land, Location where) {
+        return LandAccessRules.canBuild(allowedWorld(where.getWorld()),land!=null,
+                land!=null && land.trusts(p.getUniqueId()),
+                land!=null && land.has(where.getBlockX() >> 4,where.getBlockZ() >> 4),
+                p.isOp(),bypass.contains(p.getUniqueId()));
     }
 
     boolean toggleBypass(Player p) {

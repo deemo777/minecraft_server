@@ -14,6 +14,18 @@ public final class LandRulesTest {
     }
 
     public static void main(String[] args) {
+        check(!LandAccessRules.canBuild(true,false,false,false,false,false),"village common land rejects building");
+        check(LandAccessRules.canBuild(false,false,false,false,false,false),"unclaimed wilderness stays editable");
+        check(LandAccessRules.canBuild(true,true,true,true,false,false),"owner or explicitly trusted neighbor can build in unlocked land");
+        check(!LandAccessRules.canBuild(true,true,true,false,false,false),"owner cannot build in locked land");
+        check(!LandAccessRules.canBuild(true,true,false,true,false,false),"strangers cannot edit another house");
+        check(LandAccessRules.canBuild(true,true,false,false,true,false),"OP automatically bypasses ownership and locked chunks");
+        check(LandAccessRules.canBuild(true,false,false,false,true,false),"OP can edit village common land");
+        check(LandAccessRules.canBuild(true,true,false,false,false,true),"explicit admin bypass still works");
+        check(LandAccessRules.canPlaceCore(true,false,true),"core can establish a claim in unclaimed village");
+        check(!LandAccessRules.canPlaceCore(true,true,true),"core cannot overlap another reserved plot");
+        check(!LandAccessRules.canPlaceCore(true,false,false),"ordinary block cannot use the core exception");
+        check(!LandAccessRules.canPlaceCore(false,false,true),"core cannot claim wilderness");
         long core = LandLayout.key(0, 0);
         var plot = LandLayout.square(0, 0, core);
         check(plot.size() == 4 && LandLayout.isSquare(plot), "exactly a 2x2 reservation");

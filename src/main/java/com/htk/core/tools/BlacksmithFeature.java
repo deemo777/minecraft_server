@@ -102,10 +102,17 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         item.setItemMeta(meta); return item;
     }
     private void reward(Player p, ToolType type, Location at) {
+        reward(p,type,at,null);
+    }
+    private void reward(Player p, ToolType type, Location at,Material mined) {
         if (p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR) return;
         var skills=plugin.feature(SkillFeature.class);
         int level=skills==null?0:skills.progress(p.getUniqueId(),type.relatedSkill()).level;
         double chance=CrystalDropRules.chance(dropChance,dropPerLevel,dropMaximum,level);
+        if(type==ToolType.PICKAXE) {
+            if(mined==null)return;
+            chance=CrystalDropRules.miningChance(mined.name(),dropChance,dropPerLevel,dropMaximum,level);
+        }
         if(type==ToolType.FISHING_ROD)chance=CrystalDropRules.fishingChance(chance,fishingMultiplier);
         if (ThreadLocalRandom.current().nextDouble() >= chance) return;
         at.getWorld().dropItemNaturally(at, material(type, 1));
@@ -350,7 +357,8 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         mark(b, false);
         if (placed || !e.isDropItems()) return;
         Player p = e.getPlayer(); ToolType type = tools.typeOf(p.getInventory().getItemInMainHand());
-        if (type == ToolType.PICKAXE && stone(b.getType()) || type == ToolType.AXE && wood(b.getType())) reward(p, type, b.getLocation().add(.5,.5,.5));
+        if (type == ToolType.PICKAXE && CrystalDropRules.miningBase(b.getType().name())>0) reward(p,type,b.getLocation().add(.5,.5,.5),b.getType());
+        else if(type == ToolType.AXE && wood(b.getType())) reward(p, type, b.getLocation().add(.5,.5,.5));
         else if (type == ToolType.HOE && Tag.CROPS.isTagged(b.getType()) && b.getBlockData() instanceof Ageable age && age.getAge() == age.getMaximumAge())
             reward(p, type, b.getLocation().add(.5,.5,.5));
     }

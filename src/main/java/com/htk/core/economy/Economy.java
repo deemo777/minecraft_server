@@ -17,20 +17,28 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class Economy {
 
-    private final ServerCore plugin;
+    private final java.util.logging.Logger logger;
     private final File file;
     private final Map<UUID, Long> balances = new ConcurrentHashMap<>();
+    private final java.util.Set<String> rewardReceipts=new java.util.HashSet<>();
     private volatile boolean dirty;
 
     public Economy(ServerCore plugin) {
-        this.plugin = plugin;
-        this.file = new File(plugin.getDataFolder(), "money.yml");
+        this(new File(plugin.getDataFolder(),"money.yml"),plugin.getLogger());
+    }
+    Economy(File file,java.util.logging.Logger logger) {
+        this.logger=logger;this.file=file;
         load();
     }
 
     private void load() {
         if (!file.exists()) return;
-        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration yml = new YamlConfiguration();
+        try{yml.load(file);}
+        catch(IOException | org.bukkit.configuration.InvalidConfigurationException failure){
+            throw new IllegalStateException("money.yml을 읽지 못해 잔액·보상 영수증 초기화를 중지합니다",failure);
+        }
+        rewardReceipts.addAll(yml.getStringList("reward-receipts"));
         var sec = yml.getConfigurationSection("balances");
         if (sec == null) return;
         for (String key : sec.getKeys(false)) {
@@ -44,14 +52,35 @@ public final class Economy {
 
     public synchronized void save() {
         if (!dirty) return;
+        persist();
+    }
+    private boolean persist() {
         YamlConfiguration yml = new YamlConfiguration();
         balances.forEach((id, v) -> yml.set("balances." + id, v));
+        yml.set("reward-receipts",new java.util.ArrayList<>(rewardReceipts));
         try {
-            yml.save(file);
+            java.nio.file.Files.createDirectories(file.toPath().toAbsolutePath().getParent());
+            var temporary=file.toPath().resolveSibling(file.getName()+".tmp");
+            yml.save(temporary.toFile());
+            try{java.nio.file.Files.move(temporary,file.toPath(),java.nio.file.StandardCopyOption.ATOMIC_MOVE,java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
+            catch(java.nio.file.AtomicMoveNotSupportedException unsupported){java.nio.file.Files.move(temporary,file.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
             dirty = false;
+            return true;
         } catch (IOException e) {
-            plugin.getLogger().warning("money.yml 저장 실패: " + e.getMessage());
+            logger.warning("money.yml 저장 실패: " + e.getMessage());
+            return false;
         }
+    }
+    public synchronized boolean hasRewardReceipt(String receipt){return rewardReceipts.contains(receipt);}
+    /** Save the payment and its idempotency receipt in the same atomic file replacement. */
+    public synchronized boolean depositOnce(UUID id,long amount,String receipt) {
+        if(amount<=0 || receipt==null || receipt.isBlank())throw new IllegalArgumentException("Invalid unique reward");
+        if(rewardReceipts.contains(receipt))return true;
+        Long previous=balances.get(id);
+        deposit(id,amount);rewardReceipts.add(receipt);
+        if(persist())return true;
+        if(previous==null)balances.remove(id);else balances.put(id,previous);
+        rewardReceipts.remove(receipt);dirty=true;return false;
     }
 
     /** 처음 보는 플레이어면 시작 금액을 줘요. 처음이었으면 true */

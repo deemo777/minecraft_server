@@ -289,6 +289,8 @@ public final class SkillFeature implements Feature, Listener {
 
     /** 채팅·탭 목록 이름 앞에 붙는 글자 (칭호가 없으면 빈 글자) */
     public Component prefix(UUID id) {
+        var achievements=plugin.feature(com.htk.core.achievement.HiddenAchievementFeature.class);
+        if(achievements!=null && !achievements.prefix(id).equals(Component.empty()))return achievements.prefix(id);
         HonorTitle t = title(equippedTitle(id));
         if (t == null || !hasTitle(id, t.id())) return Component.empty();
         return Text.mm(titleFormat.replace("%title%", t.text()));
@@ -307,6 +309,8 @@ public final class SkillFeature implements Feature, Listener {
         Component prefix = prefix(p.getUniqueId());
         p.playerListName(prefix.equals(Component.empty()) ? null : prefix.append(Component.text(p.getName())));
     }
+    public void refreshListName(Player p){updateListName(p);}
+    com.htk.core.achievement.HiddenAchievementFeature achievements(){return plugin.feature(com.htk.core.achievement.HiddenAchievementFeature.class);}
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onChat(AsyncChatEvent e) {

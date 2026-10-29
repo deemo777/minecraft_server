@@ -125,8 +125,9 @@ def generate_merchant_art(folder):
     rect((5,-15,170,0),'#303747','#ad8657')
     rect((8,7,167,72),'#1c2635','#536078')
     # A small anvil medallion above five individually framed tools.
-    rect((75,8,100,33),'#101823','#886b53')
-    rect((79,12,96,29),'#293546','#ad8657')
+    # Anvil in slot 3: center x=69.5, matching the server's new header position.
+    rect((57,8,82,33),'#101823','#886b53')
+    rect((61,12,78,29),'#293546','#ad8657')
     for col in (1,2,4,6,7):
         x=8+18*col
         rect((x-2,33,x+17,54),'#101823','#a77950')
@@ -147,8 +148,8 @@ def generate_merchant_art(folder):
         assert b[2]-b[0]<=(x1-x0)*2-4 and b[3]-b[1]<=(y1-y0)*2-2
         dd.text((round(x0+x1-(b[0]+b[2])/2),round(y0+y1+40-(b[1]+b[3])/2)),text,font=font,fill=color)
     label((12,-14,163,-1),'잊혀진 명장','#f3d7a4',18)
-    label((12,12,71,28),'남겨 둔 장비','#c0d7e3',15)
-    label((104,12,163,28),'새로운 여정','#c0d7e3',15)
+    label((12,12,53,28),'남겨 둔 장비','#c0d7e3',15)
+    label((86,12,163,28),'새로운 여정','#c0d7e3',15)
     label((73,60,102,70),'돌아가기','#ffebc3',14)
     target=folder/'weapon_shop_bg.png';image.save(target)
     return target

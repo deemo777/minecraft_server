@@ -107,9 +107,7 @@ public final class FarmPlotFeature implements Feature, Listener {
         LandFeature landFeature = plugin.feature(LandFeature.class);
         if (landFeature == null) return true;
         Land land = landFeature.landAt(block.getLocation());
-        return land != null && land.world().equals(block.getWorld().getName())
-                && land.trusts(player.getUniqueId())
-                && land.has(block.getX() >> 4, block.getZ() >> 4);
+        return land != null && landFeature.canBuildAt(player,land,block.getLocation());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

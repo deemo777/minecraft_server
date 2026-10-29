@@ -1,8 +1,8 @@
-# 도구 5종의 0강 가격은 모두 1,000G로 고정됩니다.
+# 0강 고정 가격: 곡괭이·도끼·낚싯대 1,000G / 괭이·물뿌리개 500G.
 # 이전 prices 설정값은 사용하지 않습니다.
 prices:
   pickaxe: 1000
   axe: 1000
-  hoe: 1000
+  hoe: 500
   fishing_rod: 1000
-  watering_can: 1000
+  watering_can: 500

@@ -77,7 +77,9 @@ final class LandProtection implements Listener {
         Long last = lastWarn.get(p.getUniqueId());
         if (last == null || now - last > 1500) {
             lastWarn.put(p.getUniqueId(), now);
-            if (land.trusts(p.getUniqueId()) && !land.has(where.getBlockX() >> 4, where.getBlockZ() >> 4)) {
+            if (land==null) {
+                p.sendActionBar(Text.mm(f.msg("village-build-denied", "<red>마을에서는 집터를 설치하고 해방한 내 부지 안에서만 건축할 수 있어요.")));
+            } else if (land.trusts(p.getUniqueId()) && !land.has(where.getBlockX() >> 4, where.getBlockZ() >> 4)) {
                 p.sendActionBar(Text.mm(f.msg("locked-denied", "<red>아직 잠긴 집 부지예요. 빚을 갚고 지도에서 순서대로 해방해 주세요.")));
             } else {
                 p.sendActionBar(Text.mm(f.msg("denied", "<red>%owner%님의 집이에요. 허가가 있어야 해요.")
@@ -107,6 +109,7 @@ final class LandProtection implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent e) {
+        if(LandAccessRules.canPlaceCore(f.allowedWorld(e.getBlock().getWorld()),store.at(e.getBlock())!=null,f.isCoreItem(e.getItemInHand())))return;
         deny(e.getPlayer(), e.getBlock().getLocation(), e);
     }
 
@@ -126,6 +129,12 @@ final class LandProtection implements Listener {
         Block b = e.getClickedBlock();
         if (b == null) return;
         if (e.getAction() == Action.RIGHT_CLICK_BLOCK && f.coreAt(b) != null) return;   // 집터는 LandFeature 가 처리
+        if(e.getAction()==Action.RIGHT_CLICK_BLOCK && f.allowedWorld(b.getWorld()) && store.at(b)==null
+                && !f.canBuildAt(e.getPlayer(),null,b.getLocation())) {
+            if(f.isCoreItem(e.getItem()))return; // Claim validation runs on BlockPlaceEvent.
+            // Public doors, buttons and workstations stay usable; item use cannot alter common land.
+            if(publicInteractable(b.getType())) {e.setUseItemInHand(org.bukkit.event.Event.Result.DENY);return;}
+        }
         if (e.getAction() == Action.RIGHT_CLICK_BLOCK || e.getAction() == Action.PHYSICAL) {
             if (e.getAction() == Action.PHYSICAL && b.getType() != Material.FARMLAND
                     && b.getType() != Material.TURTLE_EGG && b.getType() != Material.SNIFFER_EGG) {
@@ -146,6 +155,17 @@ final class LandProtection implements Listener {
         }
     }
 
+    private static boolean publicInteractable(Material type) {
+        String name=type.name();
+        if(name.endsWith("_DOOR") || name.endsWith("_TRAPDOOR") || name.endsWith("_FENCE_GATE") || name.endsWith("_BUTTON"))return true;
+        return switch(type) {
+            case LEVER,CHEST,TRAPPED_CHEST,ENDER_CHEST,BARREL,CRAFTING_TABLE,FURNACE,BLAST_FURNACE,SMOKER,
+                STONECUTTER,GRINDSTONE,LOOM,CARTOGRAPHY_TABLE,SMITHING_TABLE,ANVIL,CHIPPED_ANVIL,DAMAGED_ANVIL,
+                ENCHANTING_TABLE,LECTERN,BELL -> true;
+            default -> false;
+        };
+    }
+
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBucketEmpty(PlayerBucketEmptyEvent e) {
         deny(e.getPlayer(), e.getBlock().getLocation(), e);
@@ -161,6 +181,7 @@ final class LandProtection implements Listener {
     public void onInteractEntity(PlayerInteractEntityEvent e) {
         Entity t = e.getRightClicked();
         if (t instanceof Player || t instanceof Enemy) return;
+        if(t instanceof org.bukkit.entity.Interaction && store.at(t.getLocation())==null)return;
         deny(e.getPlayer(), t.getLocation(), e);
     }
 
@@ -168,6 +189,7 @@ final class LandProtection implements Listener {
     public void onInteractAtEntity(PlayerInteractAtEntityEvent e) {
         Entity t = e.getRightClicked();
         if (t instanceof Player || t instanceof Enemy) return;
+        if(t instanceof org.bukkit.entity.Interaction && store.at(t.getLocation())==null)return;
         deny(e.getPlayer(), t.getLocation(), e);
     }
 

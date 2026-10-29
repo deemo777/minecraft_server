@@ -25,6 +25,8 @@
 | `/shopnpc` | 구 NPC 전용 명령 (호환용) | 관리자 | — |
 | `/skill` | 스킬 창 열기 / 레벨 설정 (관리자) | 일반/관리 | `/skills` |
 | `/honor` | 칭호 목록 / 칭호 달기 | 일반 | `/titles` |
+| `/achievements` | 최초 달성으로 공개된 히든 업적·내 진행 확인 | 일반 | — |
+| `/atitle [equip <id>\|clear]` | 보유 업적 칭호 장착·해제 | 일반 | — |
 | `/hud` | HUD 켜기/끄기, 위치 맞추기 | 일반 | — |
 | `/guide` | 서버 안내서(책) 받기 | 일반 | — |
 | `/land` | 내 집 땅 (집터, 지도 창, 넓히기·이웃 허가) | 일반/관리 | `/home` · `/house` |
@@ -79,7 +81,7 @@ NPC `remove`·`face`는 지정한 종류의 5블록 안에서 가장 가까운 �
 | `/land preview` · `/land confirm` · `/land cancel` | 청크 해방 미리보기·확인·취소 |
 | `/land abandon confirm` | 집 포기·예약 해제·집터 반환 |
 | `/land give [player]` · `/land delete <player>` | 관리자 집터 지급·부지 삭제 |
-| `/land bypass` | 관리자 보호 우회 토글 |
+| `/land bypass` | 비OP 관리자 보호 우회 토글; OP는 항상 우회 |
 | `/land zone pos1` · `/land zone pos2` | 관리자 집 구역의 두 모서리 청크 선택 |
 | `/land zone add` · `/land zone remove` | 선택한 집 구역 추가·제거 |
 | `/land zone show` · `/land zone info` | 집 구역 표시·정보 |

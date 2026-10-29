@@ -3,6 +3,7 @@
 
 # 기능 켜기/끄기 (바꾼 뒤에는 서버 재시작)
 features:
+  achievements: true # 숨겨진 점프 업적·서버 최초 달성 보상·칭호
   weapon-merchant: true # 마을 도구 0강 판매 NPC (economy·tools 필요)
   ranking: true    # 농사·채광·벌목·낚시 누적 순위 게시판
   cookie: true     # 무료 얼굴 쿠키 NPC
@@ -110,6 +111,8 @@ hud:
 #   넓히면 땅은 바로 생기고 그 값만큼 빚이 생겨요. 빚을 다 갚아야 다음 확장 가능.
 #   이웃(/land trust <name>)은 내 땅에서 전부 할 수 있고, 나머지 사람은 아무것도 못 해요.
 #   관리자: /land bypass (남의 땅도 만지기 켜기/끄기), /land delete <name>, /land give <name> (집터 주기)
+#   village 공용지는 건축·채굴 금지. 집터 설치 후 해방한 본인/허가받은 이웃 부지만 사용 가능.
+#   OP는 별도 bypass 명령 없이 공용지·남의 집·잠긴 청크도 편집할 수 있어요. 집터 핵심 블록은 보호 유지.
 land:
   # 집을 지을 수 있는 월드는 마을(village)로 고정이에요 (코드에서 정해요, 다른 월드에서는 집터를 못 놓아요)
   core-block: LODESTONE    # 집터 아이템의 바탕 블록 (리소스팩이 있으면 집 모형으로 보이고, 설치하면 방벽+집 모형으로 바뀌어요)

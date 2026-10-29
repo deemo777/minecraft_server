@@ -104,6 +104,10 @@ public final class ServerCore extends JavaPlugin {
             features.add(mayor);
             mayor.enable();
         }
+        if(getConfig().getBoolean("features.achievements",true)) {
+            var achievements=new com.htk.core.achievement.HiddenAchievementFeature(this);
+            features.add(achievements);achievements.enable();
+        }
 
         PluginCommand admin = getCommand("servercore");
         if (admin != null) admin.setExecutor(new CoreCommand(this));

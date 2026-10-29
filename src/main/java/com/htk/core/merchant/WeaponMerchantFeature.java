@@ -52,6 +52,7 @@ public final class WeaponMerchantFeature implements Feature,Listener,TabExecutor
     }
     @Override public void reload() {
         prices.clear();for(ToolType t:ToolType.values()) prices.put(t,1000L);
+        prices.put(ToolType.HOE,500L);prices.put(ToolType.WATERING_CAN,500L);
     }
     @Override public void disable() {
         active=false;clicks.clear();interactions.clear();
@@ -103,7 +104,7 @@ public final class WeaponMerchantFeature implements Feature,Listener,TabExecutor
     }
     @EventHandler public void chunkLoad(ChunkLoadEvent e){Bukkit.getScheduler().runTask(plugin,()->{if(e.getChunk().isLoaded())repair(e.getChunk());});}
     private final class ShopGui extends Gui {
-        private final Map<Integer,ToolType> slots=Map.of(10,ToolType.PICKAXE,11,ToolType.AXE,13,ToolType.HOE,15,ToolType.FISHING_ROD,16,ToolType.WATERING_CAN);
+        private final Map<Integer,ToolType> slots=Map.of(10,ToolType.PICKAXE,11,ToolType.AXE,13,ToolType.FISHING_ROD,15,ToolType.HOE,16,ToolType.WATERING_CAN);
         private final EnumMap<ToolType,Long> shown=new EnumMap<>(prices);
         ShopGui(){
             boolean pack=plugin.resourcePackEnabled();
@@ -123,7 +124,7 @@ public final class WeaponMerchantFeature implements Feature,Listener,TabExecutor
                 long price=shown.get(entry.getValue());lore.add(Text.mm(price>0?"<#ffd577>가격: "+Economy.format(price):"<red>판매 중지"));
                 if(price>0)lore.add(Text.mm("<gray>클릭하면 1개 구매"));meta.lore(lore);icon.setItemMeta(meta);inventory.setItem(entry.getKey(),icon);
             }
-            inventory.setItem(4,Items.of(Material.ANVIL,1,"<#d8ad73>잊혀진 명장의 진열대",
+            inventory.setItem(3,Items.of(Material.ANVIL,1,"<#d8ad73>잊혀진 명장의 진열대",
                 List.of("<gray>이 망치가 빚은 전설은 잊혔어도,","<gray>자네의 여정은 이제 시작이지.","<#ffd577>장비를 클릭하면 0강 1개 구매"),null));
             inventory.setItem(22,Items.of(pack?Material.PAPER:Material.BARRIER,1,"<#e2bc85>돌아가기",
                 List.of("<gray>필요한 것이 생기면 다시 오게."),pack?Glyphs.model("forge_button"):null));

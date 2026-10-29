@@ -77,6 +77,18 @@ public final class ArtisanRulesTest {
         check(ArtisanRules.attempt(24,0,zero,.99).level()==25,"custom zero-percent ceiling completes on attempt 201");
         check(ArtisanRules.attempt(24,3,new ArtisanRules.Progress(10,500000),.99).progress().energy()==512821,"existing earned energy is retained with the new gain");
         double previous=0;
+        for(String stone:new String[]{"STONE","DEEPSLATE"}) {
+            check(CrystalDropRules.miningChance(stone,.02,.002,.12,100)==.02,"ordinary stone stays fixed at two percent");
+        }
+        for(String name:new String[]{"GRANITE","DIORITE","ANDESITE","TUFF","CALCITE","NETHERRACK","BASALT","BLACKSTONE","END_STONE","DIRT","COBBLESTONE"})
+            check(CrystalDropRules.miningChance(name,.02,.002,.12,100)==0,"ineligible material never drops mining crystals: "+name);
+        for(String ore:new String[]{"COAL_ORE","COPPER_ORE","IRON_ORE","GOLD_ORE","REDSTONE_ORE","LAPIS_ORE","DIAMOND_ORE","EMERALD_ORE"}) {
+            check(CrystalDropRules.miningBase(ore)==CrystalDropRules.miningBase("DEEPSLATE_"+ore),"deepslate variant has identical ore probability");
+            double initial=CrystalDropRules.miningBase(ore);
+            check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,10)-initial-.02)<1e-9,"ore gains two percentage points by skill level ten");
+            check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,100)-initial-.10)<1e-9,"ore skill bonus caps at ten percentage points");
+        }
+        check(CrystalDropRules.miningBase("ANCIENT_DEBRIS")==.20,"ancient debris has twenty percent base chance");
         for(int level=0;level<=100;level++){
             double chance=CrystalDropRules.chance(.02,.002,.12,level);
             check(chance>=previous && chance<=.12,"crystal probability rises monotonically to its cap");previous=chance;

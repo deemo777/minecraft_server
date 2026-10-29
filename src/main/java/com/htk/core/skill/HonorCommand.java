@@ -38,6 +38,7 @@ final class HonorCommand implements TabExecutor {
         if (args.length >= 1) {
             String arg = args[0].toLowerCase();
             if (arg.equals("off") || arg.equals("끄기")) {
+                if(f.achievements()!=null && !f.achievements().clearSelected(p))return true;
                 f.equipTitle(p, "");
                 Messages.send(p,Text.mm("<gray>칭호를 뗐어요."));
                 return true;
@@ -47,6 +48,7 @@ final class HonorCommand implements TabExecutor {
                 Messages.send(p,Text.mm("<red>아직 받지 않은 칭호예요."));
                 return true;
             }
+            if(f.achievements()!=null && !f.achievements().clearSelected(p))return true;
             f.equipTitle(p, t.id());
             Messages.send(p,Text.mm("<gray>칭호를 <white>" + t.text() + "</white><gray>(으)로 바꿨어요."));
             return true;
@@ -75,6 +77,9 @@ final class HonorCommand implements TabExecutor {
                 first = false;
             }
             Messages.send(p,line);
+        }
+        if(f.achievements()!=null && f.achievements().hasTitles(id)) {
+            any=true;Messages.send(p,Text.mm("<gold>[업적 칭호 보기·장착]").clickEvent(ClickEvent.runCommand("/atitle")));
         }
         if (!any) Messages.send(p,Text.mm("<gray>아직 받은 칭호가 없어요. 아무 분야나 10레벨이 되면 받아요."));
         else Messages.send(p,Text.mm("<dark_gray>[칭호 떼기]").clickEvent(ClickEvent.runCommand("/honor off")));
