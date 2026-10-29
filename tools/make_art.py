@@ -5,7 +5,7 @@ ServerCore 그림 만들기 (밝고 귀여운 스타듀밸리 느낌)  →  tool
 배경은 GUI 좌표(1배) 기준으로 설계하고 2배 해상도로 그려요 (게임에서 더 선명).
 창 위로 튀어나온 간판·꽃을 그리려고 그림 위쪽에 TOP(=20)px 여백이 있어요.
   - dogam_bg.png  176 x (20+222)  : 칠판 간판 + 수집품 판(9x5) + 아래 조작 줄 + 가방
-  - menu_bg.png   176 x (20+204)  : 칠판 간판 + 일러스트 큰 버튼 4개 + 가방
+  - menu_bg.png   176 x (20+204)  : 칠판 간판 + 일러스트 큰 버튼 6개 + 가방
   - skill_bg.png  176 x (20+222)  : 칠판 간판 + 분야별 카드 5줄 + 가방
   - land_bg.png   176 x (20+222)  : 칠판 간판 + 청크 지도(풀밭 7x5) + 버튼 줄 + 가방
   - check.png, arrow_*.png        : 아이템 모델용 그림
@@ -377,9 +377,9 @@ def draw_shop(theme):
 # ======================================================================
 #  메뉴 (5줄 상자) — 모든 그림은 자기 칸(18x18 격자) 안에만 그려요
 #    칸 c열 r줄의 영역: x 7+18c ~ 25+18c, y 17+18r ~ 35+18r
-#    0번 줄: 0열 내 머리, 1·7열 하트, 2~6열 "어서 오세요!", 8열 닫기
+#    0번 줄: 0열 내 머리, 1·7열 하트, 2~6열 "오늘도 좋은 모험!", 8열 닫기
 #    1~2줄: 0~2열 도감,   6~8열 로비
-#    1~4줄: 3~5열 워프 (가운데 큰 버튼)
+#    1~2줄: 3~5열 워프, 3~4줄: 3~5열 직업 경험치
 #    3~4줄: 0~2열 야생,   6~8열 마을로
 #    ⚠ menu.yml 의 slots 와 같아야 해요
 # ======================================================================
@@ -570,28 +570,60 @@ def tile_village(cv, x0, y0, x1, y1):
 
 
 def tile_warp(cv, x0, y0, x1, y1):
-    """Compact portal fitted to the upper half of the centre column."""
-    cv.rect(x0, y0, x1, y1, c("#8f7ae8"))
+    """Moonlit portal, carved stonework and a small path, inside two menu rows."""
+    cv.rect(x0, y0, x1, y1, c("#7770c4"))
+    cv.rect(x0, y0 + 9, x1, y1, c("#9183d6"))
     rnd = random.Random(7)
-    for _ in range(14):
-        cv.px(rnd.randint(x0 + 1, x1 - 2), rnd.randint(y0 + 1, y1 - 2), WHITE)
+    for _ in range(17):
+        cv.px(rnd.randint(x0 + 1, x1 - 2), rnd.randint(y0 + 1, y1 - 4), c("#d9caff"))
     mx = (x0 + x1) // 2
-    top, bottom = y0 + 3, y1 - 2
+    top, bottom = y0 + 3, y1 - 3
+    cv.rect(mx - 11, top + 1, mx + 11, bottom + 1, c("#a194e0"))
     cv.rect(mx - 9, top + 2, mx + 9, bottom, LINE)
     cv.rect(mx - 6, top, mx + 6, top + 2, LINE)
     cv.rect(mx - 8, top + 3, mx + 8, bottom, c("#c9c3d6"))
     cv.rect(mx - 5, top + 1, mx + 5, top + 3, c("#ece8f5"))
-    cv.rect(mx - 5, top + 4, mx + 5, bottom, c("#6a3fd8"))
-    cv.rect(mx - 3, top + 5, mx + 3, bottom - 1, c("#b98cff"))
-    cv.rect(mx - 10, bottom, mx + 10, bottom + 1, c("#8fd16a"))
+    cv.rect(mx - 5, top + 4, mx + 5, bottom, c("#5534a8"))
+    cv.rect(mx - 3, top + 5, mx + 3, bottom - 1, c("#a677ef"))
+    cv.rect(mx - 1, top + 6, mx + 2, bottom - 2, c("#dfb5ff"))
+    for yy in range(top + 5, bottom, 4):
+        cv.rect(mx - 8, yy, mx - 5, yy + 1, c("#9690b3"))
+        cv.rect(mx + 5, yy + 1, mx + 8, yy + 2, c("#9690b3"))
+    cv.px(mx, top + 2, c("#ffe88a"))
+    cv.rect(mx - 10, bottom, mx + 10, bottom + 1, c("#eee0cb"))
+    cv.rect(mx - 12, bottom + 1, mx + 12, bottom + 2, c("#b9adc6"))
+    cv.rect(x0, y1 - 1, x1, y1, c("#65548d"))
+    for dx in (-19, 17):
+        cv.sprite(mx + dx, y1 - 6, ["..g..", ".ggG.", "gggGG", ".GGG."],
+                  {"g": c("#92c4aa"), "G": c("#548b89")})
+    sparkle(cv, x0 + 6, y0 + 4, c("#fff3a0"))
+    sparkle(cv, x1 - 8, y0 + 8, WHITE)
 
 
 def tile_skill(cv, x0, y0, x1, y1):
-    cv.rect(x0, y0, x1, y1, c("#e5f2d2"))
-    for i, height in enumerate((4, 7, 10, 13)):
-        x = (x0 + x1) / 2 - 14 + i * 8
-        cv.rect(x, y1 - height - 2, x + 5, y1 - 2, c("#5cb84a"))
-        cv.rect(x, y1 - height - 2, x + 5, y1 - height - 1, c("#a6e477"))
+    """An illustrated profession journal with a ribbon and three experience tracks."""
+    cv.rect(x0, y0, x1, y1, c("#d9eac1"))
+    cv.rect(x0, y1 - 4, x1, y1, c("#bbd5a0"))
+    for xx, yy in ((3, 3), (8, 14), (45, 4), (42, 15)):
+        cv.px(x0 + xx, y0 + yy, c("#a4c48b"))
+    bx, by = x0 + 9, y0 + 4
+    cv.rect(bx + 1, by + 2, bx + 18, by + 15, c("#8e9c68"))
+    cv.box(bx, by, bx + 17, by + 14, c("#b57b45"))
+    cv.rect(bx + 2, by + 1, bx + 15, by + 12, c("#fff2cd"))
+    cv.rect(bx + 3, by + 2, bx + 4, by + 11, c("#ddc499"))
+    cv.rect(bx + 9, by, bx + 12, by + 6, c("#e88c8e"))
+    cv.px(bx + 10, by + 5, c("#fff2cd"))
+    for yy in (7, 9):
+        cv.rect(bx + 5, by + yy, bx + 12, by + yy + 1, c("#c9ad80"))
+    for i, (width, color, shine) in enumerate(((8, "#e9b54e", "#ffe88a"), (11, "#6daac7", "#b2e5ed"), (15, "#6fa34c", "#b3db79"))):
+        x, y = x0 + 29, y0 + 5 + i * 5
+        cv.rect(x, y, x + 16, y + 4, c("#789562"))
+        cv.rect(x + 1, y + 1, x + 15, y + 3, c("#edf3d5"))
+        cv.rect(x + 1, y + 1, x + width, y + 3, c(color))
+        cv.rect(x + 1, y + 1, x + width, y + 2, c(shine))
+    sparkle(cv, x0 + 3, y0 + 7, c("#fffbe0"))
+    cv.sprite(x1 - 7, y1 - 6, ["..g.", "g.gG", ".gG.", "..G."],
+              {"g": c("#83b65e"), "G": c("#548742")})
 
 
 MENU_TILES = [  # (열 범위, 줄 범위, 그리기, 이름표, 이름표 색)
@@ -614,10 +646,25 @@ def draw_menu():
         cv.rect(x, 3, x + 4, 107, c("#fdecc8"))
     cv.rect(3, 3, W - 3, 4, c("#f0d49c"))
 
+    # A quiet header explains the profile action; the face itself stays unobstructed.
+    cv.rect(36, 9, 56, 10, c("#dfc28f"))
+    cv.rect(120, 9, 140, 10, c("#dfc28f"))
+    crisp_label(cv, 88, 10, "얼굴 클릭 · 칭호 변경", 5, c("#91643e"), c("#fff3d6"))
+    for x in (29, 143):
+        cv.sprite(x, 7, [".g..", "ggG.", ".GGg", "..G."],
+                  {"g": c("#a7c77b"), "G": c("#739c52")})
+    for x in (4, W - 5):
+        for y in (39, 74, 104):
+            cv.px(x, y, c("#bd8a48"))
+            cv.px(x, y - 1, c("#fff0bb"))
+
     # 0번 줄 -------------------------------------------------
     x0, y0, x1, y1 = cell(0, 0, 0, 0)                # 내 머리 액자 (머리는 x0+1~x1-1 에 그려짐)
     cv.box(x0, y0, x1, y1, c("#fffaf0"), line=c("#d9a820"))
-    cv.bevel(x0, y0, x1, y1, c("#ffd34d"), c("#ffd34d"))
+    cv.bevel(x0, y0, x1, y1, c("#ffe894"), c("#c89135"))
+    for x, y in ((x0, y0), (x1 - 1, y0), (x0, y1 - 1), (x1 - 1, y1 - 1)):
+        cv.px(x, y, c("#fff3d6"))
+    cv.rect(x0 + 6, y0 - 1, x1 - 6, y0, c("#d9a820"))
     x0, y0, x1, y1 = cell(8, 8, 0, 0)                # 닫기
     round_button(cv, x0 + 1, y0 + 1, x1 - 1, y1 - 1, c("#ff7b6b"), c("#ffb3a8"), c("#d9534a"))
     for i in range(8):
@@ -626,7 +673,7 @@ def draw_menu():
     x0, y0, x1, y1 = cell(2, 6, 0, 0)                # 리본
     cv.box(x0 + 1, y0 + 3, x1 - 1, y1 - 3, c("#ff9ec4"))
     cv.bevel(x0 + 1, y0 + 3, x1 - 1, y1 - 3, c("#ffd0e2"), c("#e8679a"))
-    cv.text((x0 + x1) / 2, (y0 + y1) / 2, "어서 오세요!", 7, WHITE, stroke=c("#b04a72"), sw=0.5)
+    cv.text((x0 + x1) / 2, (y0 + y1) / 2, "오늘도 좋은 모험!", 7, WHITE, stroke=c("#b04a72"), sw=0.5)
     for col in (1, 7):                               # 하트 (자기 칸 가운데)
         x0, y0, x1, y1 = cell(col, col, 0, 0)
         cv.sprite(x0 + 6, y0 + 7, [".hh.hh.", "hhhhhhH", ".hhhhH.", "..hhH..", "...H..."],
@@ -636,6 +683,8 @@ def draw_menu():
     for (c0, c1), (r0, r1), draw, label, band in MENU_TILES:
         x0, y0, x1, y1 = cell(c0, c1, r0, r1)
         x0, y0, x1, y1 = x0 + 1, y0 + 1, x1 - 1, y1 - 1
+        # Recessed card shadow, warm metal edging and a shaded label rail.
+        cv.rect(x0 + 1, y1, x1, y1 + 1, c("#cfa96e"))
         cv.rect(x0, y0, x1, y1, LINE)
         for (x, y) in [(x0, y0), (x1 - 1, y0), (x0, y1 - 1), (x1 - 1, y1 - 1)]:
             cv.px(x, y, c("#fdecc8"))
@@ -645,8 +694,17 @@ def draw_menu():
         cv.rect(x0 + 1, band_top, x1 - 1, band_top + 1, LINE)
         cv.rect(x0 + 1, band_top + 1, x1 - 1, y1 - 1, c(band))
         cv.rect(x0 + 1, band_top + 1, x1 - 1, band_top + 2, c("#ffffff"))
+        shade = tuple(max(0, v - 30) for v in c(band)[:3]) + (255,)
+        cv.rect(x0 + 1, y1 - 2, x1 - 1, y1 - 1, shade)
+        cv.rect(x1 - 2, band_top + 2, x1 - 1, y1 - 1, shade)
+        for x in (x0 + 2, x1 - 4):
+            cv.px(x, band_top + 4, c("#fff0b8"))
+            cv.px(x + 1, band_top + 5, shade)
         crisp_label(cv, (x0 + x1) / 2, band_top + 5.5, label, 6.5, WHITE, LINE,
                     shadow=tuple(max(0, v - 60) for v in c(band)[:3]) + (255,))
+
+    cv.sprite(157, 112, ["..oooo..", ".ottTTo.", "ottttTTo", "otyyyyTo", "ottyyTTo", ".oooooo."],
+              {"o": c("#a87942"), "t": c("#d9ac69"), "T": c("#ba8a4f"), "y": c("#ffe4a0")})
 
     chalk_sign(cv, 88, -19, 70, 17, "MENU")
     flowers(cv, 2, -4)
