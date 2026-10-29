@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.4.1"
+version = "4.5.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -156,3 +156,15 @@ val verifyRepairRules by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.tools.RepairRulesTest")
 }
 tasks.check { dependsOn(verifyRepairRules) }
+
+val verifySlotRules by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.slots.SlotRulesTest")
+}
+val verifySlotSettlement by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.economy.SlotCoinSettlementTest")
+}
+tasks.check { dependsOn(verifySlotRules, verifySlotSettlement) }

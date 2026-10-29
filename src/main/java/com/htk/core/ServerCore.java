@@ -74,6 +74,10 @@ public final class ServerCore extends JavaPlugin {
             features.add(skills);
         }
         for (Feature f : features) f.enable();
+        if (economy != null && getConfig().getBoolean("features.slots", true)) {
+            var slots = new com.htk.core.slots.SlotMachineFeature(this, economy);
+            features.add(slots); slots.enable();
+        }
         // 상점은 골드가 있어야 해요 (골드 기능이 켜진 다음에)
         if (economy != null && getConfig().getBoolean("features.shop", true)) {
             ShopFeature shop = new ShopFeature(this, economy);

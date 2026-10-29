@@ -3,6 +3,7 @@
 
 # 기능 켜기/끄기 (바꾼 뒤에는 서버 재시작)
 features:
+  slots: true      # 코인 슬롯 머신 · 설치형 대형 화면 (economy 필요)
   repairer: true   # 수리 기사 NPC·수리 공방 (economy·tools 필요)
   achievements: true # 숨겨진 점프 업적·서버 최초 달성 보상·칭호
   weapon-merchant: true # 마을 도구 0강 판매 NPC (economy·tools 필요)

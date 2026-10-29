@@ -128,6 +128,8 @@ final class LandProtection implements Listener {
     public void onInteract(PlayerInteractEvent e) {
         Block b = e.getClickedBlock();
         if (b == null) return;
+        var slots = f.plugin().feature(com.htk.core.slots.SlotMachineFeature.class);
+        if (e.getAction() == Action.RIGHT_CLICK_BLOCK && slots != null && slots.isMachine(b)) return;
         if (e.getAction() == Action.RIGHT_CLICK_BLOCK && f.coreAt(b) != null) return;   // 집터는 LandFeature 가 처리
         if(e.getAction()==Action.RIGHT_CLICK_BLOCK && f.allowedWorld(b.getWorld()) && store.at(b)==null
                 && !f.canBuildAt(e.getPlayer(),null,b.getLocation())) {

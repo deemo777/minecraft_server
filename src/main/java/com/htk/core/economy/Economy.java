@@ -92,6 +92,18 @@ public final class Economy {
         }
     }
     public synchronized boolean hasRewardReceipt(String receipt){return rewardReceipts.contains(receipt);}
+    /** Settle a physical slot coin immediately, including a losing (zero payout) draw.
+     * No saturation: callers reserve room for the largest prize before consuming a coin. */
+    public synchronized boolean settleSlotCoin(UUID id, long payout) {
+        if (payout < 0 || balance(id) > Long.MAX_VALUE - payout) return false;
+        Long previous = balances.get(id);
+        if (payout > 0) balances.put(id, balance(id) + payout);
+        dirty = true;
+        if (persist()) return true;
+        if (previous == null) balances.remove(id); else balances.put(id, previous);
+        dirty = true;
+        return false;
+    }
     /** Refund old principal only, clearing the legacy records in the same atomic save. No new stakes can be created. */
     public synchronized boolean refundLegacyStakes() {
         if (legacyStakes.isEmpty()) return true;

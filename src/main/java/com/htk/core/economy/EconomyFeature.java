@@ -124,6 +124,9 @@ public final class EconomyFeature implements Feature, Listener, TabExecutor {
     @EventHandler(priority = EventPriority.HIGH)
     public void onUseGold(PlayerInteractEvent e) {
         if (e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        // Slot coins must never also run the normal right-click redemption, even when busy or protected.
+        var slots = plugin.feature(com.htk.core.slots.SlotMachineFeature.class);
+        if (slots != null && e.getClickedBlock() != null && slots.isMachine(e.getClickedBlock())) return;
         ItemStack item = e.getItem();
         long each = goldAmount(item);
         if (each <= 0) return;

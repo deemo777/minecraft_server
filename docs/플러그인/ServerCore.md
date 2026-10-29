@@ -1,6 +1,6 @@
 # ServerCore 명령어
 
-[문서 홈](../../README.md) · **4.3.0 / 2026-10-30**
+[문서 홈](../../README.md) · **4.5.0 / 2026-10-30**
 
 명령어·도구 ID·분야 ID는 **영어로만 입력**합니다.
 
@@ -14,6 +14,7 @@
 | `/weaponmerchantnpc` | 구 NPC 전용 명령 (호환용) | 관리자 | — |
 | `/weaponshop` | 0강 마을 도구 구매 창 열기 (관리자) | 관리자 | — |
 | `/rankboard` | 네 분야 순위 게시판 관리 | 관리자 | — |
+| `/slotmachine [1~64] [player]` | 설치형 코인 슬롯 머신 지급 | 관리자 | — |
 | `/ranking` | 네 분야 누적 순위 조회 | 일반 | — |
 | `/cookienpc` | 구 NPC 전용 명령 (호환용) | 관리자 | — |
 | `/blacksmithnpc` | 구 NPC 전용 명령 (호환용) | 관리자 | — |
@@ -61,6 +62,7 @@
 | `/npc create cookie` · `/npc remove cookie` · `/npc face cookie` | 요리사 생성·제거·방향 변경 |
 | `/rankboard create <name> <category>` | 누적 순위 홀로그램 생성 |
 | `/rankboard remove <name>` · `/rankboard list` | 게시판 삭제·목록 |
+| `/slotmachine [1~64] [player]` | 슬롯 머신 블록 지급. 설치 후 코인을 주손에 들고 블록 우클릭 |
 | `/money give <player> <amount>` | 골드 지급 (`take` 회수, `set` 지정) |
 | `/skill set <player> <category> <level>` | 스킬 레벨 지정 |
 | `/skill reset <player>` · `/dogam reset <player>` | 스킬·도감 초기화 |
