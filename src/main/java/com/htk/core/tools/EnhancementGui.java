@@ -49,7 +49,7 @@ final class EnhancementGui implements InventoryHolder {
         } else if (type != null && current >= 0) {
             int target = current + 1;
             var artisan=feature.tools().artisanProgress(tool);
-            double chance=ArtisanRules.effectivePercent(feature.successPercent(target),artisan);
+            double chance=ArtisanRules.effectivePercent(target,feature.successPercent(target),artisan);
             name = "<#ffc773><bold>강화하기 · +" + current + " → +" + target;
             lore = List.of(UpgradeRules.required(target)==0?"<green>강화 결정 없이 시도할 수 있어요"
                             : "<gray>재료: " + type.korean + " 강화 재료 " + UpgradeRules.required(target) + "개",

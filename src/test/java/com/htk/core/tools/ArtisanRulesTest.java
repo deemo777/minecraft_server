@@ -25,8 +25,11 @@ public final class ArtisanRulesTest {
         check(ArtisanRules.effectivePercent(75,new ArtisanRules.Progress(10,0))==100,"effective success probability never exceeds 100 percent");
         var failed=ArtisanRules.attempt(24,3,empty,.99);
         check(failed.level()==24 && failed.progress().failures()==1,"failure never lowers the tool level");
-        check(failed.progress().energy()==13954,"failure energy uses actual chance divided by 2.15");
-        check(ArtisanRules.energyLabel(failed.progress()).equals("1.39"),"energy display truncates instead of showing a premature guarantee");
+        check(failed.progress().energy()==12821,"target 25 gains one seventy-eighth of full energy rounded up");
+        check(ArtisanRules.energyLabel(failed.progress()).equals("1.28"),"energy display truncates instead of showing a premature guarantee");
+        check(ArtisanRules.effectivePercent(10,65,new ArtisanRules.Progress(7,0))==99.99,"bonus cannot bypass the extended pity ceiling");
+        check(ArtisanRules.effectivePercent(10,100,empty)==100,"custom guaranteed base rates remain guaranteed");
+        check(ArtisanRules.effectivePercent(9,67.5,new ArtisanRules.Progress(7,0))==100,"targets below ten retain their original bonus cap");
         var saved=new ArtisanRules.Progress(failed.progress().failures(),failed.progress().energy());
         check(saved.equals(failed.progress()),"integer state can be restored without floating-point loss");
         var stored=new java.util.HashMap<org.bukkit.NamespacedKey,Object>();var itemData=container(stored);
@@ -46,21 +49,31 @@ public final class ArtisanRulesTest {
         check(ArtisanRules.energyLabel(full).equals("100"),"full energy is clearly displayed");
         check(new ArtisanRules.Progress(-5,-5).equals(empty),"negative saved state clamps safely");
         check(new ArtisanRules.Progress(Integer.MAX_VALUE,Integer.MAX_VALUE).guaranteed(),"overflow-sized saved energy clamps safely");
+        int[] unchangedAttempts={1,2,3,3,4,4,4,4,4};
+        int[] extended={8,8,8,8,8,8,14,16,20,24,28,34,42,50,60,78};
         for(int current=0;current<25;current++){
             var progress=empty;int attempts=0;
             while(true){
                 var outcome=ArtisanRules.attempt(current,UpgradeRules.success(current+1),progress,.999999999);
                 attempts++;
-                if(outcome.level()>current){check(outcome.level()==current+1,"ceiling advances exactly one level");break;}
+                if(outcome.level()>current){
+                    check(outcome.level()==current+1,"ceiling advances exactly one level");
+                    if(current>=9)check(attempts==extended[current-9]+1 && outcome.guaranteed(),"target "+(current+1)+" doubles the original failure ceiling exactly");
+                    else check(attempts==unchangedAttempts[current],"target "+(current+1)+" retains its original attempt ceiling");
+                    break;
+                }
                 check(outcome.level()==current,"arbitrarily unlucky streak never downgrades");
                 check(outcome.progress().energy()>progress.energy(),"every failed attempt makes progress toward the ceiling");
-                check(attempts<=100,"all default stages have a finite failure ceiling");progress=outcome.progress();
+                check(attempts<=200,"all default stages have a finite failure ceiling");progress=outcome.progress();
             }
         }
         var zero=empty;
-        for(int i=0;i<100;i++)zero=ArtisanRules.attempt(24,0,zero,.99).progress();
-        check(zero.guaranteed(),"a custom zero-percent stage accumulates at least one percent energy per failure");
-        check(ArtisanRules.attempt(24,0,zero,.99).level()==25,"custom zero-percent ceiling completes on attempt 101");
+        for(int i=0;i<199;i++)zero=ArtisanRules.attempt(24,0,zero,.99).progress();
+        check(!zero.guaranteed(),"custom zero-percent extended ceiling does not fill early");
+        zero=ArtisanRules.attempt(24,0,zero,.99).progress();
+        check(zero.guaranteed() && zero.failures()==200,"custom zero-percent stage fills after two hundred failures");
+        check(ArtisanRules.attempt(24,0,zero,.99).level()==25,"custom zero-percent ceiling completes on attempt 201");
+        check(ArtisanRules.attempt(24,3,new ArtisanRules.Progress(10,500000),.99).progress().energy()==512821,"existing earned energy is retained with the new gain");
         double previous=0;
         for(int level=0;level<=100;level++){
             double chance=CrystalDropRules.chance(.02,.002,.12,level);
