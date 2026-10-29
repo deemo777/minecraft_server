@@ -68,9 +68,8 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         }
         sessions.clear();
     }
-    int successPercent(int target) {
-        List<Integer> values = config.getIntegerList("enhancement.success-rates");
-        return target <= values.size() ? Math.clamp(values.get(target - 1), 0, 100) : UpgradeRules.success(target);
+    double successPercent(int target) {
+        return UpgradeRules.configuredSuccess(target,config.getDoubleList("enhancement.success-rates"));
     }
     boolean validTool(ItemStack item) {
         ToolType type = tools.typeOf(item);
@@ -87,7 +86,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         meta.getPersistentDataContainer().set(materialKey, PersistentDataType.STRING, type.id);
         meta.displayName(Text.mm("<#a9dce7><bold>" + type.korean + " 강화 결정"));
         meta.lore(List.of(Text.mm("<gray>대장간에서 같은 종류 장비를 강화해요"),
-                Text.mm("<dark_gray>+1~5: 1개 · +6~10: 2개 · +11~15: 3개 · +16~20: 4개 · +21~25: 5개")));
+                Text.mm("<dark_gray>+1~5: 무료 · +6~10: 1개 · +11~15: 2개 · +16~20: 4개 · +21~25: 8개")));
         if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("enhancement_" + type.id));
         item.setItemMeta(meta); return item;
     }
@@ -178,15 +177,17 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         ToolType type = tools.typeOf(item);
         ItemStack material = gui.inventory.getItem(EnhancementGui.MATERIAL);
         int required = UpgradeRules.required(current + 1);
-        if (materialType(material) != type || material.getAmount() < required) {
+        if (!UpgradeRules.hasMaterials(current+1,materialType(material)==type,material==null?0:material.getAmount())) {
             Messages.send(p,Text.mm("<red>" + type.korean + " 강화 결정 " + required + "개가 필요해요.")); return;
         }
         int result = UpgradeRules.resolve(current, ThreadLocalRandom.current().nextDouble(),
                 ThreadLocalRandom.current().nextDouble(), successPercent(current + 1) / 100.0);
         ItemStack upgraded = item.clone();
         if (!tools.setLevel(upgraded, result)) return;
-        material.setAmount(material.getAmount() - required);
-        gui.inventory.setItem(EnhancementGui.MATERIAL, material.getAmount() == 0 ? null : material);
+        if(required>0){
+            material.setAmount(material.getAmount() - required);
+            gui.inventory.setItem(EnhancementGui.MATERIAL, material.getAmount() == 0 ? null : material);
+        }
         gui.inventory.setItem(EnhancementGui.TOOL, upgraded);
         gui.refresh();
         if (result > current) {
@@ -194,7 +195,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, .7f, 1.3f);
         } else {
             Messages.send(p,Text.mm("<red>강화 실패 <gray>· " + (result < current ? "+" + current + " → +" + result : "단계 유지")
-                    + " · 재료 " + required + "개 소비"));
+                    + (required==0?" · 재료 소모 없음":" · 재료 " + required + "개 소비")));
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_LAND, .5f, .7f);
         }
     }

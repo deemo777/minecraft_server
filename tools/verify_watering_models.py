@@ -16,9 +16,9 @@ def verify(pack_path):
         definition = json.loads(pack.read('assets/servercore/items/village_watering_can.json'))['model']
         assert definition['type'] == 'minecraft:range_dispatch'
         assert definition['property'] == 'minecraft:custom_model_data' and definition['index'] == 0
-        assert [entry['threshold'] for entry in definition['entries']] == [5, 10, 15, 20]
-        for level in range(21):
-            tier = max(value for value in expected if value <= level)
+        assert [entry['threshold'] for entry in definition['entries']] == [10, 15, 20, 25]
+        for level in range(26):
+            tier = max(value for value in expected if value == 0 or value + 5 <= level)
             choice = definition['fallback']
             for entry in definition['entries']:
                 if level >= entry['threshold']:
@@ -59,7 +59,7 @@ def verify(pack_path):
                         assert face['texture'].removeprefix('#') in model['textures']
         for tier in expected:
             assert source_paths(tier, False)[1].read_bytes() != source_paths(tier, True)[1].read_bytes()
-    print('PASS: 42 level/state selections; 10 original models, UVs, original displays and byte-identical PNGs; valid planes, rotations and references.')
+    print('PASS: 52 level/state selections; 10 original models, UVs, original displays and byte-identical PNGs; valid planes, rotations and references.')
 
 
 if __name__ == '__main__':

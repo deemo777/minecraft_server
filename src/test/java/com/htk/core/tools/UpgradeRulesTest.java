@@ -103,7 +103,7 @@ public final class UpgradeRulesTest {
         check(ToolPerformance.efficiency(-1)==0&&ToolPerformance.fortune(999)==4,"bounded levels");
 
         for (int target=1;target<=25;target++) {
-            check(UpgradeRules.required(target)==1+(target-1)/5, "material cost tier boundary");
+            check(UpgradeRules.required(target)==new int[]{0,1,2,4,8}[(target-1)/5], "material cost tier boundary");
             double chance=UpgradeRules.success(target)/100.0;
             check(UpgradeRules.resolve(target-1,0,.99,chance)==target, "success always advances exactly one");
             if (target>1) {
@@ -112,7 +112,7 @@ public final class UpgradeRulesTest {
                 check(UpgradeRules.resolve(target-1,.999,0,chance)==expected,"failure checkpoint floor");
             }
         }
-        check(UpgradeRules.success(1)==100 && UpgradeRules.success(10)==55 && UpgradeRules.success(20)==10 && UpgradeRules.success(25)==3,"specified probabilities");
+        check(UpgradeRules.success(1)==100 && UpgradeRules.success(10)==65 && UpgradeRules.success(20)==10 && UpgradeRules.success(25)==3,"specified probabilities");
         check(UpgradeRules.resolve(10,.99,0,.5)==10,"+10 checkpoint is never lost");
         check(UpgradeRules.resolve(20,.99,0,.08)==20,"+20 checkpoint is never lost");
         check(UpgradeRules.resolve(15,.99,0,.25)==15,"+15 checkpoint is never lost");
@@ -124,6 +124,24 @@ public final class UpgradeRulesTest {
             boolean failed=false;try{UpgradeRules.required(bad);}catch(IllegalArgumentException ex){failed=true;}
             check(failed,"reject invalid or maxed target");
         }
+        for(int target=1;target<=25;target++){
+            int required=UpgradeRules.required(target);
+            check(UpgradeRules.hasMaterials(target,false,0)==(target<=5),"only first five targets allow an empty material slot");
+            check(UpgradeRules.hasMaterials(target,true,required),"exact material cost is accepted");
+            if(required>0){
+                check(!UpgradeRules.hasMaterials(target,true,required-1),"insufficient materials are rejected");
+                check(!UpgradeRules.hasMaterials(target,false,required),"wrong material type is rejected for paid upgrades");
+            }
+        }
+        for(int target=6;target<=15;target++)check(UpgradeRules.success(target)==75-(target-6)*2.5,"+6..15 decrease by 2.5 percentage points");
+        var legacy=java.util.List.of(100d,95d,90d,85d,80d,75d,70d,65d,60d,55d,50d,45d,40d,35d,30d,25d,20d,15d,12d,10d,8d,6d,5d,4d,3d);
+        check(UpgradeRules.configuredSuccess(7,legacy)==72.5,"existing 25-entry default config adopts new fractional probabilities");
+        check(UpgradeRules.configuredSuccess(15,legacy.subList(0,20))==52.5,"existing 20-entry default config migrates too");
+        check(UpgradeRules.configuredSuccess(7,java.util.List.of())==72.5,"missing config uses new default");
+        var custom=new java.util.ArrayList<>(legacy);custom.set(6,71.25);
+        check(UpgradeRules.configuredSuccess(7,custom)==71.25,"custom fractional probability is preserved without integer truncation");
+        custom.set(6,Double.NaN);check(UpgradeRules.configuredSuccess(7,custom)==72.5,"non-finite config falls back safely");
+        custom.set(6,101d);check(UpgradeRules.configuredSuccess(7,custom)==100,"probability clamps to 100 percent");
         var cyclic=java.util.Map.of(0,java.util.List.of(1,2),1,java.util.List.of(0,3),2,java.util.List.of(0,3),3,java.util.List.of(1,2));
         check(ConnectedBlocks.collect(0,10,cyclic::get).equals(java.util.List.of(0,1,2,3)),"cyclic veins are visited once in nearest-first order");
         check(ConnectedBlocks.collect(0,2,cyclic::get).equals(java.util.List.of(0,1)),"connected traversal respects the exact budget");

@@ -187,6 +187,7 @@ MODELS = os.path.join(HERE, "models")
 VILLAGE_TOOLS = {"village_pickaxe": "diamond_pickaxe", "village_axe": "diamond_axe", "village_hoe": "diamond_hoe",
                  "village_watering_can": "carrot_on_a_stick", "village_fishing_rod": "fishing_rod"}
 TOOL_TIERS = [0, 5, 10, 15, 20]
+# Source filenames keep their original tier numbers. Actual unlock levels: 0, 10, 15, 20, 25.
 
 
 def village_tool_def(jar, tool, vanilla):
@@ -205,7 +206,8 @@ def village_tool_def(jar, tool, vanilla):
     fallback = v["model"] if v and "model" in v else {"type": "minecraft:model", "model": f"minecraft:item/{vanilla}"}
     if 0 in have:
         fallback = model(0)
-    entries = [{"threshold": t, "model": model(t)} for t in have if t > 0]
+    # +0~9 share the original base model; old +5/+10/+15/+20 unlock at +10/+15/+20/+25.
+    entries = [{"threshold": t + 5, "model": model(t)} for t in have if t > 0]
     if not entries:
         return item_def(fallback), have
     return item_def({"type": "minecraft:range_dispatch", "property": "minecraft:custom_model_data", "index": 0,

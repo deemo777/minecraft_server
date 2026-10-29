@@ -48,9 +48,11 @@ final class EnhancementGui implements InventoryHolder {
         } else if (type != null && current >= 0) {
             int target = current + 1;
             name = "<#ffc773><bold>강화하기 · +" + current + " → +" + target;
-            lore = List.of("<gray>재료: " + type.korean + " 강화 재료 " + UpgradeRules.required(target) + "개",
-                    "<gray>성공률: <yellow>" + feature.successPercent(target) + "%",
-                    "<gray>실패해도 재료는 소비돼요 · 장비 파괴 없음",
+            lore = List.of(UpgradeRules.required(target)==0?"<green>강화 결정 없이 시도할 수 있어요"
+                            : "<gray>재료: " + type.korean + " 강화 재료 " + UpgradeRules.required(target) + "개",
+                    "<gray>성공률: <yellow>" + java.math.BigDecimal.valueOf(feature.successPercent(target)).stripTrailingZeros().toPlainString() + "%",
+                    UpgradeRules.required(target)==0?"<gray>성공·실패 모두 재료 소모 없음 · 장비 파괴 없음"
+                            : "<gray>실패해도 재료는 소비돼요 · 장비 파괴 없음",
                     target >= 11 ? "<gray>실패 시 " + (int)(UpgradeRules.downgradeChance(target)*100) + "%로 1단계 하락 · +" + UpgradeRules.floor(target) + " 보존"
                             : "<gray>실패해도 단계는 유지돼요",
                     "<dark_gray>화면을 닫으면 넣은 아이템을 돌려받아요");

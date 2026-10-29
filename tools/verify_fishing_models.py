@@ -16,9 +16,9 @@ def verify(pack_path):
         definition = json.loads(pack.read('assets/servercore/items/village_fishing_rod.json'))['model']
         assert definition['type'] == 'minecraft:range_dispatch'
         assert definition['property'] == 'minecraft:custom_model_data' and definition['index'] == 0
-        assert [e['threshold'] for e in definition['entries']] == [5, 10, 15, 20]
-        for level in range(21):
-            tier = max(value for value in tiers if value <= level)
+        assert [e['threshold'] for e in definition['entries']] == [10, 15, 20, 25]
+        for level in range(26):
+            tier = max(value for value in tiers if value == 0 or value + 5 <= level)
             choice = definition['fallback']
             for entry in definition['entries']:
                 if level >= entry['threshold']:
@@ -54,7 +54,7 @@ def verify(pack_path):
                         assert element['rotation']['angle'] in (-45, -22.5, 0, 22.5, 45)
                     for face in element.get('faces', {}).values():
                         assert face['texture'].removeprefix('#') in model['textures']
-    print('PASS: 42 level/cast selections; 10 original models, UVs, adjusted displays and byte-identical PNGs; valid bounds, rotations and texture keys.')
+    print('PASS: 52 level/cast selections; 10 original models, UVs, adjusted displays and byte-identical PNGs; valid bounds, rotations and texture keys.')
 
 
 if __name__ == '__main__':
