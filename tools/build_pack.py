@@ -81,6 +81,7 @@ def font_json():
         *bg_tiles("skill_bg", 222 + TOP, 0xE028),   # 스킬 창 배경 4조각 \uE028~\uE02B
         *bg_tiles("land_bg", 222 + TOP, 0xE02C),    # 집 지도 창 배경 4조각 \uE02C~\uE02F
         *bg_tiles("members_bg", 222 + TOP, 0xE03C), # 이웃 허가 창 배경 4조각 \uE03C~\uE03F
+        *bg_tiles("honor_bg", 222 + TOP, 0xE078),   # 칭호 명패 보관함 4조각
         # 스킬 창 게이지 조각: 줄마다 높이가 달라서 5개 \uE060~\uE064
         *[bm("bar_full.png", ascent_for_top(t + 11), 5, [chr(0xE060 + i)]) for i, t in enumerate(SKILL_ROW_TOP)],
         # 상점 배경 4조각씩 \uE030~ (SHOP_THEMES 순서)
@@ -297,6 +298,7 @@ def main():
     split_bg("skill_bg", font_tex)
     split_bg("land_bg", font_tex)
     split_bg("members_bg", font_tex)
+    split_bg("honor_bg", font_tex)
     for theme in SHOP_THEMES:
         split_bg(f"shop_{theme}_bg", font_tex)
     arrows = ("arrow_left", "arrow_right", "arrow_left_off", "arrow_right_off", "land_plus", "land_plus_off")

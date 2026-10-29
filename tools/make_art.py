@@ -1082,8 +1082,57 @@ def draw_members():
 
 
 # ======================================================================
-#  집터 모형 텍스처 (16x16) — build_pack.py 가 servercore:house_core 모델로 묶어요
+#  칭호 명패 보관함 (6줄 상자)
 # ======================================================================
+def draw_honor():
+    """칭호 명패 보관함: HonorGui의 요약 4번, 목록 7x4, 하단 조작 5칸과 일치."""
+    cv = Canvas(176, 222)
+    cv.wood_frame(0, 0, 176, 133)
+    cv.rect(3, 3, 173, 130, PANEL)
+    inventory(cv, 128, 140, 198, 222)
+    # 밝은 상단 선반: 가운데에는 현재 장착 명패 아이템이 놓여요.
+    cv.box(7, 17, 169, 35, c("#fff5dc"))
+    cv.rect(9, 18, 167, 19, WHITE)
+    cv.box(79, 17, 97, 35, c("#f6dfa4"), line=c("#c39145"))
+    crisp_label(cv, 43, 26, "나의 칭호", 7, fill=c("#8b5837"), line=c("#fff5dc"))
+    crisp_label(cv, 133, 26, "무료 장착", 7, fill=c("#557e48"), line=c("#fff5dc"))
+    # 선반 위에 놓인 크림색 명패들. 실제 아이템은 각각의 16px 내부에 표시돼요.
+    for row in range(4):
+        y = 35 + row * 18
+        cv.rect(25, y + 17, 151, y + 18, c("#a77649"))
+        for col in range(7):
+            x = 25 + col * 18
+            cv.box(x, y, x + 18, y + 18, c("#fff8e7"), line=c("#bd925d"))
+            cv.bevel(x, y, x + 18, y + 18, WHITE, c("#ebd4ad"))
+    # 월계수 잎을 닮은 양옆 장식.
+    for x, direction in ((14, 1), (161, -1)):
+        cv.rect(x, 48, x + 1, 96, c("#72945a"))
+        for y in range(49, 96, 9):
+            cv.rect(x - 3 * direction, y, x + 1 if direction > 0 else x + 4, y + 3, c("#92b66d"))
+            cv.rect(x, y + 4, x + 4, y + 6, c("#6d9655"))
+    cv.rect(3, 107, 173, 125, PANEL)
+    cv.rect(3, 107, 173, 108, SLOT_LINE)
+    for col, color, high, low in (
+            (0, "#8fd16a", "#c8f0a0", "#5fa840"),
+            (3, "#f6dfa4", "#fff2cb", "#c4a361"),
+            (4, "#edb4a2", "#ffded0", "#c58372"),
+            (5, "#f6dfa4", "#fff2cb", "#c4a361"),
+            (8, "#8fd16a", "#c8f0a0", "#5fa840")):
+        x = 7 + col * 18
+        round_button(cv, x, 108, x + 18, 125, c(color), c(high), c(low))
+    crisp_label(cv, 42, 116, "메뉴", 7, fill=LINE, line=PANEL)
+    crisp_label(cv, 133, 116, "직업", 7, fill=LINE, line=PANEL)
+    chalk_sign(cv, 88, -19, 86, 18, "칭 호 변 환", board=c("#79618d"),
+               board_dk=c("#584664"), shine=c("#ab91bb"), stroke=c("#49374f"))
+    flowers(cv, 2, -4)
+    flowers(cv, 155, -4, mirror=True)
+    sparkle(cv, 35, -13, c("#fff3a0"))
+    sparkle(cv, 138, -12, WHITE)
+    cv.save("honor_bg.png")
+    return cv
+
+
+# 집터 모형 텍스처 (16x16) — build_pack.py가 servercore:house_core 모델로 묶어요.
 def draw_house_textures():
     def tex(name, fn):
         img = Image.new("RGBA", (16, 16), CLEAR)
@@ -1145,6 +1194,7 @@ if __name__ == "__main__":
     draw_items()
     draw_hud()
     draw_skill()
+    draw_honor()
     draw_land()
     draw_members()
     draw_house_textures()

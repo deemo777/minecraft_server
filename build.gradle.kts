@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "3.39.4"
+version = "3.39.5"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -26,6 +26,7 @@ tasks.withType<JavaCompile> {
 }
 
 tasks.processResources {
+    inputs.property("version", project.version)
     filteringCharset = "UTF-8"
     filesMatching("plugin.yml") {
         expand("version" to project.version)

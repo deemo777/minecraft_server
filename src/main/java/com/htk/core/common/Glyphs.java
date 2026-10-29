@@ -40,6 +40,8 @@ public final class Glyphs {
     public static final char SKILL_BG = '\uE028';
     public static final char LAND_BG = '\uE02C';
     public static final char MEMBERS_BG = '\uE03C';
+    /** 칭호 명패 보관함 4조각 — tools/build_pack.py의 E078~E07B. */
+    public static final char HONOR_BG = '\uE078';
     public static final char BAR_PIECE = '\uE002';
     public static final char DIGIT_0 = '\uE010';
     public static final char SLASH = '\uE01A';

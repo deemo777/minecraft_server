@@ -43,7 +43,23 @@ def verify(path):
                 assert tile.size==(176,188)
         assert all(chr(code) in glyphs for code in range(0xE070,0xE074)), 'existing forge glyphs lost'
         assert font['providers'][0]['advances']['\uf808']==-128
-        print(f'PASS: {len(documents)} JSON documents, {images} PNGs, {references} local references; forge and merchant glyphs verified.')
+        gui=documents['assets/servercore/font/gui.json']
+        honor={}
+        seen=set()
+        for provider in gui['providers']:
+            if provider['type'] != 'bitmap': continue
+            for row in provider['chars']:
+                for char in row:
+                    assert char not in seen, f'duplicate GUI glyph: {ord(char):04X}'
+                    seen.add(char)
+                    honor[char]=provider
+        for index in range(4):
+            provider=honor[chr(0xE078+index)]
+            assert provider['file']==f'servercore:font/honor_bg_{index}.png'
+            assert provider['height']==121 and provider['ascent']==(33 if index<2 else -88)
+            with Image.open(io.BytesIO(pack.read('assets/servercore/textures/font/honor_bg_'+str(index)+'.png'))) as tile:
+                assert tile.size==(176,242)
+        print(f'PASS: {len(documents)} JSON documents, {images} PNGs, {references} local references; forge, merchant and honor glyphs verified.')
 
 
 if __name__=='__main__':
