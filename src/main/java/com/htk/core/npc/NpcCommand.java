@@ -65,6 +65,7 @@ public final class NpcCommand implements TabExecutor {
         String commandName;
         if (type.equals("mayor") && plugin.feature(MayorFeature.class) != null) commandName = "mayornpc";
         else if (type.equals("blacksmith") && plugin.feature(BlacksmithFeature.class) != null) commandName = "blacksmithnpc";
+        else if (type.equals("repairer") && plugin.feature(com.htk.core.tools.RepairFeature.class) != null) commandName = "repairnpc";
         else if (type.equals("cookie") && plugin.feature(CookieFeature.class) != null) commandName = "cookienpc";
         else if ((type.equals("weaponmerchant") || type.equals("merchant"))
                 && plugin.feature(WeaponMerchantFeature.class) != null) commandName = "weaponmerchantnpc";
@@ -91,6 +92,7 @@ public final class NpcCommand implements TabExecutor {
         List<String> types = new ArrayList<>();
         if (plugin.feature(MayorFeature.class) != null) types.add("mayor");
         if (plugin.feature(BlacksmithFeature.class) != null) types.add("blacksmith");
+        if (plugin.feature(com.htk.core.tools.RepairFeature.class) != null) types.add("repairer");
         if (plugin.feature(CookieFeature.class) != null) types.add("cookie");
         if (plugin.feature(WeaponMerchantFeature.class) != null) types.add("weaponmerchant");
         ShopFeature shops = plugin.feature(ShopFeature.class);

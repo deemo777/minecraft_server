@@ -109,6 +109,11 @@ def install_blacksmith_assets(pack):
         top=-20+(94 if i>=2 else 0)
         data['providers'].append({'type':'bitmap','file':f'servercore:font/weapon_shop_bg_{i}.png',
             'ascent':13-top,'height':94,'chars':[chr(0xE074+i)]})
+    image=Image.open(generate_repair_art(art)).convert('RGBA')
+    for i,(x,y) in enumerate(((0,0),(176,0),(0,188),(176,188))):
+        image.crop((x,y,x+176,y+188)).save(texture/f'repair_bg_{i}.png')
+        data['providers'].append({'type':'bitmap','file':f'servercore:font/repair_bg_{i}.png',
+            'ascent':33 if i<2 else -61,'height':94,'chars':[chr(0xE07C+i)]})
     font.write_text(json.dumps(data,ensure_ascii=True,indent=2),encoding='utf-8')
     for tool in TYPES:
         name='enhancement_'+tool
@@ -119,15 +124,51 @@ def install_blacksmith_assets(pack):
     Image.new('RGBA',(16,16)).save(sc/'textures/item/forge_button.png')
     (sc/'models/item/forge_button.json').write_text(json.dumps({'parent':'minecraft:item/generated','textures':{'layer0':'servercore:item/forge_button'}}),encoding='utf-8')
     (sc/'items/forge_button.json').write_text(json.dumps({'model':{'type':'minecraft:model','model':'servercore:item/forge_button'}}),encoding='utf-8')
-    shutil.copy2(art/'forge_button_disabled.png',sc/'textures/item/forge_button_disabled.png')
-    (sc/'models/item/forge_button_disabled.json').write_text(json.dumps({
-        'parent':'minecraft:item/generated', 'gui_light':'front',
-        'textures':{'layer0':'servercore:item/forge_button_disabled'},
-        'display':{'gui':{'scale':[2.25,2.25,1]}}
-    }),encoding='utf-8')
-    (sc/'items/forge_button_disabled.json').write_text(json.dumps({
-        'model':{'type':'minecraft:model','model':'servercore:item/forge_button_disabled'}
-    }),encoding='utf-8')
+    for name in ('forge_button_disabled','repair_button_disabled'):
+        shutil.copy2(art/(name+'.png'),sc/'textures/item'/(name+'.png'))
+        (sc/'models/item'/(name+'.json')).write_text(json.dumps({
+            'parent':'minecraft:item/generated', 'gui_light':'front',
+            'textures':{'layer0':'servercore:item/'+name},
+            'display':{'gui':{'scale':[2.25,2.25,1]}}
+        }),encoding='utf-8')
+        (sc/'items'/(name+'.json')).write_text(json.dumps({
+            'model':{'type':'minecraft:model','model':'servercore:item/'+name}
+        }),encoding='utf-8')
+
+
+def generate_repair_art(folder):
+    """Forge palette and inventory, one centered tool slot (13), repair button (22)."""
+    folder=Path(folder)
+    image=Image.open(folder/'blacksmith_bg.png').convert('RGBA').resize((176,188),Image.Resampling.NEAREST)
+    d=ImageDraw.Draw(image)
+    def rect(box,fill,outline=None,width=1):
+        x0,y0,x1,y1=box;d.rectangle((x0,y0+20,x1,y1+20),fill=fill,outline=outline,width=width)
+    rect((5,-15,170,0),'#303747','#ad8657')
+    rect((8,7,167,72),'#1c2635','#536078')
+    rect((69,27,106,52),'#101823','#886b53',2)
+    rect((72,30,103,51),'#293546','#486075')
+    rect((79,35,96,52),'#101823','#e2be88')
+    rect((80,36,95,51),'#18222f')
+    for x in (72,101):rect((x,31,x+1,32),'#a98762')
+    # Understated teal workbench rails beside the centered display.
+    for x in (31,119):
+        rect((x,39,x+25,40),'#426b70');rect((x+5,43,x+20,43),'#8e795a')
+    rect((72,53,104,71),'#100f18','#d8ad73',2)
+    rect((75,56,101,68),'#8f4f3e','#e3b77c')
+    image=image.resize((352,376),Image.Resampling.NEAREST);dd=ImageDraw.Draw(image)
+    font_path=HERE/'fonts/Galmuri11-Bold.ttf'
+    def label(box,text,color,size):
+        x0,y0,x1,y1=box;f=ImageFont.truetype(str(font_path),size);b=dd.textbbox((0,0),text,font=f)
+        assert b[2]-b[0]<=(x1-x0)*2-4 and b[3]-b[1]<=(y1-y0)*2-2
+        dd.text((round(x0+x1-(b[0]+b[2])/2),round(y0+y1+40-(b[1]+b[3])/2)),text,font=f,fill=color)
+    label((12,-14,163,-1),'수리 공방','#f3d7a4',18)
+    label((64,12,112,24),'장비','#c0d7e3',16)
+    label((76,56,100,69),'수리','#ffebc3',14)
+    image.save(folder/'repair_bg.png')
+    disabled=ImageOps.colorize(ImageOps.grayscale(image.crop((140,128,212,200))),'#27313d','#b8c2cc').convert('RGBA')
+    mask=Image.new('L',(72,72),0);ImageDraw.Draw(mask).rectangle((4,18,69,55),fill=255)
+    disabled.putalpha(mask);disabled.save(folder/'repair_button_disabled.png')
+    return folder/'repair_bg.png'
 
 def generate_merchant_art(folder):
     """Matching iron, copper and embers; frames align with the five purchase slots."""

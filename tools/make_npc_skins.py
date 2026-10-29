@@ -17,6 +17,7 @@ ROLES={
 'weapon_merchant':('#493a32','#315d60','#dbc9a4','#94694e','#353d40','#c9a166','purple_hair.png'),
 'npc_mayor':('#c9c3b8','#535943','#8a4048',None,'#48454b','#d7bb7c','gray_hair.png'),
 'npc_blacksmith':('#302c2c','#4c4a49','#b7a696','#975b48','#434348','#bf9b70','purple_hair.png'),
+'npc_repairer':('#9a6143','#3b7375','#e7d5b5','#866449','#34444e','#c8ad6b','gray_hair.png'),
 'npc_fish':('#685044','#405e76','#e0d7c3',None,'#3f4b57','#c9af77','gray_hair.png'),
 'npc_crops':('#a47850','#63815b','#ede0b6','#c4a459','#4b5a47','#dfc58b','purple_hair.png'),
 'npc_ores':('#bbb5ad','#49556d','#9c594d',None,'#424653','#c0946d','gray_hair.png'),
@@ -44,7 +45,7 @@ def skin(role,colors):
   fd.rectangle((1,3,6,7),fill=face_skin)
   fd.point((1,7),fill=shadow);fd.point((6,7),fill=shadow)
   fd.point((2,3),fill=tone(hair,-5));fd.point((5,3),fill=tone(hair,7))
-  iris={'weapon_merchant':'#68816c','npc_mayor':'#7d98a9','npc_blacksmith':'#a77c58','npc_fish':'#7196ad','npc_crops':'#74986f','npc_ores':'#8d8ca5'}[role]
+  iris={'weapon_merchant':'#68816c','npc_mayor':'#7d98a9','npc_blacksmith':'#a77c58','npc_repairer':'#559a9b','npc_fish':'#7196ad','npc_crops':'#74986f','npc_ores':'#8d8ca5'}[role]
   for x in [1,5]:
    fd.rectangle((x,4,x+1,5),fill='#fff7ee')
    fd.point((x+(1 if x==1 else 0),5),fill=iris)
@@ -66,7 +67,7 @@ def skin(role,colors):
     elif key in ['ra','la']:
      d.line((1,1,1,4),fill=tone(base,8));d.point((w-2,5),fill=tone(base,-12));d.line((0,7,w-1,7),fill=tone(inner,-8))
      hand='#655f5d' if role=='deemo_chef' else '#f1d5c5';d.rectangle((0,8,w-1,11),fill=hand);d.line((0,11,w-1,11),fill=tone(hand,-11))
-     if role in ['weapon_merchant','npc_blacksmith','npc_ores']:d.rectangle((0,9,w-1,11),fill='#474044');d.line((0,9,w-1,9),fill=accent)
+     if role in ['weapon_merchant','npc_blacksmith','npc_repairer','npc_ores']:d.rectangle((0,9,w-1,11),fill='#474044');d.line((0,9,w-1,9),fill=accent)
     elif key=='body':
      if face=='north':
       d.rectangle((2,0,5,10),fill=inner);d.polygon([(1,0),(3,0),(2,3)],fill=tone(coat,14));d.polygon([(6,0),(4,0),(5,3)],fill=tone(coat,14))
@@ -114,6 +115,16 @@ def model(role):
   prop([-.1,23,5.8],[4.1,24.1,10.2],2);prop([11.9,23,5.8],[16.1,24.1,10.2],2)
  elif role=='npc_blacksmith':
   prop([12.3,6.5,7],[12.9,15.7,7.7],3);prop([11,14.1,6.5],[14.2,16.1,8.3],5)
+ elif role=='npc_repairer':
+  # Copper headband, two raised goggles, a forked steel wrench and a belt pouch.
+  prop([3.7,29.7,3.6],[12.3,30.6,4.1],3)
+  for x in [4.5,8.5]:
+   prop([x,30.2,3.1],[x+3,32.5,3.8],2);prop([x+.5,30.6,2.95],[x+2.5,32.1,3.1],6)
+  prop([12.5,7.5,6.6],[13.3,15.5,7.4],5)
+  prop([11.6,14.7,6.3],[14.2,15.7,7.7],5)
+  prop([11.3,15.2,6.3],[12.1,17.6,7.7],5);prop([13.7,15.2,6.3],[14.5,17.6,7.7],5)
+  prop([-.7,10,6],[1.8,13.7,9.5],3);prop([-.8,12.9,5.8],[1.9,13.7,9.7],2)
+  for x in [5.5,9.5]:prop([x,17,5.7],[x+.5,20.1,6],5)
  elif role=='npc_fish':
   prop([3.5,31.6,3.5],[12.5,33.6,12.5],10);prop([3.2,31.4,2.7],[12.8,32,5],2);prop([-1,8,7],[1.6,14,10.5],3)
   for yy in [9,11,13]:prop([-1.1,yy,6.9],[1.7,yy+.3,7.1],2)

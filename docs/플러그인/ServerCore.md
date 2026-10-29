@@ -1,6 +1,6 @@
 # ServerCore 명령어
 
-[문서 홈](../../README.md) · **4.0.0 / 2026-10-30**
+[문서 홈](../../README.md) · **4.1.0 / 2026-10-30**
 
 명령어·도구 ID·분야 ID는 **영어로만 입력**합니다.
 
@@ -18,6 +18,8 @@
 | `/cookienpc` | 구 NPC 전용 명령 (호환용) | 관리자 | — |
 | `/blacksmithnpc` | 구 NPC 전용 명령 (호환용) | 관리자 | — |
 | `/enhance` | 강화 화면 열기 및 전용 재료 지급 (관리자) | 관리자 | — |
+| `/repair [player]` | 수리 공방 열기 | 관리자 | — |
+| `/repairnpc` | 수리 기사 전용 관리 명령 | 관리자 | — |
 | `/menu` | 마을 메뉴를 엽니다 | 일반 | — |
 | `/dogam` | 도감을 엽니다 | 일반/관리 | `/collection` |
 | `/money` | 골드 보기 / 골드 주머니 꺼내기 | 일반/관리 | `/gold` |
@@ -42,7 +44,7 @@
 
 | 명령어 | 용도 |
 |---|---|
-| `/npc create <type>` · `/npc remove <type>` · `/npc face <type>` | NPC 생성·제거·방향 변경 (`mayor`, `blacksmith`, `fish`, `crops`, `ores`, `cookie`, `weaponmerchant`) |
+| `/npc create <type>` · `/npc remove <type>` · `/npc face <type>` | NPC 생성·제거·방향 변경 (`mayor`, `blacksmith`, `repairer`, `fish`, `crops`, `ores`, `cookie`, `weaponmerchant`) |
 | `/servercore reload` | 켜진 기능의 설정 다시 읽기 |
 | `/servercore setpoint <name>` | 현재 자리를 메뉴 이동 지점으로 저장 |
 | `/servercore delpoint <name>` · `/servercore points` | 이동 지점 삭제·목록 |
@@ -52,6 +54,8 @@
 | `/shop <shop> [player]` | 상점 창 열기 |
 | `/npc create blacksmith` · `/npc remove blacksmith` · `/npc face blacksmith` | 대장장이 생성·제거·방향 변경 |
 | `/enhance [player]` | 강화 창 열기 |
+| `/npc create repairer` · `/npc remove repairer` · `/npc face repairer` | 수리 기사 생성·제거·방향 변경 |
+| `/repair [player]` | 가운데 장비 한 칸·하단 수리 버튼의 수리 공방 열기 |
 | `/enhance material <type> <1~64> [player]` | 전용 강화 재료 지급 |
 | `/villagetool give <type> [level] [player]` | 마을 도구 지급 |
 | `/villagetool level <0~25>` | 손에 든 도구 강화 단계 지정 |

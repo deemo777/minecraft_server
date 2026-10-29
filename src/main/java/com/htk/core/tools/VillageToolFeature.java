@@ -494,7 +494,7 @@ public final class VillageToolFeature implements Feature, Listener {
         if (!allowEnchant && isTool(e.getItem())) e.setCancelled(true);
     }
 
-    /** 모루: 인챈트 책·이름 바꾸기·합치기 전부 막아요 (수리는 대장장이에게) */
+    /** 모루: 인챈트 책·이름 바꾸기·합치기 전부 막아요 (수리는 수리 기사에게) */
     @EventHandler(priority = EventPriority.HIGH)
     public void onAnvil(PrepareAnvilEvent e) {
         if (!allowEnchant && hasTool(e.getInventory())) e.setResult(null);

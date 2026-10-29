@@ -56,6 +56,7 @@ public final class NpcModelService implements Listener {
         String role=root.getPersistentDataContainer().get(roleKey,PersistentDataType.STRING);if(role==null)return false;
         setVisibleName(root, switch (role) {
             case "blacksmith" -> "대장장이";
+            case "repairer" -> "수리 기사";
             case "crops" -> "농부";
             case "farmplots" -> "상인";
             case "fish" -> "어부";

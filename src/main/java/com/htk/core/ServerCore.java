@@ -85,6 +85,10 @@ public final class ServerCore extends JavaPlugin {
             features.add(race); race.enable();
         }
         var villageTools=feature(com.htk.core.tools.VillageToolFeature.class);
+        if (economy != null && villageTools != null && getConfig().getBoolean("features.repairer", true)) {
+            var repairer = new com.htk.core.tools.RepairFeature(this, villageTools, economy.economy());
+            features.add(repairer); repairer.enable();
+        }
         if(economy!=null && villageTools!=null && getConfig().getBoolean("features.weapon-merchant",true)) {
             var merchant=new com.htk.core.merchant.WeaponMerchantFeature(this,economy.economy(),villageTools);
             features.add(merchant);merchant.enable();

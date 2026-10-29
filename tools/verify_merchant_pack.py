@@ -43,6 +43,21 @@ def verify(path):
                 assert tile.size==(176,188)
         assert all(chr(code) in glyphs for code in range(0xE070,0xE074)), 'existing forge glyphs lost'
         assert font['providers'][0]['advances']['\uf808']==-128
+        for index in range(4):
+            provider=glyphs[chr(0xE07C+index)]
+            assert provider['file']==f'servercore:font/repair_bg_{index}.png'
+            assert provider['height']==94 and provider['ascent']==(33 if index<2 else -61)
+            with Image.open(io.BytesIO(pack.read(f'assets/servercore/textures/font/repair_bg_{index}.png'))) as tile:
+                assert tile.size==(176,188)
+        repair=documents['assets/servercore/models/item/repair_button_disabled.json']
+        assert repair['display']['gui']['scale']==[2.25,2.25,1]
+        with Image.open(io.BytesIO(pack.read('assets/servercore/textures/item/repair_button_disabled.png'))) as overlay:
+            assert overlay.size==(72,72) and overlay.getchannel('A').getbbox()==(4,18,70,56)
+        npc=documents['assets/servercore/models/item/npc_repairer.json']
+        assert len(npc['elements'])>12, 'repairer must include its own goggles and wrench'
+        assert npc['textures']['skin']=='servercore:item/skin_npc_repairer'
+        for element in npc['elements']:
+            assert all(-16<=v<=32 for key in ('from','to') for v in element[key]), 'NPC model outside supported bounds'
         disabled=documents['assets/servercore/models/item/forge_button_disabled.json']
         assert disabled['display']['gui']['scale']==[2.25,2.25,1]
         with Image.open(io.BytesIO(pack.read('assets/servercore/textures/item/forge_button_disabled.png'))) as overlay:
