@@ -29,7 +29,10 @@ public final class ArtisanRulesTest {
         check(ArtisanRules.energyLabel(failed.progress()).equals("1.28"),"energy display truncates instead of showing a premature guarantee");
         check(ArtisanRules.effectivePercent(10,65,new ArtisanRules.Progress(7,0))==99.99,"bonus cannot bypass the extended pity ceiling");
         check(ArtisanRules.effectivePercent(10,100,empty)==100,"custom guaranteed base rates remain guaranteed");
-        check(ArtisanRules.effectivePercent(9,67.5,new ArtisanRules.Progress(7,0))==100,"targets below ten retain their original bonus cap");
+        check(ArtisanRules.effectivePercent(3,90,new ArtisanRules.Progress(2,0))==100,"targets below four retain their original bonus cap");
+        check(ArtisanRules.effectivePercent(4,85,new ArtisanRules.Progress(7,0))==99.99,"new early pity stages retain a possible failure before full energy");
+        check(ArtisanRules.attempt(3,85,empty,.99).progress().guaranteed(),"target four fills energy after one failure");
+        check(ArtisanRules.attempt(4,80,empty,.99).progress().energy()==500000,"target five gains fifty percent energy per failure");
         var saved=new ArtisanRules.Progress(failed.progress().failures(),failed.progress().energy());
         check(saved.equals(failed.progress()),"integer state can be restored without floating-point loss");
         var stored=new java.util.HashMap<org.bukkit.NamespacedKey,Object>();var itemData=container(stored);
@@ -49,8 +52,8 @@ public final class ArtisanRulesTest {
         check(ArtisanRules.energyLabel(full).equals("100"),"full energy is clearly displayed");
         check(new ArtisanRules.Progress(-5,-5).equals(empty),"negative saved state clamps safely");
         check(new ArtisanRules.Progress(Integer.MAX_VALUE,Integer.MAX_VALUE).guaranteed(),"overflow-sized saved energy clamps safely");
-        int[] unchangedAttempts={1,2,3,3,4,4,4,4,4};
-        int[] extended={8,8,8,8,8,8,40,44,48,52,56,60,64,68,72,78};
+        int[] unchangedAttempts={1,2,3};
+        int[] extended={1,2,4,6,8,10,12,14,16,18,19,20,40,44,48,52,56,60,64,68,72,78};
         check(ArtisanRules.failureCeiling(16,0)==200,"custom lower probability retains its longer ceiling in the middle tiers");
         check(ArtisanRules.attempt(19,10,new ArtisanRules.Progress(10,500000),.99).progress().energy()==517858,"middle-tier extension preserves earned energy");
         for(int current=0;current<25;current++){
@@ -60,7 +63,7 @@ public final class ArtisanRulesTest {
                 attempts++;
                 if(outcome.level()>current){
                     check(outcome.level()==current+1,"ceiling advances exactly one level");
-                    if(current>=9)check(attempts==extended[current-9]+1 && outcome.guaranteed(),"target "+(current+1)+" reaches its configured failure ceiling exactly");
+                    if(current>=3)check(attempts==extended[current-3]+1 && outcome.guaranteed(),"target "+(current+1)+" reaches its configured failure ceiling exactly");
                     else check(attempts==unchangedAttempts[current],"target "+(current+1)+" retains its original attempt ceiling");
                     break;
                 }
@@ -70,6 +73,9 @@ public final class ArtisanRulesTest {
             }
         }
         var zero=empty;
+        var earlyZero=empty;
+        for(int i=0;i<20;i++)earlyZero=ArtisanRules.attempt(14,0,earlyZero,.99).progress();
+        check(earlyZero.guaranteed() && ArtisanRules.attempt(14,0,earlyZero,.99).level()==15,"custom early-stage probability still uses the explicit twenty-failure ceiling");
         for(int i=0;i<199;i++)zero=ArtisanRules.attempt(24,0,zero,.99).progress();
         check(!zero.guaranteed(),"custom zero-percent extended ceiling does not fill early");
         zero=ArtisanRules.attempt(24,0,zero,.99).progress();

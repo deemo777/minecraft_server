@@ -3,6 +3,7 @@ package com.htk.core.tools;
 /** Server adaptation of honing: failure bonus, persistent energy and a guaranteed next attempt. */
 public final class ArtisanRules {
     public static final int FULL=1_000_000;
+    private static final int[] EARLY_FAILURES={1,2,4,6,8,10,12,14,16,18,19,20}; // targets +4..15
     private ArtisanRules() {}
     public record Progress(int failures,int energy) {
         public static final Progress EMPTY=new Progress(0,0);
@@ -22,7 +23,7 @@ public final class ArtisanRules {
     public static double effectivePercent(int target,double base,Progress progress) {
         double chance=effectivePercent(base,progress);
         // Keep a possible failure until the extended energy ceiling; configured 100% stays certain.
-        return target>=10 && base<100 && !progress.guaranteed()?Math.min(99.99,chance):chance;
+        return target>=4 && base<100 && !progress.guaranteed()?Math.min(99.99,chance):chance;
     }
     /** Twice the original worst-case failure count, including custom success-rate settings. */
     public static int extendedFailureCeiling(double base) {
@@ -38,6 +39,7 @@ public final class ArtisanRules {
         return Math.max(10_000,(int)Math.ceil(chance/2.15*10_000));
     }
     public static int failureCeiling(int target,double base) {
+        if(target>=4 && target<=15)return EARLY_FAILURES[target-4];
         int ceiling=extendedFailureCeiling(base);
         // Start +16 at forty failures and keep later tiers increasing without shortening custom ceilings.
         return target>=16 && target<=24?Math.max(ceiling,40+(target-16)*4):ceiling;
@@ -49,7 +51,7 @@ public final class ArtisanRules {
             return new Attempt(current+1,Progress.EMPTY,chance,progress.guaranteed());
         // 0.0001 percentage-point units prevent floating point drift at the 100% boundary.
         // Normalize energy against the target's failure ceiling, preserving previously earned energy.
-        int ceiling=current+1>=10?failureCeiling(current+1,base):0;
+        int ceiling=current+1>=4?failureCeiling(current+1,base):0;
         int gain=ceiling>0?(FULL+ceiling-1)/ceiling:originalGain(chance);
         Progress next=new Progress(progress.failures()+1,progress.energy()+gain);
         return new Attempt(current,next,chance,false);
