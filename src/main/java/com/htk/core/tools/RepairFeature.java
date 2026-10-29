@@ -65,7 +65,8 @@ public final class RepairFeature implements Feature, Listener, TabExecutor {
         var meta = item.getItemMeta();
         return meta instanceof Damageable damage && damage.hasMaxDamage() ? damage.getMaxDamage() : item.getType().getMaxDurability();
     }
-    long cost(ItemStack item) { return RepairRules.cost(((Damageable) item.getItemMeta()).getDamage(), maximum(item)); }
+    long baseCost(ItemStack item) { return RepairRules.baseCost(tools.levelOf(item)); }
+    long cost(ItemStack item) { return RepairRules.cost(((Damageable) item.getItemMeta()).getDamage(), maximum(item), tools.levelOf(item)); }
     boolean canAfford(UUID player, long cost) { return economy.has(player, cost); }
     private boolean isNpc(Entity entity) { return entity.getPersistentDataContainer().has(npcKey, PersistentDataType.BYTE); }
     private void open(Player player) {

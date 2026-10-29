@@ -52,6 +52,8 @@ final class RepairGui implements InventoryHolder {
                 if (!enabled) lines.add("<red>골드 부족");
                 lines.add("<gray>내구도: <white>" + Math.max(0, maximum - meta.getDamage()) + "/" + maximum + " → " + maximum + "/" + maximum);
                 lines.add("<gray>골드 소모: <gold>" + Economy.format(cost));
+                lines.add("<dark_gray>기본 " + Economy.format(feature.baseCost(item)) + " + 내구도 "
+                        + Economy.format(Math.min(meta.getDamage(), maximum)));
                 lore = List.copyOf(lines);
             }
         }
