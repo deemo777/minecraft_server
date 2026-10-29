@@ -50,7 +50,9 @@ public final class ArtisanRulesTest {
         check(new ArtisanRules.Progress(-5,-5).equals(empty),"negative saved state clamps safely");
         check(new ArtisanRules.Progress(Integer.MAX_VALUE,Integer.MAX_VALUE).guaranteed(),"overflow-sized saved energy clamps safely");
         int[] unchangedAttempts={1,2,3,3,4,4,4,4,4};
-        int[] extended={8,8,8,8,8,8,14,16,20,24,28,34,42,50,60,78};
+        int[] extended={8,8,8,8,8,8,16,20,24,28,32,34,42,50,60,78};
+        check(ArtisanRules.failureCeiling(16,0)==200,"custom lower probability retains its longer ceiling in the middle tiers");
+        check(ArtisanRules.attempt(19,10,new ArtisanRules.Progress(10,500000),.99).progress().energy()==531250,"middle-tier extension preserves earned energy");
         for(int current=0;current<25;current++){
             var progress=empty;int attempts=0;
             while(true){
@@ -58,7 +60,7 @@ public final class ArtisanRulesTest {
                 attempts++;
                 if(outcome.level()>current){
                     check(outcome.level()==current+1,"ceiling advances exactly one level");
-                    if(current>=9)check(attempts==extended[current-9]+1 && outcome.guaranteed(),"target "+(current+1)+" doubles the original failure ceiling exactly");
+                    if(current>=9)check(attempts==extended[current-9]+1 && outcome.guaranteed(),"target "+(current+1)+" reaches its configured failure ceiling exactly");
                     else check(attempts==unchangedAttempts[current],"target "+(current+1)+" retains its original attempt ceiling");
                     break;
                 }

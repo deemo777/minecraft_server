@@ -37,14 +37,19 @@ public final class ArtisanRules {
     private static int originalGain(double chance) {
         return Math.max(10_000,(int)Math.ceil(chance/2.15*10_000));
     }
+    public static int failureCeiling(int target,double base) {
+        int ceiling=extendedFailureCeiling(base);
+        // Keep custom lower probabilities' longer ceilings while extending the middle tiers.
+        return target>=16 && target<=20?Math.max(ceiling,16+(target-16)*4):ceiling;
+    }
     public static Attempt attempt(int current,double base,Progress progress,double roll) {
         UpgradeRules.required(current+1);
         double chance=effectivePercent(current+1,base,progress);
         if(progress.guaranteed() || roll<chance/100)
             return new Attempt(current+1,Progress.EMPTY,chance,progress.guaranteed());
         // 0.0001 percentage-point units prevent floating point drift at the 100% boundary.
-        // From target +10, normalize energy so the original failure ceiling doubles exactly.
-        int ceiling=current+1>=10?extendedFailureCeiling(base):0;
+        // Normalize energy against the target's failure ceiling, preserving previously earned energy.
+        int ceiling=current+1>=10?failureCeiling(current+1,base):0;
         int gain=ceiling>0?(FULL+ceiling-1)/ceiling:originalGain(chance);
         Progress next=new Progress(progress.failures()+1,progress.energy()+gain);
         return new Attempt(current,next,chance,false);
