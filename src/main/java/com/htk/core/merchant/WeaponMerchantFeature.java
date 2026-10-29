@@ -51,8 +51,7 @@ public final class WeaponMerchantFeature implements Feature,Listener,TabExecutor
         for(World w:Bukkit.getWorlds())for(Chunk c:w.getLoadedChunks())repair(c);
     }
     @Override public void reload() {
-        var cfg=plugin.loadYaml("weapon-shop.yml");cfg.setDefaults(plugin.loadDefaultYaml("weapon-shop.yml"));
-        prices.clear();for(ToolType t:ToolType.values()) prices.put(t,Math.max(0,cfg.getLong("prices."+t.id)));
+        prices.clear();for(ToolType t:ToolType.values()) prices.put(t,1000L);
     }
     @Override public void disable() {
         active=false;clicks.clear();interactions.clear();

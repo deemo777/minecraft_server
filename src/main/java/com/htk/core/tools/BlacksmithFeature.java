@@ -74,7 +74,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
     }
     boolean validTool(ItemStack item) {
         ToolType type = tools.typeOf(item);
-        return type != null && item.getType() == type.material && item.getAmount() == 1
+        return type != null && item.getType() == type.materialAt(tools.levelOf(item)) && item.getAmount() == 1
                 && tools.levelOf(item) >= 0 && tools.levelOf(item) <= maxLevel();
     }
     ToolType materialType(ItemStack item) {
@@ -87,7 +87,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         meta.getPersistentDataContainer().set(materialKey, PersistentDataType.STRING, type.id);
         meta.displayName(Text.mm("<#a9dce7><bold>" + type.korean + " 강화 결정"));
         meta.lore(List.of(Text.mm("<gray>대장간에서 같은 종류 장비를 강화해요"),
-                Text.mm("<dark_gray>+1~5: 1개 · +6~10: 2개 · +11~15: 3개 · +16~20: 4개")));
+                Text.mm("<dark_gray>+1~5: 1개 · +6~10: 2개 · +11~15: 3개 · +16~20: 4개 · +21~25: 5개")));
         if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("enhancement_" + type.id));
         item.setItemMeta(meta); return item;
     }

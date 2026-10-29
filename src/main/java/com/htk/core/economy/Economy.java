@@ -57,7 +57,7 @@ public final class Economy {
     /** 처음 보는 플레이어면 시작 금액을 줘요. 처음이었으면 true */
     public boolean ensureAccount(UUID id) {
         if (balances.containsKey(id)) return false;
-        balances.put(id, Math.max(0, plugin.getConfig().getLong("economy.starting-balance", 1000)));
+        balances.put(id, 3000L);
         dirty = true;
         return true;
     }

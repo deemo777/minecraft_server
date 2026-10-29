@@ -49,7 +49,7 @@
 | `/enhance [player]` | 강화 창 열기 |
 | `/enhance material <type> <1~64> [player]` | 전용 강화 재료 지급 |
 | `/villagetool give <type> [level] [player]` | 마을 도구 지급 |
-| `/villagetool level <0~20>` | 손에 든 도구 강화 단계 지정 |
+| `/villagetool level <0~25>` | 손에 든 도구 강화 단계 지정 |
 | `/npc create weaponmerchant` · `/npc remove weaponmerchant` · `/npc face weaponmerchant` | 무기 상인 생성·제거·방향 변경 |
 | `/weaponshop [player]` | 0강 마을 도구 구매 창 열기 |
 | `/npc create cookie` · `/npc remove cookie` · `/npc face cookie` | 요리사 생성·제거·방향 변경 |

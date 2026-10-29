@@ -7,7 +7,7 @@ import java.util.List;
 public final class WateringCanRules {
     private WateringCanRules() {}
 
-    public static boolean infinite(int level) { return level >= 20; }
+    public static boolean infinite(int level) { return level >= 25; }
 
     public static boolean canWater(int uses, int level) { return infinite(level) || uses > 0; }
 

@@ -66,7 +66,7 @@ long-jump:
 #   /money give|take|set <player> <amount>   (관리자)
 # 잔액은 plugins/ServerCore/money.yml
 economy:
-  starting-balance: 1000          # 처음 접속할 때 주는 골드
+  starting-balance: 3000          # 최초 계정 3,000G 고정 (기존 잔액은 유지)
   item-material: GOLD_NUGGET      # 골드 주머니 아이템 모양
   item-name: "<#ffd34d><bold>%amount%"
   item-lore:

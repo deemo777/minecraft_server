@@ -1,16 +1,19 @@
 package com.htk.core.tools;
 
-/** 강화 성능 기준. 바닐라 인챈트 레벨은 정수 단위로 올린다. */
+/** Five-level performance milestones; fractional fortune is a per-block I/II mixture. */
 public final class ToolPerformance {
     private ToolPerformance() {}
-    public static boolean indestructible(int level) { return level >= 20; }
+    public static boolean indestructible(int level) { return level >= 25; }
     public static int efficiency(int level) {
-        int n=Math.clamp(level,0,20);
-        return n<=10?(int)Math.floor(n*.5):5+(int)Math.floor((n-10)*.2);
+        return level>=25?7:level>=20?6:level>=15?5:level>=10?3:0;
     }
     public static int fortune(int level) {
-        int n=Math.clamp(level,0,20);
-        return n<=10?(int)Math.floor(n*.3):Math.min(4,3+(int)Math.floor((n-10)*.2));
+        return level>=20?4:level>=15?3:level>=10?1:0;
     }
-    public static double axeDoubleChance(int level) {return Math.clamp(level,0,20)*.025;}
+    public static int rolledFortune(int level,double roll) {return level>=10&&level<15&&roll<.5?2:fortune(level);}
+    public static int axeEfficiency(int level) {return level>=25?7:level>=20?6:level>=15?5:level>=10?4:0;}
+    public static boolean silkTouch(int level) {return level>=15;}
+    public static int hoeFortune(int level) {return level>=25?3:level>=20?2:0;}
+    /** Extra blocks, excluding the clicked block. Final tier is bounded for server safety. */
+    public static int extraBlocks(int level) {return level>=25?4095:level>=20?level-19:0;}
 }

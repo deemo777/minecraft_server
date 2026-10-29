@@ -3,7 +3,7 @@ package com.htk.core.tools;
 import org.bukkit.Material;
 
 /**
- * 마을 도구 5종. 바탕은 진짜 다이아 도구(낚싯대는 낚싯대)라 캐기·내구도·수리는 바닐라 그대로예요.
+ * 마을 도구 5종. 곡괭이·도끼·괭이는 +0~4 철, +5부터 다이아 바탕이며 물뿌리개·낚싯대 바탕은 고정입니다.
  * model: 리소스팩 아이템 모델 (⚠ tools/build_pack.py 의 VILLAGE_TOOLS 와 약속, null 이면 바닐라 모양)
  * defaultName: tools.yml 에 이름이 없을 때 (+0 이름)
  */
@@ -13,7 +13,7 @@ public enum ToolType {
     HOE("hoe", "괭이", Material.DIAMOND_HOE, "village_hoe", "<#d9d9d9><bold>광 괭이"),
     // 낚싯대는 강화 단계별 3D 모델과 던진 상태(cast) 모델을 함께 사용
     FISHING_ROD("fishing_rod", "낚싯대", Material.FISHING_ROD, "village_fishing_rod", "<#d9d9d9><bold>광 낚싯대"),
-    // 단계별 1칸/좌우 3칸/3×3/4×4 물주기. 용량은 20/25/30/35회, +20 물 무한.
+    // 단계별 1칸/좌우 3칸/3×3/4×4 물주기. 용량은 20/25/30/35/40회, +25 물 무한.
     // PDC의 물 보유 상태를 custom_model_data flags[0]에 반영합니다.
     WATERING_CAN("watering_can", "물뿌리개", Material.CARROT_ON_A_STICK, "village_watering_can", "<#d9d9d9><bold>광 물뿌리개");
 
@@ -41,5 +41,15 @@ public enum ToolType {
     public static ToolType byId(String id) {
         for (ToolType t : values()) if (t.id.equals(id)) return t;
         return null;
+    }
+
+    public Material materialAt(int level) {
+        if(level>=5)return material;
+        return switch(this) {
+            case PICKAXE -> Material.IRON_PICKAXE;
+            case AXE -> Material.IRON_AXE;
+            case HOE -> Material.IRON_HOE;
+            default -> material;
+        };
     }
 }

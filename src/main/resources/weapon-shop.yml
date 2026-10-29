@@ -1,8 +1,8 @@
-# 마을 도구 5종의 0강 판매 가격. 수정 후 /servercore reload
-# 0 이하면 판매 중지. 실제 구매 장비에는 가격 안내 설명을 붙이지 않습니다.
+# 도구 5종의 0강 가격은 모두 1,000G로 고정됩니다.
+# 이전 prices 설정값은 사용하지 않습니다.
 prices:
   pickaxe: 1000
   axe: 1000
-  hoe: 800
-  fishing_rod: 500
-  watering_can: 500
+  hoe: 1000
+  fishing_rod: 1000
+  watering_can: 1000

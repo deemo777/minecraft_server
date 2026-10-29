@@ -41,7 +41,7 @@ import java.util.List;
 
 /**
  * 마을 도구 (대장장이에게 사는 곡괭이·도끼·괭이·낚싯대·물뿌리개) — 자세한 설계는 강화도구_설계.md
- *   - 아이템: 다이아 도구 + 단계별 판타지 이름 "드워프의 맥박 +12" + 별(강화 단계) + 3D 모양
+ *   - 아이템: 철/다이아 도구 + 광 도구 이름 + 별(강화 단계) + 3D 모양
  *   - 아이템 데이터: servercore:village_tool = 종류(pickaxe…), servercore:tool_level = 강화 단계
  *   - 모양: 아이템 모델 servercore:village_pickaxe + custom_model_data floats[0] = 강화 단계
  *     (리소스팩이 0/5/10/15/20 으로 모델을 골라요, ⚠ tools/build_pack.py 의 TOOL_TIERS 와 약속)
@@ -55,12 +55,14 @@ public final class VillageToolFeature implements Feature, Listener {
     private final ServerCore plugin;
     private final NamespacedKey typeKey;
     private final NamespacedKey levelKey;
+    private final NamespacedKey instanceKey;
     private final NamespacedKey waterFullKey;
     private final NamespacedKey waterUsesKey;
     private final com.htk.core.skill.PlacedBlocks placedLogs,legacyPlaced,enhancementPlaced;
     private final java.util.Set<org.bukkit.Location> placedBreaks=new java.util.HashSet<>();
     private YamlConfiguration cfg = new YamlConfiguration();
-    private int maxLevel = 20;
+    private int maxLevel = 25;
+    private boolean accepting;
     private boolean allowEnchant = false;
 
     public VillageToolFeature(ServerCore plugin) {
@@ -70,13 +72,14 @@ public final class VillageToolFeature implements Feature, Listener {
         enhancementPlaced=new com.htk.core.skill.PlacedBlocks(new NamespacedKey(plugin,"enhancement_placed"));
         this.typeKey = new NamespacedKey(plugin, "village_tool");
         this.levelKey = new NamespacedKey(plugin, "tool_level");
+        this.instanceKey = new NamespacedKey(plugin,"tool_instance");
         this.waterFullKey = new NamespacedKey(plugin, "watering_can_full");
         this.waterUsesKey = new NamespacedKey(plugin, "watering_can_uses");
     }
 
     @Override
     public void enable() {
-        loadConfig();
+        loadConfig();accepting=true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for(Player p:Bukkit.getOnlinePlayers())refreshTools(p);
         PluginCommand cmd = plugin.getCommand("villagetool");
@@ -94,12 +97,13 @@ public final class VillageToolFeature implements Feature, Listener {
     }
 
     @Override
-    public void disable() { felling.clear();placedBreaks.clear(); }
+    public void disable() { accepting=false;for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
 
     private void loadConfig() {
         cfg = plugin.loadYaml("tools.yml");
         cfg.setDefaults(plugin.loadDefaultYaml("tools.yml"));
-        maxLevel = Math.max(0, cfg.getInt("max-level", 20));
+        int configured=cfg.getInt("max-level",25);
+        maxLevel=configured==20?25:Math.clamp(configured,0,25);
         allowEnchant = cfg.getBoolean("allow-enchant", false);
     }
 
@@ -111,7 +115,7 @@ public final class VillageToolFeature implements Feature, Listener {
 
     /** 새 마을 도구 */
     public ItemStack createTool(ToolType type, int level) {
-        ItemStack it = new ItemStack(type.material);
+        ItemStack it = new ItemStack(type.materialAt(level));
         ItemMeta meta = it.getItemMeta();
         if (meta == null) return it;
         meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, type.id);
@@ -174,9 +178,19 @@ public final class VillageToolFeature implements Feature, Listener {
         // Read old capacity before changing level, so upgrades cannot refill the can.
         int waterUses = type == ToolType.WATERING_CAN
                 ? Math.min(waterUses(it), WateringCanRules.capacity(lv)) : 0;
+        org.bukkit.Material material=type.materialAt(lv);
+        if(it.getType()!=material) {
+            int oldMax=it.getType().getMaxDurability();
+            int oldDamage=it.getItemMeta() instanceof Damageable d?d.getDamage():0;
+            it.setType(material);
+            if(oldMax>0 && it.getItemMeta() instanceof Damageable d){
+                d.setDamage((int)Math.min(material.getMaxDurability()-1L,(long)oldDamage*material.getMaxDurability()/oldMax));it.setItemMeta(d);
+            }
+        }
         ItemMeta meta = it.getItemMeta();
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(levelKey, PersistentDataType.INTEGER, lv);
+        if(!pdc.has(instanceKey,PersistentDataType.STRING))pdc.set(instanceKey,PersistentDataType.STRING,java.util.UUID.randomUUID().toString());
         boolean indestructible = ToolPerformance.indestructible(lv);
         meta.setUnbreakable(indestructible);
         meta.setDamageResistantTypes(indestructible
@@ -194,12 +208,15 @@ public final class VillageToolFeature implements Feature, Listener {
             pdc.set(waterUsesKey, PersistentDataType.INTEGER, waterUses);
             pdc.remove(waterFullKey);
         }
-        if(type==ToolType.PICKAXE) {
+        if(type==ToolType.PICKAXE || type==ToolType.AXE || type==ToolType.HOE) {
             meta.removeEnchant(org.bukkit.enchantments.Enchantment.EFFICIENCY);
             meta.removeEnchant(org.bukkit.enchantments.Enchantment.FORTUNE);
-            int efficiency=ToolPerformance.efficiency(lv),fortune=ToolPerformance.fortune(lv);
+            meta.removeEnchant(org.bukkit.enchantments.Enchantment.SILK_TOUCH);
+            int efficiency=type==ToolType.PICKAXE?ToolPerformance.efficiency(lv):type==ToolType.AXE?ToolPerformance.axeEfficiency(lv):0;
+            int fortune=type==ToolType.PICKAXE?ToolPerformance.fortune(lv):type==ToolType.HOE?ToolPerformance.hoeFortune(lv):0;
             if(efficiency>0)meta.addEnchant(org.bukkit.enchantments.Enchantment.EFFICIENCY,efficiency,true);
             if(fortune>0)meta.addEnchant(org.bukkit.enchantments.Enchantment.FORTUNE,fortune,true);
+            if(type==ToolType.AXE && ToolPerformance.silkTouch(lv))meta.addEnchant(org.bukkit.enchantments.Enchantment.SILK_TOUCH,1,true);
         }
 
         // 모양: 아이템 모델 + 강화 단계 (리소스팩이 단계에 맞는 모델을 골라요)
@@ -214,7 +231,7 @@ public final class VillageToolFeature implements Feature, Listener {
 
     /** 단계별 이름: tools.yml 의 names 에서 lv 이하 중 가장 높은 단계 (5강마다 모양과 같이 바뀌어요) */
     private String nameFor(ToolType type, int lv) {
-        String color=lv>=20?"<#ffd34d>":lv>=15?"<#b57edc>":lv>=10?"<#6aa8e0>":lv>=5?"<#7acb52>":"<#d9d9d9>";
+        String color=lv>=25?"<#ffd34d>":lv>=20?"<#ef9c59>":lv>=15?"<#b57edc>":lv>=10?"<#6aa8e0>":lv>=5?"<#7acb52>":"<#d9d9d9>";
         return color+"<bold>광 "+type.korean;
     }
 
@@ -265,9 +282,9 @@ public final class VillageToolFeature implements Feature, Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onMaxToolSpawn(org.bukkit.event.entity.ItemSpawnEvent event) {
+    public void onToolSpawn(org.bukkit.event.entity.ItemSpawnEvent event) {
         ItemStack item = event.getEntity().getItemStack();
-        if (typeOf(item) != null && ToolPerformance.indestructible(levelOf(item))) {
+        if (typeOf(item) != null) {
             ItemStack updated = item.clone();
             setLevel(updated, levelOf(item));
             event.getEntity().setItemStack(updated);
@@ -292,75 +309,124 @@ public final class VillageToolFeature implements Feature, Listener {
     public void onRodPickup(org.bukkit.event.entity.EntityPickupItemEvent e){if(e.getEntity() instanceof Player p && typeOf(e.getItem().getItemStack())!=null)refreshNextTick(p);}
 
     private final java.util.Set<java.util.UUID> felling=new java.util.HashSet<>();
+    private final java.util.Map<java.util.UUID,org.bukkit.scheduler.BukkitTask> work=new java.util.HashMap<>();
 
     private boolean playerPlaced(org.bukkit.block.Block b) {
         return placedLogs.isPlaced(b)||legacyPlaced.isPlaced(b)||enhancementPlaced.isPlaced(b);
     }
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void rememberLog(org.bukkit.event.block.BlockPlaceEvent e) {
-        if(org.bukkit.Tag.LOGS.isTagged(e.getBlockPlaced().getType()))placedLogs.mark(e.getBlockPlaced());
+        if(org.bukkit.Tag.LOGS.isTagged(e.getBlockPlaced().getType())||ore(e.getBlockPlaced().getType()))placedLogs.mark(e.getBlockPlaced());
     }
     @EventHandler(priority=EventPriority.LOWEST,ignoreCancelled=true)
     public void capturePlacedLog(org.bukkit.event.block.BlockBreakEvent e) {
-        var b=e.getBlock();if(!org.bukkit.Tag.LOGS.isTagged(b.getType())||!playerPlaced(b))return;
+        var b=e.getBlock();if((!org.bukkit.Tag.LOGS.isTagged(b.getType())&&!ore(b.getType()))||!playerPlaced(b))return;
         var location=b.getLocation();placedBreaks.add(location);
         Bukkit.getScheduler().runTask(plugin,()->placedBreaks.remove(location));
     }
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void clearPlacedLog(org.bukkit.event.block.BlockBreakEvent e) {placedLogs.unmark(e.getBlock());}
 
-    @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true)
-    public void axeDrops(org.bukkit.event.block.BlockDropItemEvent e) {
-        var tool=e.getPlayer().getInventory().getItemInMainHand();
-        if(typeOf(tool)!=ToolType.AXE || placedBreaks.contains(e.getBlock().getLocation()) || !org.bukkit.Tag.LOGS.isTagged(e.getBlockState().getType()))return;
-        if(java.util.concurrent.ThreadLocalRandom.current().nextDouble()>=ToolPerformance.axeDoubleChance(levelOf(tool)))return;
-        for(var item:e.getItems()){var stack=item.getItemStack().clone();stack.setAmount(stack.getAmount()*2);item.setItemStack(stack);}
+    private String instance(ItemStack item){return isTool(item)?item.getItemMeta().getPersistentDataContainer().get(instanceKey,PersistentDataType.STRING):null;}
+    private static boolean ore(org.bukkit.Material material) {
+        return material.name().endsWith("_ORE")||material==org.bukkit.Material.ANCIENT_DEBRIS;
     }
-
+    private static String family(org.bukkit.Material material) {
+        return material.name().replace("DEEPSLATE_","");
+    }
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void fractionalFortune(org.bukkit.event.block.BlockBreakEvent event) {
+        ItemStack tool=event.getPlayer().getInventory().getItemInMainHand();int level=levelOf(tool);
+        if(typeOf(tool)==ToolType.PICKAXE && level>=10 && level<15)
+            tool.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.FORTUNE,
+                ToolPerformance.rolledFortune(level,java.util.concurrent.ThreadLocalRandom.current().nextDouble()));
+    }
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
-    public void fellTree(org.bukkit.event.block.BlockBreakEvent e) {
-        Player p=e.getPlayer();var tool=p.getInventory().getItemInMainHand();
-        if(placedBreaks.contains(e.getBlock().getLocation())||felling.contains(p.getUniqueId())||typeOf(tool)!=ToolType.AXE||levelOf(tool)<20
-                ||p.getGameMode()!=org.bukkit.GameMode.SURVIVAL||!org.bukkit.Tag.LOGS.isTagged(e.getBlock().getType()))return;
-        org.bukkit.block.Block root=e.getBlock();org.bukkit.Material kind=root.getType();
-        // 탐색·작업량을 제한하고 로드된 청크만 사용한다. 각 블록은 Player.breakBlock으로 보호 이벤트를 거친다.
-        var queue=new java.util.ArrayDeque<org.bukkit.block.Block>();
-        var seen=new java.util.HashSet<org.bukkit.block.Block>();var logs=new java.util.ArrayList<org.bukkit.block.Block>();
-        queue.add(root);seen.add(root);boolean leaves=false;
-        while(!queue.isEmpty()&&seen.size()<8192&&logs.size()<4096){
-            var b=queue.removeFirst();logs.add(b);
+    public void connectedBreak(org.bukkit.event.block.BlockBreakEvent event) {
+        Player p=event.getPlayer();ItemStack tool=p.getInventory().getItemInMainHand();ToolType type=typeOf(tool);
+        int level=levelOf(tool),limit=ToolPerformance.extraBlocks(level);
+        var root=event.getBlock();boolean wood=type==ToolType.AXE && org.bukkit.Tag.LOGS.isTagged(root.getType());
+        if(!accepting || limit==0 || felling.contains(p.getUniqueId()) || !event.isDropItems()
+            || p.getGameMode()!=org.bukkit.GameMode.SURVIVAL || placedBreaks.contains(root.getLocation())
+            || playerPlaced(root) || !(wood || type==ToolType.PICKAXE && ore(root.getType())))return;
+        org.bukkit.Material kind=root.getType();String oreFamily=family(kind);
+        boolean[] leaves={false};
+        var blocks=ConnectedBlocks.collect(root,4096,b->{
+            var neighbors=new java.util.ArrayList<org.bukkit.block.Block>();
             for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++){
+                if(!wood && Math.abs(x)+Math.abs(y)+Math.abs(z)!=1)continue;
                 int nx=b.getX()+x,ny=b.getY()+y,nz=b.getZ()+z;
                 if(Math.abs(nx-root.getX())>32||Math.abs(nz-root.getZ())>32||Math.abs(ny-root.getY())>64
-                        ||ny<root.getWorld().getMinHeight()||ny>=root.getWorld().getMaxHeight()
-                        ||!root.getWorld().isChunkLoaded(nx>>4,nz>>4))continue;
-                var n=root.getWorld().getBlockAt(nx,ny,nz);
-                if((n.getBlockData() instanceof org.bukkit.block.data.type.Leaves leaf&&!leaf.isPersistent())
-                        ||n.getType()==org.bukkit.Material.NETHER_WART_BLOCK||n.getType()==org.bukkit.Material.WARPED_WART_BLOCK)leaves=true;
-                if(n.getType()==kind&&!playerPlaced(n)&&seen.add(n))queue.add(n);
+                    ||ny<root.getWorld().getMinHeight()||ny>=root.getWorld().getMaxHeight()
+                    ||!root.getWorld().isChunkLoaded(nx>>4,nz>>4))continue;
+                var neighbor=root.getWorld().getBlockAt(nx,ny,nz);
+                if(wood && ((neighbor.getBlockData() instanceof org.bukkit.block.data.type.Leaves leaf&&!leaf.isPersistent())
+                    ||neighbor.getType()==org.bukkit.Material.NETHER_WART_BLOCK||neighbor.getType()==org.bukkit.Material.WARPED_WART_BLOCK))leaves[0]=true;
+                boolean same=wood?neighbor.getType()==kind:ore(neighbor.getType())&&family(neighbor.getType()).equals(oreFamily);
+                if(same && !playerPlaced(neighbor))neighbors.add(neighbor);
             }
+            return neighbors;
+        });
+        if(wood&&!leaves[0])return;
+        blocks.remove(root);if(blocks.isEmpty())return;
+        int count=Math.min(limit,blocks.size());String expectedId=instance(tool);if(expectedId==null)return;felling.add(p.getUniqueId());
+        var task=new org.bukkit.scheduler.BukkitRunnable(){int index;
+            public void run(){
+                try{
+                    var current=p.getInventory().getItemInMainHand();
+                    if(!accepting || !p.isOnline() || !p.getWorld().equals(root.getWorld())
+                        ||p.getGameMode()!=org.bukkit.GameMode.SURVIVAL || typeOf(current)!=type
+                        ||levelOf(current)!=level || !expectedId.equals(instance(current))
+                        || (index==0 && !root.getType().isAir())){cancel();return;}
+                    for(int n=0;n<32 && index<count;n++){
+                        current=p.getInventory().getItemInMainHand();
+                        if(typeOf(current)!=type || levelOf(current)!=level || !expectedId.equals(instance(current))){cancel();return;}
+                        var b=blocks.get(index++);
+                        if(!b.getWorld().isChunkLoaded(b.getX()>>4,b.getZ()>>4)||playerPlaced(b)){cancel();return;}
+                        if((wood?b.getType()!=kind:!ore(b.getType())||!family(b.getType()).equals(oreFamily))){cancel();return;}
+                        if(!p.breakBlock(b)){cancel();return;}
+                    }
+                    if(index>=count)cancel();
+                }catch(RuntimeException ex){cancel();throw ex;}
+            }
+            @Override public void cancel(){super.cancel();felling.remove(p.getUniqueId());work.remove(p.getUniqueId());}
+        };
+        work.put(p.getUniqueId(),task.runTaskTimer(plugin,1,1));
+    }
+    private static boolean mature(org.bukkit.block.Block block) {
+        return switch(block.getType()) {
+            case WHEAT,CARROTS,POTATOES,BEETROOTS,NETHER_WART -> block.getBlockData() instanceof org.bukkit.block.data.Ageable age
+                && age.getAge()==age.getMaximumAge();
+            default -> false;
+        };
+    }
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void harvest(org.bukkit.event.block.BlockBreakEvent event) {
+        Player p=event.getPlayer();ItemStack tool=p.getInventory().getItemInMainHand();int level=levelOf(tool);
+        var root=event.getBlock();
+        if(!accepting || typeOf(tool)!=ToolType.HOE || level<5 || felling.contains(p.getUniqueId())
+            ||!event.isDropItems()||p.getGameMode()!=org.bukkit.GameMode.SURVIVAL||!mature(root))return;
+        int centerX=level>=25?p.getLocation().getBlockX():root.getX(),centerZ=level>=25?p.getLocation().getBlockZ():root.getZ();
+        if(level>=25 && (Math.abs(root.getX()-centerX)>2||Math.abs(root.getZ()-centerZ)>2))return;
+        var targets=new java.util.ArrayList<org.bukkit.block.Block>();
+        for(var offset:HarvestRules.offsets(level,p.getLocation().getYaw())){
+            int x=centerX+offset.x(),z=centerZ+offset.z();
+            if(!root.getWorld().isChunkLoaded(x>>4,z>>4))continue;
+            var b=root.getWorld().getBlockAt(x,root.getY(),z);
+            if(!b.equals(root)&&mature(b))targets.add(b);
         }
-        if(!leaves)return;
-        logs.remove(root);if(logs.isEmpty())return;
+        String expectedId=instance(tool);if(expectedId==null)return;
         Bukkit.getScheduler().runTask(plugin,()->{
-            if(!p.isOnline()||!root.getType().isAir())return;
+            if(!accepting || !p.isOnline() || !root.getType().isAir() || !p.getWorld().equals(root.getWorld())
+                ||p.getGameMode()!=org.bukkit.GameMode.SURVIVAL || !expectedId.equals(instance(p.getInventory().getItemInMainHand())))return;
             felling.add(p.getUniqueId());
-            new org.bukkit.scheduler.BukkitRunnable(){int index;
-                public void run(){
-                    try {
-                        if(!p.isOnline()||!p.getWorld().equals(root.getWorld())||p.getGameMode()!=org.bukkit.GameMode.SURVIVAL){cancel();return;}
-                        for(int n=0;n<64&&index<logs.size();n++){
-                            var current=p.getInventory().getItemInMainHand();
-                            if(typeOf(current)!=ToolType.AXE||levelOf(current)<20){cancel();return;}
-                            var b=logs.get(index++);
-                            if(!b.getWorld().isChunkLoaded(b.getX()>>4,b.getZ()>>4))continue;
-                            if(b.getType()==kind&&!p.breakBlock(b)){cancel();return;}
-                        }
-                        if(index>=logs.size())cancel();
-                    } catch(RuntimeException ex){cancel();throw ex;}
+            try{
+                for(var b:targets){
+                    var current=p.getInventory().getItemInMainHand();
+                    if(typeOf(current)!=ToolType.HOE||levelOf(current)!=level||!expectedId.equals(instance(current)))break;
+                    if(b.getWorld().isChunkLoaded(b.getX()>>4,b.getZ()>>4)&&mature(b)&&!p.breakBlock(b))break;
                 }
-                @Override public void cancel(){super.cancel();felling.remove(p.getUniqueId());}
-            }.runTaskTimer(plugin,0,1);
+            }finally{felling.remove(p.getUniqueId());}
         });
     }
 
