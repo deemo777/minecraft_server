@@ -7,6 +7,8 @@ import com.htk.core.common.Feature;
 import com.htk.core.common.Glyphs;
 import com.htk.core.common.Text;
 import com.htk.core.skill.SkillFeature;
+import com.htk.core.economy.Economy;
+import com.htk.core.economy.EconomyFeature;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
@@ -75,6 +77,10 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
     double successPercent(int target) {
         return UpgradeRules.configuredSuccess(target,config.getDoubleList("enhancement.success-rates"));
     }
+    long goldCost(int target){return UpgradeRules.configuredGoldCost(target,config.getLongList("enhancement.gold-costs"));}
+    long balance(UUID player){
+        var feature=plugin.feature(EconomyFeature.class);return feature==null?0:feature.economy().balance(player);
+    }
     boolean validTool(ItemStack item) {
         ToolType type = tools.typeOf(item);
         return type != null && item.getType() == type.materialAt(tools.levelOf(item)) && item.getAmount() == 1
@@ -90,7 +96,8 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         meta.getPersistentDataContainer().set(materialKey, PersistentDataType.STRING, type.id);
         meta.displayName(Text.mm("<#a9dce7><bold>" + type.korean + " 강화 결정"));
         meta.lore(List.of(Text.mm("<gray>대장간에서 같은 종류 장비를 강화해요"),
-                Text.mm("<dark_gray>+1~5: 무료 · +6~10: 1개 · +11~15: 2개 · +16~20: 4개 · +21~25: 8개")));
+                Text.mm("<dark_gray>+1~5: 0개 · +6~10: 1개 · +11~15: 2개 · +16~20: 4개 · +21~25: 8개"),
+                Text.mm("<gray>강화 시 결정과 별도로 골드를 소비해요")));
         if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("enhancement_" + type.id));
         item.setItemMeta(meta); return item;
     }
@@ -188,23 +195,41 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         if (!UpgradeRules.hasMaterials(current+1,materialType(material)==type,material==null?0:material.getAmount())) {
             Messages.send(p,Text.mm("<red>" + type.korean + " 강화 결정 " + required + "개가 필요해요.")); return;
         }
+        long fee=goldCost(current+1);
+        var economyFeature=plugin.feature(EconomyFeature.class);
+        if(economyFeature==null){Messages.send(p,Text.mm("<red>골드 기능을 사용할 수 없어 강화할 수 없어요."));return;}
+        Economy economy=economyFeature.economy();economy.ensureAccount(p.getUniqueId());
+        if(!economy.has(p.getUniqueId(),fee)){
+            Messages.send(p,Text.mm("<red>강화 비용 "+Economy.format(fee)+"가 필요해요. <gray>보유: "+Economy.format(economy.balance(p.getUniqueId()))));return;
+        }
         var outcome=ArtisanRules.attempt(current,successPercent(current+1),tools.artisanProgress(item),ThreadLocalRandom.current().nextDouble());
         int result=outcome.level();
         ItemStack upgraded = item.clone();
         if (!tools.setLevel(upgraded, result)) return;
         tools.setArtisanProgress(upgraded,outcome.progress());
-        if(required>0){
-            material.setAmount(material.getAmount() - required);
-            gui.inventory.setItem(EnhancementGui.MATERIAL, material.getAmount() == 0 ? null : material);
-        }
-        gui.inventory.setItem(EnhancementGui.TOOL, upgraded);
+        ItemStack originalItem=item.clone(),originalMaterial=material==null?null:material.clone();
+        ItemStack remaining=originalMaterial==null?null:originalMaterial.clone();
+        if(required>0)remaining.setAmount(remaining.getAmount()-required);
+        boolean paid=EnhancementPayment.attempt(new EnhancementPayment.Wallet(){
+            public boolean withdraw(long amount){return economy.withdraw(p.getUniqueId(),amount);}
+            public void refund(long amount){economy.deposit(p.getUniqueId(),amount);}
+        },fee,()->{
+            if(required>0)gui.inventory.setItem(EnhancementGui.MATERIAL,remaining.getAmount()==0?null:remaining);
+            gui.inventory.setItem(EnhancementGui.TOOL,upgraded);
+        },()->{
+            gui.inventory.setItem(EnhancementGui.MATERIAL,originalMaterial);
+            gui.inventory.setItem(EnhancementGui.TOOL,originalItem);
+        });
+        if(!paid){Messages.send(p,Text.mm("<red>골드가 부족해요. 강화 비용: "+Economy.format(fee)));return;}
         gui.refresh();
         if (result > current) {
-            Messages.send(p,Text.mm((outcome.guaranteed()?"<gold><bold>장기백! 확정 강화 성공!</bold>":"<#ffc773><bold>강화 성공!</bold>")+" <white>+" + current + " → +" + result));
+            Messages.send(p,Text.mm((outcome.guaranteed()?"<gold><bold>장기백! 확정 강화 성공!</bold>":"<#ffc773><bold>강화 성공!</bold>")+" <white>+" + current + " → +" + result
+                +" <gray>· 골드 "+Economy.format(fee)+" 소비 · 잔액 "+Economy.format(economy.balance(p.getUniqueId()))));
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, .7f, 1.3f);
         } else {
             Messages.send(p,Text.mm("<red>강화 실패 <gray>· 단계 유지"
                     + (required==0?" · 재료 소모 없음":" · 재료 " + required + "개 소비")
+                    + " · 골드 "+Economy.format(fee)+" 소비"
                     + " <gold>· 장인의 기운 " + ArtisanRules.energyLabel(outcome.progress()) + "%"
                     + (outcome.progress().guaranteed()?" · 다음 강화 확정 성공!":"")));
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_LAND, .5f, .7f);

@@ -13,6 +13,18 @@ public final class UpgradeRules {
     public static boolean hasMaterials(int target,boolean matching,int count) {
         int cost=required(target);return cost==0 || matching && count>=cost;
     }
+    public static long goldCost(int target) {
+        required(target);
+        if(target<=5)return 500;
+        if(target<=10)return 1000+(target-6)*500L;
+        if(target<=15)return 3000+(target-11)*750L;
+        if(target<=20)return 6000+(target-16)*1500L;
+        return 12000+(target-21)*4500L;
+    }
+    public static long configuredGoldCost(int target,java.util.List<Long> configured) {
+        long fallback=goldCost(target);
+        return target<=configured.size()?Math.max(0,configured.get(target-1)):fallback;
+    }
     public static double success(int target) { required(target); return SUCCESS[target - 1]; }
     public static double configuredSuccess(int target,java.util.List<Double> configured) {
         double fallback=success(target);

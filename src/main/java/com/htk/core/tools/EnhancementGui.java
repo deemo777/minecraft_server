@@ -3,6 +3,7 @@ package com.htk.core.tools;
 import com.htk.core.common.Glyphs;
 import com.htk.core.common.Items;
 import com.htk.core.common.Text;
+import com.htk.core.economy.Economy;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -52,6 +53,8 @@ final class EnhancementGui implements InventoryHolder {
             name = "<#ffc773><bold>강화하기 · +" + current + " → +" + target;
             lore = List.of(UpgradeRules.required(target)==0?"<green>강화 결정 없이 시도할 수 있어요"
                             : "<gray>재료: " + type.korean + " 강화 재료 " + UpgradeRules.required(target) + "개",
+                    "<gray>골드: <gold>"+Economy.format(feature.goldCost(target))+" <gray>· 보유: "+Economy.format(feature.balance(owner)),
+                    "<gray>성공·실패·장기백 모두 같은 골드 비용",
                     "<gray>성공률: <yellow>" + java.math.BigDecimal.valueOf(chance).setScale(2,java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString() + "%"
                             + (artisan.guaranteed()?" <gold>장기백 · 확정 성공":""),
                     "<gold>장인의 기운: " + ArtisanRules.energyLabel(artisan) + "% <gray>· 실패 " + artisan.failures() + "회",

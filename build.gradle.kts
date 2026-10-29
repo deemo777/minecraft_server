@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "3.36.1"
+version = "3.37.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -115,3 +115,10 @@ val verifyArtisanRules by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.tools.ArtisanRulesTest")
 }
 tasks.check { dependsOn(verifyArtisanRules) }
+
+val verifyEnhancementPayment by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.tools.EnhancementPaymentTest")
+}
+tasks.check { dependsOn(verifyEnhancementPayment) }
