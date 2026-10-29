@@ -88,13 +88,34 @@ public final class ArtisanRulesTest {
         }
         for(String name:new String[]{"GRANITE","DIORITE","ANDESITE","TUFF","CALCITE","NETHERRACK","BASALT","BLACKSTONE","END_STONE","DIRT","COBBLESTONE"})
             check(CrystalDropRules.miningChance(name,.02,.002,.12,100)==0,"ineligible material never drops mining crystals: "+name);
-        for(String ore:new String[]{"COAL_ORE","COPPER_ORE","IRON_ORE","GOLD_ORE","REDSTONE_ORE","LAPIS_ORE","DIAMOND_ORE","EMERALD_ORE"}) {
+        for(String ore:new String[]{"COAL_ORE","COPPER_ORE","IRON_ORE","GOLD_ORE","REDSTONE_ORE","LAPIS_ORE","DIAMOND_ORE"}) {
             check(CrystalDropRules.miningBase(ore)==CrystalDropRules.miningBase("DEEPSLATE_"+ore),"deepslate variant has identical ore probability");
             double initial=CrystalDropRules.miningBase(ore);
             check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,10)-initial-.02)<1e-9,"ore gains two percentage points by skill level ten");
             check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,100)-initial-.10)<1e-9,"ore skill bonus caps at ten percentage points");
         }
         check(CrystalDropRules.miningBase("ANCIENT_DEBRIS")==.20,"ancient debris has twenty percent base chance");
+        for(int level=0;level<=100;level++) {
+            double coal=CrystalDropRules.miningChance("COAL_ORE",.02,.002,.12,level);
+            for(String same:new String[]{"LAPIS_ORE","DEEPSLATE_LAPIS_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE"})
+                check(CrystalDropRules.miningChance(same,.02,.002,.12,level)==coal,"lapis and nether ores match coal at every level");
+            check(CrystalDropRules.miningChance("COPPER_ORE",.02,.002,.12,level)<coal,"copper stays below coal at every level");
+            check(CrystalDropRules.miningChance("REDSTONE_ORE",.02,.002,.12,level)==CrystalDropRules.miningChance("IRON_ORE",.02,.002,.12,level),"redstone matches iron at every level");
+        }
+        check(CrystalDropRules.miningBase("COPPER_ORE")==.03,"copper base reduced to three percent");
+        for(String rare:new String[]{"EMERALD_ORE","DEEPSLATE_EMERALD_ORE","ANCIENT_DEBRIS"}) {
+            double base=CrystalDropRules.miningBase(rare), last=base;
+            check(CrystalDropRules.miningChance(rare,.02,.002,.12,-1)==base,"negative rare-ore level clamps to base");
+            check(Math.abs(CrystalDropRules.miningChance(rare,.02,.002,.12,1)-(rare.equals("ANCIENT_DEBRIS")?.216:.167))<1e-12,"rare-ore level-one chance");
+            for(int level=0;level<=100;level++) {
+                double chance=CrystalDropRules.miningChance(rare,.02,.002,.12,level);
+                check(chance>=last && chance<=1,"rare-ore chance rises monotonically without exceeding one");
+                check((level>=50)==(chance==1),"rare ores become guaranteed exactly at level fifty");
+                check(chance==CrystalDropRules.miningChance(rare,0,0,0,level),"rare-ore curve is independent of ordinary drop caps");
+                last=chance;
+            }
+            check(CrystalDropRules.miningChance(rare,.02,.002,.12,Integer.MAX_VALUE)==1,"oversized levels stay guaranteed");
+        }
         for(int level=0;level<=100;level++){
             double chance=CrystalDropRules.chance(.02,.002,.12,level);
             check(chance>=previous && chance<=.12,"crystal probability rises monotonically to its cap");previous=chance;

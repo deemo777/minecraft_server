@@ -18,11 +18,10 @@ public final class CrystalDropRules {
         String name=material.startsWith("DEEPSLATE_")?material.substring(10):material;
         return switch(name) {
             case "STONE","DEEPSLATE" -> .02;
-            case "COAL_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE" -> .04;
-            case "COPPER_ORE" -> .05;
-            case "IRON_ORE" -> .06;
-            case "GOLD_ORE","REDSTONE_ORE" -> .08;
-            case "LAPIS_ORE" -> .10;
+            case "COAL_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE","LAPIS_ORE" -> .04;
+            case "COPPER_ORE" -> .03;
+            case "IRON_ORE","REDSTONE_ORE" -> .06;
+            case "GOLD_ORE" -> .08;
             case "DIAMOND_ORE","EMERALD_ORE" -> .15;
             case "ANCIENT_DEBRIS" -> .20;
             default -> 0;
@@ -32,6 +31,12 @@ public final class CrystalDropRules {
         double ore=miningBase(material);
         if(ore==0)return 0;
         if(material.equals("STONE") || material.equals("DEEPSLATE"))return .02;
+        // Rare natural ores reach a guaranteed single crystal at mining level 50.
+        // Preserve their base rates at level zero and interpolate linearly to 100%.
+        if(material.equals("EMERALD_ORE") || material.equals("DEEPSLATE_EMERALD_ORE")
+                || material.equals("ANCIENT_DEBRIS")) {
+            return ore + (1 - ore) * (Math.clamp(level, 0, 50) / 50.0);
+        }
         double start=Double.isFinite(base)?Math.clamp(base,0,1):.02;
         double cap=Double.isFinite(maximum)?Math.clamp(maximum,0,1):.12;
         return chance(ore,perLevel,Math.min(1,ore+Math.max(0,cap-start)),level);
