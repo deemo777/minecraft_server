@@ -43,6 +43,7 @@ public final class ServerCore extends JavaPlugin {
         npcModels=new com.htk.core.npc.NpcModelService(this);
 
         points = new Points(getDataFolder(), getLogger());
+        points.remove("race-track"); // Retire the removed feature's saved demonstration point.
         getServer().getPluginManager().registerEvents(new GuiListener(), this);
 
         EconomyFeature economy = null;
@@ -78,11 +79,6 @@ public final class ServerCore extends JavaPlugin {
             ShopFeature shop = new ShopFeature(this, economy);
             features.add(shop);
             shop.enable();
-        }
-        // The race owns one shared round and durable gold escrow.
-        if (economy != null && getConfig().getBoolean("features.race", true)) {
-            var race = new com.htk.core.race.RaceFeature(this, economy.economy());
-            features.add(race); race.enable();
         }
         var villageTools=feature(com.htk.core.tools.VillageToolFeature.class);
         if (economy != null && villageTools != null && getConfig().getBoolean("features.repairer", true)) {

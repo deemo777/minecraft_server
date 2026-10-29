@@ -13,10 +13,6 @@ commands:
     description: 수리 기사 생성·제거·방향 변경
     usage: /<command> create|remove|face
     permission: servercore.admin
-  race:
-    description: 공용 동물 경주 관전·참가 및 경기장 관리
-    usage: /<command> [start|watch|help|settrack|removetrack|demo|cancel]
-    permission: servercore.race
   achievements:
     description: 공개된 히든 업적과 내 달성 상태 확인
     usage: /<command>
@@ -107,9 +103,6 @@ commands:
     usage: /<command> reload | setpoint <name> | delpoint <name> | points
 
 permissions:
-  servercore.race:
-    description: 동물 경주 관전·참가
-    default: true
   servercore.menu:
     description: 메뉴 열기
     default: true

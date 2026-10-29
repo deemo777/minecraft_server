@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.2.2"
+version = "4.3.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -143,17 +143,12 @@ val verifyGlyphBars by tasks.registering(JavaExec::class) {
 }
 tasks.check { dependsOn(verifyGlyphBars) }
 
-val verifyRaceRules by tasks.registering(JavaExec::class) {
+val verifyLegacyRefund by tasks.registering(JavaExec::class) {
     dependsOn(tasks.testClasses)
     classpath = sourceSets.test.get().runtimeClasspath
-    mainClass.set("com.htk.core.race.RaceRulesTest")
+    mainClass.set("com.htk.core.economy.LegacyStakeRefundTest")
 }
-val verifyWagers by tasks.registering(JavaExec::class) {
-    dependsOn(tasks.testClasses)
-    classpath = sourceSets.test.get().runtimeClasspath
-    mainClass.set("com.htk.core.economy.WagerTest")
-}
-tasks.check { dependsOn(verifyRaceRules, verifyWagers) }
+tasks.check { dependsOn(verifyLegacyRefund) }
 
 val verifyRepairRules by tasks.registering(JavaExec::class) {
     dependsOn(tasks.testClasses)

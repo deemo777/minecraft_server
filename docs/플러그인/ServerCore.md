@@ -1,6 +1,6 @@
 # ServerCore 명령어
 
-[문서 홈](../../README.md) · **4.2.0 / 2026-10-30**
+[문서 홈](../../README.md) · **4.3.0 / 2026-10-30**
 
 명령어·도구 ID·분야 ID는 **영어로만 입력**합니다.
 
@@ -23,7 +23,6 @@
 | `/menu` | 마을 메뉴를 엽니다 | 일반 | — |
 | `/dogam` | 도감을 엽니다 | 일반/관리 | `/collection` |
 | `/money` | 골드 보기 / 골드 주머니 꺼내기 | 일반/관리 | `/gold` |
-| `/race [start\|watch\|help]` | 혼자 경주 시작·공용 무료 관전·골드 참가 (관리자 불필요) | `servercore.race` (기본 허용) | — |
 | `/shop` | 상점 열기 (관리자) | 관리자 | — |
 | `/shopnpc` | 구 NPC 전용 명령 (호환용) | 관리자 | — |
 | `/skill` | 스킬 창 열기 / 레벨 설정 (관리자) | 일반/관리 | `/skills` |
@@ -39,8 +38,6 @@
 | `/servercore` | ServerCore 관리 명령어 | 관리자 | — |
 
 ## 자주 쓰는 관리자 명령
-
-동물 경주의 참가·보상·현장 경기장 설치·중단 환불은 [동물 경주 안내](../기능/동물경주.md)를 참고하세요.
 
 | 명령어 | 용도 |
 |---|---|
@@ -65,8 +62,6 @@
 | `/rankboard create <name> <category>` | 누적 순위 홀로그램 생성 |
 | `/rankboard remove <name>` · `/rankboard list` | 게시판 삭제·목록 |
 | `/money give <player> <amount>` | 골드 지급 (`take` 회수, `set` 지정) |
-| `/race settrack` · `/race removetrack` | 관리자 무료 시연용 출발선 지정 / 위치 삭제 (일반 경주는 주변 자동 탐색) |
-| `/race demo` · `/race cancel` | 골드 없는 시연 / 진행 중 경기 취소·환불 |
 | `/skill set <player> <category> <level>` | 스킬 레벨 지정 |
 | `/skill reset <player>` · `/dogam reset <player>` | 스킬·도감 초기화 |
 | `/jumppad [개수] [player]` | 점프 패드 지급 |
