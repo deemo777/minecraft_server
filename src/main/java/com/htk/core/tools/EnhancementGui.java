@@ -24,6 +24,7 @@ final class EnhancementGui implements InventoryHolder {
     final Inventory inventory;
     boolean returned;
     long nextAttempt;
+    private boolean upgradeEnabled;
 
     EnhancementGui(BlacksmithFeature feature, Player player) {
         this.feature = feature;
@@ -43,30 +44,36 @@ final class EnhancementGui implements InventoryHolder {
         ToolType type = feature.tools().typeOf(tool);
         int current = type == null ? -1 : feature.tools().levelOf(tool);
         String name = "<gray>강화할 장비를 왼쪽에 넣어 주세요";
-        List<String> lore = List.of("<gray>왼쪽: 마을 장비 1개", "<gray>오른쪽: 같은 장비 전용 강화 재료", "<gray>Shift+클릭으로도 넣을 수 있어요");
+        List<String> lore = List.of();
+        upgradeEnabled = false;
         if (type != null && current >= feature.maxLevel()) {
             name = "<gold>최대 강화 단계예요";
-        } else if (type != null && current >= 0) {
+            lore = List.of();
+        } else if (feature.validTool(tool)) {
             int target = current + 1;
             var artisan=feature.tools().artisanProgress(tool);
             double chance=ArtisanRules.effectivePercent(target,feature.successPercent(target),artisan);
-            name = "<#ffc773><bold>강화하기 · +" + current + " → +" + target;
-            lore = List.of(UpgradeRules.required(target)==0?"<green>강화 결정 없이 시도할 수 있어요"
-                            : "<gray>재료: " + type.korean + " 강화 재료 " + UpgradeRules.required(target) + "개",
-                    "<gray>골드: <gold>"+Economy.format(feature.goldCost(target))+" <gray>· 보유: "+Economy.format(feature.balance(owner)),
-                    "<gray>성공·실패·장기백 모두 같은 골드 비용",
-                    "<gray>성공률: <yellow>" + java.math.BigDecimal.valueOf(chance).setScale(2,java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString() + "%"
-                            + (artisan.guaranteed()?" <gold>장기백 · 확정 성공":""),
-                    "<gold>장인의 기운: " + ArtisanRules.energyLabel(artisan) + "% <gray>· 실패 " + artisan.failures() + "회",
-                    UpgradeRules.required(target)==0?"<gray>성공·실패 모두 재료 소모 없음 · 장비 파괴 없음"
-                            : "<gray>실패해도 재료는 소비돼요 · 장비 파괴 없음",
-                    "<gray>실패해도 단계 유지 · 성공률과 장인의 기운 누적",
-                    "<gray>기운 100%면 다음 시도 확정 성공 · 재료 비용은 동일",
-                    "<dark_gray>화면을 닫으면 넣은 아이템을 돌려받아요");
+            ItemStack material = inventory.getItem(MATERIAL);
+            boolean hasMaterials = UpgradeRules.hasMaterials(target, feature.materialType(material) == type,
+                    material == null ? 0 : material.getAmount());
+            long fee = feature.goldCost(target);
+            boolean hasGold = feature.canAfford(owner, fee);
+            upgradeEnabled = hasMaterials && hasGold;
+            name = (upgradeEnabled ? "<#ffc773>" : "<gray>") + "<bold>강화하기 · +" + current + " → +" + target;
+            var lines = new java.util.ArrayList<String>();
+            if (!hasMaterials) lines.add("<red>전용 재료 부족");
+            else if (!hasGold) lines.add("<red>골드 부족");
+            lines.addAll(List.of("<gray>골드 소모: <gold>" + Economy.format(fee),
+                    "<gray>성공률: <yellow>" + java.math.BigDecimal.valueOf(chance).setScale(2,java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString() + "%",
+                    "<gold>장기백: " + ArtisanRules.energyLabel(artisan) + "%"));
+            lore = List.copyOf(lines);
         }
-        inventory.setItem(UPGRADE, Items.of(feature.plugin().resourcePackEnabled() ? Material.PAPER : Material.ANVIL,
-                1, name, lore, feature.plugin().resourcePackEnabled() ? Glyphs.model("forge_button") : null));
+        boolean pack = feature.plugin().resourcePackEnabled();
+        inventory.setItem(UPGRADE, Items.of(pack ? Material.PAPER : upgradeEnabled ? Material.ANVIL : Material.GRAY_DYE,
+                1, name, lore, pack ? Glyphs.model(upgradeEnabled ? "forge_button" : "forge_button_disabled") : null));
     }
+
+    boolean upgradeEnabled() { return upgradeEnabled; }
 
     private static String negative(int pixels) {
         StringBuilder text = new StringBuilder();

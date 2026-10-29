@@ -43,6 +43,11 @@ def verify(path):
                 assert tile.size==(176,188)
         assert all(chr(code) in glyphs for code in range(0xE070,0xE074)), 'existing forge glyphs lost'
         assert font['providers'][0]['advances']['\uf808']==-128
+        disabled=documents['assets/servercore/models/item/forge_button_disabled.json']
+        assert disabled['display']['gui']['scale']==[2.25,2.25,1]
+        with Image.open(io.BytesIO(pack.read('assets/servercore/textures/item/forge_button_disabled.png'))) as overlay:
+            assert overlay.size==(72,72)
+            assert overlay.getchannel('A').getbbox()==(4,18,70,56), 'disabled button must exactly cover the existing button'
         gui=documents['assets/servercore/font/gui.json']
         honor={}
         seen=set()

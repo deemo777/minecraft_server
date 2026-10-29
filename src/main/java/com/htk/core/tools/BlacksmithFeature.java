@@ -77,8 +77,8 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         return UpgradeRules.configuredSuccess(target,config.getDoubleList("enhancement.success-rates"));
     }
     long goldCost(int target){return UpgradeRules.configuredGoldCost(target,config.getLongList("enhancement.gold-costs"));}
-    long balance(UUID player){
-        var feature=plugin.feature(EconomyFeature.class);return feature==null?0:feature.economy().balance(player);
+    boolean canAfford(UUID player, long fee){
+        var feature=plugin.feature(EconomyFeature.class);return feature!=null && feature.economy().has(player,fee);
     }
     boolean validTool(ItemStack item) {
         ToolType type = tools.typeOf(item);
@@ -154,7 +154,10 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
                 && e.getClick() != ClickType.CREATIVE) return;
         e.setCancelled(true);
         if (raw >= EnhancementGui.UPGRADE - 1 && raw <= EnhancementGui.UPGRADE + 1) {
-            if (e.getClick() == ClickType.LEFT || e.getClick() == ClickType.RIGHT) attempt(p, gui);
+            if (e.getClick() == ClickType.LEFT || e.getClick() == ClickType.RIGHT) {
+                gui.refresh();
+                if (gui.upgradeEnabled()) attempt(p, gui);
+            }
             return;
         }
         if (raw >= 27 && e.isShiftClick()) {
