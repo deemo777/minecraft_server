@@ -1,5 +1,7 @@
 package com.htk.core.menu;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Text;
@@ -39,12 +41,12 @@ public final class MenuFeature implements Feature, Listener {
         if (cmd != null) {
             cmd.setExecutor((sender, command, label, args) -> {
                 if (!(sender instanceof Player p)) {
-                    sender.sendMessage("게임 안에서만 쓸 수 있어요.");
+                    Messages.send(sender,"게임 안에서만 쓸 수 있어요.");
                     return true;
                 }
                 // 예전(2.0) G 키 메뉴의 "준비 중" 버튼이 /menu soon 을 실행해요
                 if (args.length == 1 && args[0].equalsIgnoreCase("soon")) {
-                    p.sendMessage(Text.mm(plugin.msg("coming-soon")));
+                    Messages.send(p,Text.mm(plugin.msg("coming-soon")));
                 } else {
                     open(p);
                 }
@@ -72,7 +74,7 @@ public final class MenuFeature implements Feature, Listener {
 
     public void open(Player player) {
         if (!player.hasPermission("servercore.menu")) {
-            player.sendMessage(Text.mm(plugin.msg("no-permission")));
+            Messages.send(player,Text.mm(plugin.msg("no-permission")));
             return;
         }
         new MenuGui(this, player).open(player);
@@ -91,7 +93,7 @@ public final class MenuFeature implements Feature, Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         String hint = plugin.getConfig().getString("menu.join-hint", "");
-        if (hint != null && !hint.isBlank()) event.getPlayer().sendMessage(Text.mm(hint));
+        if (hint != null && !hint.isBlank()) Messages.send(event.getPlayer(),Text.mm(hint));
     }
 
     // ---------------- 카운트다운 이동 ----------------

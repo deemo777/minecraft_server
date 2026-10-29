@@ -1,5 +1,7 @@
 package com.htk.core.jumppad;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Text;
@@ -88,19 +90,19 @@ public final class JumpPadFeature implements Feature, Listener {
                 try {
                     if (args.length >= 1) amount = Math.max(1, Math.min(64, Integer.parseInt(args[0])));
                 } catch (NumberFormatException e) {
-                    sender.sendMessage(Text.mm("<red>개수는 숫자로 적어 주세요. 예: /jumppad 16"));
+                    Messages.send(sender,Text.mm("<red>개수는 숫자로 적어 주세요. 예: /jumppad 16"));
                     return true;
                 }
                 if (args.length >= 2) target = Bukkit.getPlayerExact(args[1]);
                 if (target == null) {
-                    sender.sendMessage(Text.mm("<red>받을 플레이어를 찾을 수 없어요."));
+                    Messages.send(sender,Text.mm("<red>받을 플레이어를 찾을 수 없어요."));
                     return true;
                 }
                 Player to = target;
                 // 가방이 꽉 차서 못 넣은 건 발밑에 떨어뜨려요
                 to.getInventory().addItem(createItem(amount)).values()
                         .forEach(left -> to.getWorld().dropItem(to.getLocation(), left));
-                sender.sendMessage(Text.mm("<green>점프 패드 " + amount + "개를 " + to.getName() + "에게 줬어요."));
+                Messages.send(sender,Text.mm("<green>점프 패드 " + amount + "개를 " + to.getName() + "에게 줬어요."));
                 return true;
             });
         }

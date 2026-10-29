@@ -1,5 +1,7 @@
 package com.htk.core.ranking;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Text;
@@ -163,21 +165,21 @@ public final class RankingFeature implements Feature,Listener,TabExecutor {
     @Override public boolean onCommand(CommandSender s,Command cmd,String label,String[] args) {
         if(cmd.getName().equals("ranking")) {
             var c=RankingLedger.Category.parse(args.length==0?"farming":args[0]);
-            if(c==null){s.sendMessage("/ranking farming|mining|woodcutting|fishing");return true;}
-            s.sendMessage(content(c));return true;
+            if(c==null){Messages.send(s,"/ranking farming|mining|woodcutting|fishing");return true;}
+            Messages.send(s,content(c));return true;
         }
-        if(!s.hasPermission("servercore.admin")){s.sendMessage(Text.mm("<red>관리자만 사용할 수 있어요."));return true;}
+        if(!s.hasPermission("servercore.admin")){Messages.send(s,Text.mm("<red>관리자만 사용할 수 있어요."));return true;}
         if(args.length==3 && args[0].equalsIgnoreCase("create") && s instanceof Player p) {
             String id=args[1];var c=RankingLedger.Category.parse(args[2]);
-            if(!id.matches("[a-zA-Z0-9_-]{1,32}")||c==null){s.sendMessage("게시판 이름: 영문/숫자/_/- 1~32자, 분야: farming|mining|woodcutting|fishing");return true;}
-            if(store.boards.containsKey(id)){s.sendMessage("이미 있는 게시판 이름이에요. 다른 이름을 사용하세요.");return true;}
+            if(!id.matches("[a-zA-Z0-9_-]{1,32}")||c==null){Messages.send(s,"게시판 이름: 영문/숫자/_/- 1~32자, 분야: farming|mining|woodcutting|fishing");return true;}
+            if(store.boards.containsKey(id)){Messages.send(s,"이미 있는 게시판 이름이에요. 다른 이름을 사용하세요.");return true;}
             Location l=p.getLocation();store.boards.put(id,new RankingStore.Board(id,c,l.getWorld().getUID(),l.getX(),l.getY()+3,l.getZ()));
-            store.dirty();store.save();updateBoards();s.sendMessage(Text.mm("<green>현재 위치 위에 "+c.title()+" 순위 게시판을 만들었어요."));
+            store.dirty();store.save();updateBoards();Messages.send(s,Text.mm("<green>현재 위치 위에 "+c.title()+" 순위 게시판을 만들었어요."));
         } else if(args.length==2 && args[0].equalsIgnoreCase("remove")) {
-            if(store.boards.remove(args[1])==null){s.sendMessage("해당 게시판이 없어요.");return true;}
-            TextDisplay d=displays.remove(args[1]);if(d!=null)d.remove();store.dirty();store.save();s.sendMessage("게시판을 제거했어요. 누적 점수는 유지돼요.");
-        } else if(args.length==1 && args[0].equalsIgnoreCase("list")) s.sendMessage("순위 게시판: "+String.join(", ",store.boards.keySet()));
-        else s.sendMessage("/rankboard create <name> farming|mining|woodcutting|fishing | remove <name> | list");
+            if(store.boards.remove(args[1])==null){Messages.send(s,"해당 게시판이 없어요.");return true;}
+            TextDisplay d=displays.remove(args[1]);if(d!=null)d.remove();store.dirty();store.save();Messages.send(s,"게시판을 제거했어요. 누적 점수는 유지돼요.");
+        } else if(args.length==1 && args[0].equalsIgnoreCase("list")) Messages.send(s,"순위 게시판: "+String.join(", ",store.boards.keySet()));
+        else Messages.send(s,"/rankboard create <name> farming|mining|woodcutting|fishing | remove <name> | list");
         return true;
     }
     @Override public List<String> onTabComplete(CommandSender s,Command cmd,String label,String[] args) {

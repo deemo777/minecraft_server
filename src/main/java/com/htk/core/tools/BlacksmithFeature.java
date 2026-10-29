@@ -1,5 +1,7 @@
 package com.htk.core.tools;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Glyphs;
@@ -170,14 +172,14 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         if (now < gui.nextAttempt) return;
         gui.nextAttempt = now + 300_000_000L;
         ItemStack item = gui.inventory.getItem(EnhancementGui.TOOL);
-        if (!validTool(item)) { p.sendMessage(Text.mm("<red>왼쪽에 마을 장비 1개를 넣어 주세요.")); return; }
+        if (!validTool(item)) { Messages.send(p,Text.mm("<red>왼쪽에 마을 장비 1개를 넣어 주세요.")); return; }
         int current = tools.levelOf(item);
-        if (current >= maxLevel()) { p.sendMessage(Text.mm("<gold>이미 최대 강화 단계예요.")); return; }
+        if (current >= maxLevel()) { Messages.send(p,Text.mm("<gold>이미 최대 강화 단계예요.")); return; }
         ToolType type = tools.typeOf(item);
         ItemStack material = gui.inventory.getItem(EnhancementGui.MATERIAL);
         int required = UpgradeRules.required(current + 1);
         if (materialType(material) != type || material.getAmount() < required) {
-            p.sendMessage(Text.mm("<red>" + type.korean + " 강화 결정 " + required + "개가 필요해요.")); return;
+            Messages.send(p,Text.mm("<red>" + type.korean + " 강화 결정 " + required + "개가 필요해요.")); return;
         }
         int result = UpgradeRules.resolve(current, ThreadLocalRandom.current().nextDouble(),
                 ThreadLocalRandom.current().nextDouble(), successPercent(current + 1) / 100.0);
@@ -188,10 +190,10 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         gui.inventory.setItem(EnhancementGui.TOOL, upgraded);
         gui.refresh();
         if (result > current) {
-            p.sendMessage(Text.mm("<#ffc773><bold>강화 성공!</bold> <white>+" + current + " → +" + result));
+            Messages.send(p,Text.mm("<#ffc773><bold>강화 성공!</bold> <white>+" + current + " → +" + result));
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, .7f, 1.3f);
         } else {
-            p.sendMessage(Text.mm("<red>강화 실패 <gray>· " + (result < current ? "+" + current + " → +" + result : "단계 유지")
+            Messages.send(p,Text.mm("<red>강화 실패 <gray>· " + (result < current ? "+" + current + " → +" + result : "단계 유지")
                     + " · 재료 " + required + "개 소비"));
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_LAND, .5f, .7f);
         }
@@ -236,12 +238,12 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         Interaction v = plugin.npcModels().spawn(at,"blacksmith",npc -> {
             npc.getPersistentDataContainer().set(npcKey,PersistentDataType.BYTE,(byte)1);
         });
-        if (v == null) p.sendMessage(Text.mm("<red>NPC 생성이 차단됐어요. WorldGuard의 mob-spawning 설정을 확인해 주세요."));
-        else p.sendMessage(Text.mm("<green>대장장이를 세웠어요. 우클릭하면 강화 창이 열려요."));
+        if (v == null) Messages.send(p,Text.mm("<red>NPC 생성이 차단됐어요. WorldGuard의 mob-spawning 설정을 확인해 주세요."));
+        else Messages.send(p,Text.mm("<green>대장장이를 세웠어요. 우클릭하면 강화 창이 열려요."));
     }
 
     @Override public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (!sender.hasPermission("servercore.admin")) { sender.sendMessage(Text.mm("<red>관리자만 사용할 수 있어요.")); return true; }
+        if (!sender.hasPermission("servercore.admin")) { Messages.send(sender,Text.mm("<red>관리자만 사용할 수 있어요.")); return true; }
         if (cmd.getName().equals("enhance")) {
             if (args.length >= 3 && args[0].equalsIgnoreCase("material")) {
                 ToolType type = ToolType.parse(args[1]);
@@ -249,25 +251,25 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
                 try { amount = Integer.parseInt(args[2]); } catch (NumberFormatException ex) { amount = 0; }
                 Player target = args.length >= 4 ? Bukkit.getPlayerExact(args[3]) : sender instanceof Player p ? p : null;
                 if (type == null || target == null || amount < 1 || amount > 64) {
-                    sender.sendMessage(Text.mm("<red>/enhance material <type> <1~64> [player]")); return true;
+                    Messages.send(sender,Text.mm("<red>/enhance material <type> <1~64> [player]")); return true;
                 }
                 returnItem(target, material(type, amount));
-                sender.sendMessage(Text.mm("<green>강화 결정을 지급했어요.")); return true;
+                Messages.send(sender,Text.mm("<green>강화 결정을 지급했어요.")); return true;
             }
             Player target = args.length >= 1 ? Bukkit.getPlayerExact(args[0]) : sender instanceof Player p ? p : null;
-            if (target != null) open(target); else sender.sendMessage(Text.mm("<red>/enhance [player]"));
+            if (target != null) open(target); else Messages.send(sender,Text.mm("<red>/enhance [player]"));
             return true;
         }
-        if (!(sender instanceof Player p)) { sender.sendMessage("게임 안에서 사용해 주세요."); return true; }
+        if (!(sender instanceof Player p)) { Messages.send(sender,"게임 안에서 사용해 주세요."); return true; }
         if (args.length == 1 && args[0].equalsIgnoreCase("create")) spawn(p);
         else if (args.length == 1 && (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("face"))) {
             Entity nearest = p.getNearbyEntities(5,5,5).stream().filter(this::isNpc)
                     .filter(e -> e.getLocation().distanceSquared(p.getLocation()) <= 25)
                     .min(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(p.getLocation()))).orElse(null);
-            if (nearest == null) p.sendMessage(Text.mm("<red>5블록 안에 대장장이가 없어요."));
-            else if(args[0].equalsIgnoreCase("face")){plugin.npcModels().face(nearest,p.getLocation().getYaw()+180);p.sendMessage(Text.mm("<green>대장장이 방향을 맞췄어요."));}
-            else { plugin.npcModels().remove(nearest); p.sendMessage(Text.mm("<green>대장장이를 없앴어요.")); }
-        } else sender.sendMessage(Text.mm("<gray>/blacksmithnpc create | remove | face"));
+            if (nearest == null) Messages.send(p,Text.mm("<red>5블록 안에 대장장이가 없어요."));
+            else if(args[0].equalsIgnoreCase("face")){plugin.npcModels().face(nearest,p.getLocation().getYaw()+180);Messages.send(p,Text.mm("<green>대장장이 방향을 맞췄어요."));}
+            else { plugin.npcModels().remove(nearest); Messages.send(p,Text.mm("<green>대장장이를 없앴어요.")); }
+        } else Messages.send(sender,Text.mm("<gray>/blacksmithnpc create | remove | face"));
         return true;
     }
     @Override public List<String> onTabComplete(CommandSender s, Command c, String alias, String[] args) {

@@ -1,5 +1,7 @@
 package com.htk.core.skill;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.common.Text;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -32,7 +34,7 @@ final class SkillCommand implements TabExecutor {
         }
         if (args.length == 0 || args[0].equalsIgnoreCase("info")) {
             if (!(sender instanceof Player p)) {
-                sender.sendMessage("사용법: /" + label + " set <player> <category> <level> | reset <player>");
+                Messages.send(sender,"사용법: /" + label + " set <player> <category> <level> | reset <player>");
                 return true;
             }
             StringBuilder sb = new StringBuilder("<gray>");
@@ -41,14 +43,14 @@ final class SkillCommand implements TabExecutor {
                 sb.append(s.korean).append(" <white>Lv.").append(pr.level).append("</white> <dark_gray>(")
                         .append(pr.xp).append("/").append(f.need(pr.level)).append(")</dark_gray>  ");
             }
-            p.sendMessage(Text.mm(sb.toString().trim()));
+            Messages.send(p,Text.mm(sb.toString().trim()));
             net.kyori.adventure.text.Component prefix = f.prefix(p.getUniqueId());
             if (!prefix.equals(net.kyori.adventure.text.Component.empty()))
-                p.sendMessage(Text.mm("<gray>칭호: ").append(prefix).append(Text.mm("<dark_gray>(/honor 로 바꾸기)")));
+                Messages.send(p,Text.mm("<gray>칭호: ").append(prefix).append(Text.mm("<dark_gray>(/honor 로 바꾸기)")));
             return true;
         }
         if (!sender.hasPermission("servercore.admin")) {
-            sender.sendMessage(Text.mm(f.plugin().msg("no-permission")));
+            Messages.send(sender,Text.mm(f.plugin().msg("no-permission")));
             return true;
         }
         if (args[0].equalsIgnoreCase("set") && args.length >= 4) {
@@ -61,24 +63,24 @@ final class SkillCommand implements TabExecutor {
                 lv = -1;
             }
             if (t == null || s == null || lv < 1) {
-                sender.sendMessage(Text.mm("<red>플레이어·분야·레벨을 확인해 주세요."));
+                Messages.send(sender,Text.mm("<red>플레이어·분야·레벨을 확인해 주세요."));
                 return true;
             }
             f.setLevel(t, s, lv);
-            sender.sendMessage(Text.mm("<green>" + t.getName() + " " + s.korean + " Lv." + lv));
+            Messages.send(sender,Text.mm("<green>" + t.getName() + " " + s.korean + " Lv." + lv));
             return true;
         }
         if (args[0].equalsIgnoreCase("reset") && args.length >= 2) {
             OfflinePlayer t = SkillFeature.findPlayer(args[1]);
             if (t == null) {
-                sender.sendMessage(Text.mm("<red>그 플레이어를 찾을 수 없어요."));
+                Messages.send(sender,Text.mm("<red>그 플레이어를 찾을 수 없어요."));
                 return true;
             }
             f.reset(t);
-            sender.sendMessage(Text.mm("<green>" + t.getName() + "의 레벨을 모두 1로 되돌렸어요."));
+            Messages.send(sender,Text.mm("<green>" + t.getName() + "의 레벨을 모두 1로 되돌렸어요."));
             return true;
         }
-        sender.sendMessage(Text.mm("<gray>사용법: /" + label + " set <player> <category> <level> | reset <player>"));
+        Messages.send(sender,Text.mm("<gray>사용법: /" + label + " set <player> <category> <level> | reset <player>"));
         return true;
     }
 

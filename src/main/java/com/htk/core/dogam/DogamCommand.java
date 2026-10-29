@@ -1,5 +1,7 @@
 package com.htk.core.dogam;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.common.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -24,7 +26,7 @@ public final class DogamCommand implements TabExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0 || isNumber(args[0])) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage("게임 안에서만 쓸 수 있어요.");
+                Messages.send(sender,"게임 안에서만 쓸 수 있어요.");
                 return true;
             }
             int page = args.length == 0 ? 0 : Integer.parseInt(args[0]) - 1;
@@ -33,23 +35,23 @@ public final class DogamCommand implements TabExecutor {
         }
 
         if (!sender.hasPermission("servercore.admin")) {
-            sender.sendMessage(Text.mm(feature.plugin().msg("no-permission")));
+            Messages.send(sender,Text.mm(feature.plugin().msg("no-permission")));
             return true;
         }
 
         if (args[0].equalsIgnoreCase("reset") && args.length >= 2) {
             OfflinePlayer target = Bukkit.getOfflinePlayerIfCached(args[1]);
             if (target == null) {
-                sender.sendMessage(Text.mm("<red>그 플레이어를 찾을 수 없어요."));
+                Messages.send(sender,Text.mm("<red>그 플레이어를 찾을 수 없어요."));
                 return true;
             }
             feature.store().get(target.getUniqueId()).clear();
             if (!target.isOnline()) feature.store().unload(target.getUniqueId()); // 바로 저장
-            sender.sendMessage(Text.mm("<green>" + args[1] + "의 도감을 초기화했어요."));
+            Messages.send(sender,Text.mm("<green>" + args[1] + "의 도감을 초기화했어요."));
             return true;
         }
 
-        sender.sendMessage(Text.mm("<gray>사용법: /" + label + " [page] | reset <player>"));
+        Messages.send(sender,Text.mm("<gray>사용법: /" + label + " [page] | reset <player>"));
         return true;
     }
 

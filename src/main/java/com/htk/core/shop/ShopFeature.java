@@ -1,5 +1,7 @@
 package com.htk.core.shop;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Text;
@@ -331,7 +333,7 @@ public final class ShopFeature implements Feature, Listener {
         if (e.getHand() != EquipmentSlot.HAND) return;   // 양손 이벤트 중 한 번만
         ShopConfig.Shop shop = config.shop(id);
         if (shop == null) {
-            e.getPlayer().sendMessage(Text.mm(msg("closed", "<gray>지금은 문을 닫았어요.")));
+            Messages.send(e.getPlayer(),Text.mm(msg("closed", "<gray>지금은 문을 닫았어요.")));
             return;
         }
         open(e.getPlayer(), shop, 0);
@@ -363,21 +365,21 @@ public final class ShopFeature implements Feature, Listener {
         @Override
         public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
             if (!sender.hasPermission("servercore.admin")) {
-                sender.sendMessage(Text.mm(plugin.msg("no-permission")));
+                Messages.send(sender,Text.mm(plugin.msg("no-permission")));
                 return true;
             }
             if (args.length == 0) {
-                sender.sendMessage(Text.mm("<gray>사용법: /" + label + " <shop> [player]  <dark_gray>상점: " + String.join(", ", config.ids())));
+                Messages.send(sender,Text.mm("<gray>사용법: /" + label + " <shop> [player]  <dark_gray>상점: " + String.join(", ", config.ids())));
                 return true;
             }
             ShopConfig.Shop shop = config.shop(args[0]);
             if (shop == null) {
-                sender.sendMessage(Text.mm("<red>그런 상점이 없어요. <gray>(" + String.join(", ", config.ids()) + ")"));
+                Messages.send(sender,Text.mm("<red>그런 상점이 없어요. <gray>(" + String.join(", ", config.ids()) + ")"));
                 return true;
             }
             Player target = args.length >= 2 ? Bukkit.getPlayerExact(args[1]) : (sender instanceof Player p ? p : null);
             if (target == null) {
-                sender.sendMessage(Text.mm("<red>상점을 열어 줄 플레이어를 찾을 수 없어요."));
+                Messages.send(sender,Text.mm("<red>상점을 열어 줄 플레이어를 찾을 수 없어요."));
                 return true;
             }
             open(target, shop, 0);
@@ -395,32 +397,32 @@ public final class ShopFeature implements Feature, Listener {
         @Override
         public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
             if (!sender.hasPermission("servercore.admin")) {
-                sender.sendMessage(Text.mm(plugin.msg("no-permission")));
+                Messages.send(sender,Text.mm(plugin.msg("no-permission")));
                 return true;
             }
             if (!(sender instanceof Player p)) {
-                sender.sendMessage("게임 안에서만 쓸 수 있어요.");
+                Messages.send(sender,"게임 안에서만 쓸 수 있어요.");
                 return true;
             }
             if (args.length >= 2 && args[0].equalsIgnoreCase("create")) {
                 ShopConfig.Shop shop = config.shop(args[1]);
                 if (shop == null) {
-                    p.sendMessage(Text.mm("<red>그런 상점이 없어요. <gray>(" + String.join(", ", config.ids()) + ")"));
+                    Messages.send(p,Text.mm("<red>그런 상점이 없어요. <gray>(" + String.join(", ", config.ids()) + ")"));
                     return true;
                 }
                 // 블록 가운데에 세우고, 지금 나를 바라보게
                 Location at = p.getLocation().getBlock().getLocation().add(0.5, 0, 0.5);
                 at.setYaw(p.getLocation().getYaw() + 180f);
                 at.setPitch(0f);
-                if(spawnNpc(at,shop)==null){p.sendMessage(Text.mm("<red>NPC 생성이 차단됐어요. 월드 보호 설정을 확인하세요."));return true;}
-                p.sendMessage(Text.mm("<green>상점 주인을 세웠어요: <white>" + shop.id()));
+                if(spawnNpc(at,shop)==null){Messages.send(p,Text.mm("<red>NPC 생성이 차단됐어요. 월드 보호 설정을 확인하세요."));return true;}
+                Messages.send(p,Text.mm("<green>상점 주인을 세웠어요: <white>" + shop.id()));
                 return true;
             }
             if (args.length >= 1 && args.length <= 2
                     && (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("face"))) {
                 String requestedShop = args.length == 2 ? args[1] : null;
                 if (requestedShop != null && config.shop(requestedShop) == null) {
-                    p.sendMessage(Text.mm("<red>그런 상점이 없어요. <gray>(" + String.join(", ", config.ids()) + ")"));
+                    Messages.send(p,Text.mm("<red>그런 상점이 없어요. <gray>(" + String.join(", ", config.ids()) + ")"));
                     return true;
                 }
                 Entity nearest = null;
@@ -435,16 +437,16 @@ public final class ShopFeature implements Feature, Listener {
                     }
                 }
                 if (nearest == null) {
-                    p.sendMessage(Text.mm("<red>5칸 안에 상점 주인이 없어요."));
+                    Messages.send(p,Text.mm("<red>5칸 안에 상점 주인이 없어요."));
                     return true;
                 }
                 String id = npcShop(nearest);
-                if(args[0].equalsIgnoreCase("face")){plugin.npcModels().face(nearest,p.getLocation().getYaw()+180);p.sendMessage(Text.mm("<green>상인 방향을 맞췄어요."));return true;}
+                if(args[0].equalsIgnoreCase("face")){plugin.npcModels().face(nearest,p.getLocation().getYaw()+180);Messages.send(p,Text.mm("<green>상인 방향을 맞췄어요."));return true;}
                 plugin.npcModels().remove(nearest);
-                p.sendMessage(Text.mm("<green>상점 주인을 없앴어요: <white>" + id));
+                Messages.send(p,Text.mm("<green>상점 주인을 없앴어요: <white>" + id));
                 return true;
             }
-            p.sendMessage(Text.mm("<gray>사용법: /" + label + " create <shop> | remove [shop] | face [shop]  <dark_gray>상점: " + String.join(", ", config.ids())));
+            Messages.send(p,Text.mm("<gray>사용법: /" + label + " create <shop> | remove [shop] | face [shop]  <dark_gray>상점: " + String.join(", ", config.ids())));
             return true;
         }
 

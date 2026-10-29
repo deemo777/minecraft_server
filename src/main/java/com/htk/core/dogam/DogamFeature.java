@@ -1,5 +1,7 @@
 package com.htk.core.dogam;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Placeholders;
@@ -91,7 +93,7 @@ public final class DogamFeature implements Feature, Listener {
 
     public void open(Player player, int page) {
         if (!player.hasPermission("servercore.dogam")) {
-            player.sendMessage(Text.mm(plugin.msg("no-permission")));
+            Messages.send(player,Text.mm(plugin.msg("no-permission")));
             return;
         }
         new DogamGui(this, player, page).open(player);
@@ -109,12 +111,12 @@ public final class DogamFeature implements Feature, Listener {
     public void click(Player player, CollectionRegistry.Entry entry, int page) {
         PlayerDataStore.PlayerData data = store.get(player.getUniqueId());
         if (data.has(entry.id())) {
-            player.sendMessage(Text.mm(msg("already-registered").replace("%entry%", entry.name())));
+            Messages.send(player,Text.mm(msg("already-registered").replace("%entry%", entry.name())));
             return;
         }
         int have = count(player, entry.material());
         if (have < entry.required()) {
-            player.sendMessage(Text.mm(msg("not-enough")
+            Messages.send(player,Text.mm(msg("not-enough")
                     .replace("%entry%", entry.name())
                     .replace("%required%", String.valueOf(entry.required()))
                     .replace("%have%", String.valueOf(have))));
@@ -130,7 +132,7 @@ public final class DogamFeature implements Feature, Listener {
         if (!data.add(entry.id())) return;
 
         int found = foundTotal(player), total = registry.all().size();
-        player.sendMessage(Text.mm(msg("registered")
+        Messages.send(player,Text.mm(msg("registered")
                 .replace("%entry%", entry.name())
                 .replace("%found%", String.valueOf(found))
                 .replace("%total%", String.valueOf(total))));
@@ -142,7 +144,7 @@ public final class DogamFeature implements Feature, Listener {
 
         CollectionRegistry.Category cat = registry.category(entry.categoryId());
         if (cat != null && !cat.entries().isEmpty() && foundIn(cat, data) == cat.entries().size()) {
-            player.sendMessage(Text.mm(msg("category-complete").replace("%category%", cat.name())));
+            Messages.send(player,Text.mm(msg("category-complete").replace("%category%", cat.name())));
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
             runRewards(player, cat.completeRewards());
         }

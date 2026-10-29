@@ -1,5 +1,7 @@
 package com.htk.core.economy;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Placeholders;
@@ -154,28 +156,28 @@ public final class EconomyFeature implements Feature, Listener, TabExecutor {
             return admin(sender, label, args);
         }
         if (!(sender instanceof Player p)) {
-            sender.sendMessage("사용법: /" + label + " give|take|set <player> <amount>");
+            Messages.send(sender,"사용법: /" + label + " give|take|set <player> <amount>");
             return true;
         }
         if (args.length == 0) {
-            p.sendMessage(Text.mm(msg("balance", "<gray>보유 골드: <#ffd34d>%balance%")
+            Messages.send(p,Text.mm(msg("balance", "<gray>보유 골드: <#ffd34d>%balance%")
                     .replace("%balance%", Economy.format(economy.balance(p.getUniqueId())))));
-            p.sendMessage(Text.mm("<dark_gray>/" + label + " <amount> 으로 골드 주머니를 꺼낼 수 있어요."));
+            Messages.send(p,Text.mm("<dark_gray>/" + label + " <amount> 으로 골드 주머니를 꺼낼 수 있어요."));
             return true;
         }
         long amount = parseAmount(args[0]);
         if (amount <= 0) {
-            p.sendMessage(Text.mm(msg("bad-amount", "<red>금액은 1 이상의 숫자로 적어 주세요. 예: /money 500")));
+            Messages.send(p,Text.mm(msg("bad-amount", "<red>금액은 1 이상의 숫자로 적어 주세요. 예: /money 500")));
             return true;
         }
         if (!economy.withdraw(p.getUniqueId(), amount)) {
-            p.sendMessage(Text.mm(msg("not-enough", "<red>골드가 부족해요. <gray>(보유 %balance%)")
+            Messages.send(p,Text.mm(msg("not-enough", "<red>골드가 부족해요. <gray>(보유 %balance%)")
                     .replace("%balance%", Economy.format(economy.balance(p.getUniqueId())))));
             return true;
         }
         p.getInventory().addItem(goldItem(amount)).values()
                 .forEach(left -> p.getWorld().dropItem(p.getLocation(), left));
-        p.sendMessage(Text.mm(msg("withdrawn", "<#ffd34d>%amount%<gray> 골드 주머니를 꺼냈어요. <dark_gray>(남은 골드 %balance%)")
+        Messages.send(p,Text.mm(msg("withdrawn", "<#ffd34d>%amount%<gray> 골드 주머니를 꺼냈어요. <dark_gray>(남은 골드 %balance%)")
                 .replace("%amount%", Economy.format(amount))
                 .replace("%balance%", Economy.format(economy.balance(p.getUniqueId())))));
         return true;
@@ -183,22 +185,22 @@ public final class EconomyFeature implements Feature, Listener, TabExecutor {
 
     private boolean admin(CommandSender sender, String label, String[] args) {
         if (!sender.hasPermission("servercore.admin")) {
-            sender.sendMessage(Text.mm(plugin.msg("no-permission")));
+            Messages.send(sender,Text.mm(plugin.msg("no-permission")));
             return true;
         }
         if (args.length < 3) {
-            sender.sendMessage(Text.mm("<gray>사용법: /" + label + " " + args[0] + " <player> <amount>"));
+            Messages.send(sender,Text.mm("<gray>사용법: /" + label + " " + args[0] + " <player> <amount>"));
             return true;
         }
         OfflinePlayer target = Bukkit.getPlayerExact(args[1]);
         if (target == null) target = Bukkit.getOfflinePlayerIfCached(args[1]);
         if (target == null) {
-            sender.sendMessage(Text.mm("<red>그 플레이어를 찾을 수 없어요. (한 번이라도 접속한 적이 있어야 해요)"));
+            Messages.send(sender,Text.mm("<red>그 플레이어를 찾을 수 없어요. (한 번이라도 접속한 적이 있어야 해요)"));
             return true;
         }
         long amount = parseAmount(args[2]);
         if (amount < 0 || (amount == 0 && !args[0].equalsIgnoreCase("set"))) {
-            sender.sendMessage(Text.mm("<red>금액을 숫자로 적어 주세요."));
+            Messages.send(sender,Text.mm("<red>금액을 숫자로 적어 주세요."));
             return true;
         }
         var id = target.getUniqueId();
@@ -208,7 +210,7 @@ public final class EconomyFeature implements Feature, Listener, TabExecutor {
             case "take" -> economy.set(id, Math.max(0, economy.balance(id) - amount));
             default -> economy.set(id, amount);
         }
-        sender.sendMessage(Text.mm("<green>" + target.getName() + "의 골드: <#ffd34d>" + Economy.format(economy.balance(id))));
+        Messages.send(sender,Text.mm("<green>" + target.getName() + "의 골드: <#ffd34d>" + Economy.format(economy.balance(id))));
         return true;
     }
 

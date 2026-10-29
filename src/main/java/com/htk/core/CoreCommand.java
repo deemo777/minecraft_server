@@ -1,5 +1,7 @@
 package com.htk.core;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.common.Text;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -25,37 +27,37 @@ public final class CoreCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("servercore.admin")) {
-            sender.sendMessage(Text.mm(plugin.msg("no-permission")));
+            Messages.send(sender,Text.mm(plugin.msg("no-permission")));
             return true;
         }
         if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
             plugin.reloadAll();
-            sender.sendMessage(Text.mm(plugin.msg("reloaded")));
+            Messages.send(sender,Text.mm(plugin.msg("reloaded")));
             return true;
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("setpoint")) {
             if (!(sender instanceof Player p)) {
-                sender.sendMessage("게임 안에서만 쓸 수 있어요.");
+                Messages.send(sender,"게임 안에서만 쓸 수 있어요.");
                 return true;
             }
             plugin.points().set(args[1], p.getLocation());
             var l = p.getLocation();
-            sender.sendMessage(Text.mm("<green>이동 지점 <white>" + args[1].toLowerCase() + "</white> 저장: <gray>"
+            Messages.send(sender,Text.mm("<green>이동 지점 <white>" + args[1].toLowerCase() + "</white> 저장: <gray>"
                     + l.getWorld().getName() + " " + l.getBlockX() + ", " + l.getBlockY() + ", " + l.getBlockZ()));
             return true;
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("delpoint")) {
             boolean ok = plugin.points().remove(args[1]);
-            sender.sendMessage(Text.mm(ok ? "<green>이동 지점을 지웠어요." : "<red>그런 이동 지점이 없어요."));
+            Messages.send(sender,Text.mm(ok ? "<green>이동 지점을 지웠어요." : "<red>그런 이동 지점이 없어요."));
             return true;
         }
         if (args.length == 1 && args[0].equalsIgnoreCase("points")) {
             var names = plugin.points().names();
-            sender.sendMessage(Text.mm(names.isEmpty() ? "<gray>저장된 이동 지점이 없어요."
+            Messages.send(sender,Text.mm(names.isEmpty() ? "<gray>저장된 이동 지점이 없어요."
                     : "<gray>이동 지점: <white>" + String.join(", ", names)));
             return true;
         }
-        sender.sendMessage(Text.mm("<gray>사용법: /" + label + " reload | setpoint <name> | delpoint <name> | points"));
+        Messages.send(sender,Text.mm("<gray>사용법: /" + label + " reload | setpoint <name> | delpoint <name> | points"));
         return true;
     }
 

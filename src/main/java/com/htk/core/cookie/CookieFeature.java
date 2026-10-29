@@ -1,5 +1,7 @@
 package com.htk.core.cookie;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Glyphs;
@@ -73,7 +75,7 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
             else if (slot.isSimilar(item)) space += Math.max(0, Math.min(slot.getMaxStackSize(), p.getInventory().getMaxStackSize()) - slot.getAmount());
         }
         if (space < item.getAmount()) {
-            p.sendMessage(Text.mm("<red>쿠키 16개를 받을 인벤토리 공간이 필요해요."));
+            Messages.send(p,Text.mm("<red>쿠키 16개를 받을 인벤토리 공간이 필요해요."));
             return;
         }
         p.getInventory().addItem(item);
@@ -87,27 +89,27 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
     @EventHandler public void damage(EntityDamageEvent e) { if (isNpc(e.getEntity())) e.setCancelled(true); }
     @EventHandler public void transform(EntityTransformEvent e) { if (isNpc(e.getEntity())) e.setCancelled(true); }
     @Override public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (!sender.hasPermission("servercore.admin")) { sender.sendMessage(Text.mm("<red>관리자만 사용할 수 있어요.")); return true; }
-        if (!(sender instanceof Player p)) { sender.sendMessage("플레이어가 실행해 주세요."); return true; }
+        if (!sender.hasPermission("servercore.admin")) { Messages.send(sender,Text.mm("<red>관리자만 사용할 수 있어요.")); return true; }
+        if (!(sender instanceof Player p)) { Messages.send(sender,"플레이어가 실행해 주세요."); return true; }
         if (args.length == 1 && args[0].equalsIgnoreCase("create")) {
             Location at = p.getLocation();
             at.setX(at.getBlockX() + .5); at.setZ(at.getBlockZ() + .5);
             at.setYaw(at.getYaw() + 180); at.setPitch(0);
             Interaction npc = spawnChef(at);
-            p.sendMessage(Text.mm(npc != null ? "<green>deemo777 요리사를 만들었어요. 우클릭하면 쿠키 16개를 받아요." :
+            Messages.send(p,Text.mm(npc != null ? "<green>deemo777 요리사를 만들었어요. 우클릭하면 쿠키 16개를 받아요." :
                     "<red>NPC 생성이 차단됐어요. 월드 보호 설정을 확인해 주세요."));
         } else if (args.length == 1 && (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("face"))) {
             Entity npc = p.getWorld().getNearbyEntities(p.getLocation(), 5, 5, 5).stream()
                     .filter(this::isNpc).filter(e -> e.getLocation().distanceSquared(p.getLocation()) <= 25)
                     .min(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(p.getLocation()))).orElse(null);
-            if (npc == null) p.sendMessage(Text.mm("<red>5블록 안에 쿠키 NPC가 없어요."));
+            if (npc == null) Messages.send(p,Text.mm("<red>5블록 안에 쿠키 NPC가 없어요."));
             else if (args[0].equalsIgnoreCase("face")) {
                 npc.getPersistentDataContainer().set(yawKey, PersistentDataType.FLOAT, p.getLocation().getYaw() + 180f);
                 ensureVisual(npc);
-                p.sendMessage(Text.mm("<green>요리사의 방향을 현재 시선의 반대로 맞췄어요."));
+                Messages.send(p,Text.mm("<green>요리사의 방향을 현재 시선의 반대로 맞췄어요."));
             }
-            else { removeVisual(npc); npc.remove(); p.sendMessage(Text.mm("<green>쿠키 NPC를 제거했어요.")); }
-        } else p.sendMessage(Text.mm("<gray>/cookienpc create | remove | face"));
+            else { removeVisual(npc); npc.remove(); Messages.send(p,Text.mm("<green>쿠키 NPC를 제거했어요.")); }
+        } else Messages.send(p,Text.mm("<gray>/cookienpc create | remove | face"));
         return true;
     }
     @EventHandler(priority = EventPriority.HIGHEST)

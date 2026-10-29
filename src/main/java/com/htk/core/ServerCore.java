@@ -1,5 +1,7 @@
 package com.htk.core;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.common.Feature;
 import com.htk.core.common.GuiListener;
 import com.htk.core.common.Placeholders;
@@ -130,7 +132,7 @@ public final class ServerCore extends JavaPlugin {
     /** 꺼진 기능의 명령어를 입력했을 때 (켜진 기능은 각자 명령어를 가져가요) */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        sender.sendMessage(Text.mm(msg("feature-disabled")));
+        Messages.send(sender,Text.mm(msg("feature-disabled")));
         return true;
     }
 

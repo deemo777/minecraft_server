@@ -1,5 +1,7 @@
 package com.htk.core.tools;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Glyphs;
@@ -412,7 +414,7 @@ public final class VillageToolFeature implements Feature, Listener {
         @Override
         public boolean onCommand(CommandSender s, Command command, String label, String[] args) {
             if (!s.hasPermission("servercore.admin")) {
-                s.sendMessage(Text.mm(plugin.msg("no-permission")));
+                Messages.send(s,Text.mm(plugin.msg("no-permission")));
                 return true;
             }
             String sub = args.length == 0 ? "" : args[0].toLowerCase();
@@ -420,8 +422,8 @@ public final class VillageToolFeature implements Feature, Listener {
                 case "give" -> give(s, label, args);
                 case "level" -> level(s, label, args);
                 default -> {
-                    s.sendMessage(Text.mm("<gray>/" + label + " give <type> [level] [player]  <dark_gray>— 종류: pickaxe axe hoe fishing_rod watering_can"));
-                    s.sendMessage(Text.mm("<gray>/" + label + " level <level>  <dark_gray>— 손에 든 마을 도구의 강화 단계 바꾸기"));
+                    Messages.send(s,Text.mm("<gray>/" + label + " give <type> [level] [player]  <dark_gray>— 종류: pickaxe axe hoe fishing_rod watering_can"));
+                    Messages.send(s,Text.mm("<gray>/" + label + " level <level>  <dark_gray>— 손에 든 마을 도구의 강화 단계 바꾸기"));
                 }
             }
             return true;
@@ -430,7 +432,7 @@ public final class VillageToolFeature implements Feature, Listener {
         private void give(CommandSender s, String label, String[] args) {
             ToolType type = args.length >= 2 ? ToolType.parse(args[1]) : null;
             if (type == null) {
-                s.sendMessage(Text.mm("<red>종류를 적어 주세요. 예: /" + label + " give 곡괭이 5"));
+                Messages.send(s,Text.mm("<red>종류를 적어 주세요. 예: /" + label + " give 곡괭이 5"));
                 return;
             }
             int lv = 0;
@@ -438,40 +440,40 @@ public final class VillageToolFeature implements Feature, Listener {
                 try {
                     lv = Integer.parseInt(args[2]);
                 } catch (NumberFormatException ex) {
-                    s.sendMessage(Text.mm("<red>단계는 숫자로 적어 주세요. (0~" + maxLevel + ")"));
+                    Messages.send(s,Text.mm("<red>단계는 숫자로 적어 주세요. (0~" + maxLevel + ")"));
                     return;
                 }
             }
             Player to = args.length >= 4 ? Bukkit.getPlayerExact(args[3]) : (s instanceof Player p ? p : null);
             if (to == null) {
-                s.sendMessage(Text.mm("<red>받을 플레이어를 찾을 수 없어요."));
+                Messages.send(s,Text.mm("<red>받을 플레이어를 찾을 수 없어요."));
                 return;
             }
             ItemStack it = createTool(type, lv);
             to.getInventory().addItem(it).values().forEach(left -> to.getWorld().dropItem(to.getLocation(), left));
-            s.sendMessage(Text.mm("<green>" + to.getName() + "에게 마을 " + type.korean + " +" + levelOf(it) + " 을(를) 줬어요."));
+            Messages.send(s,Text.mm("<green>" + to.getName() + "에게 마을 " + type.korean + " +" + levelOf(it) + " 을(를) 줬어요."));
         }
 
         private void level(CommandSender s, String label, String[] args) {
             if (!(s instanceof Player p)) {
-                s.sendMessage(Text.mm("<red>게임 안에서 손에 도구를 들고 써 주세요."));
+                Messages.send(s,Text.mm("<red>게임 안에서 손에 도구를 들고 써 주세요."));
                 return;
             }
             ItemStack hand = p.getInventory().getItemInMainHand();
             if (!isTool(hand)) {
-                s.sendMessage(Text.mm(msg("not-tool", "<red>손에 마을 도구를 들어 주세요.")));
+                Messages.send(s,Text.mm(msg("not-tool", "<red>손에 마을 도구를 들어 주세요.")));
                 return;
             }
             int lv;
             try {
                 lv = Integer.parseInt(args.length >= 2 ? args[1] : "");
             } catch (NumberFormatException ex) {
-                s.sendMessage(Text.mm("<red>단계를 숫자로 적어 주세요. 예: /" + label + " level 10"));
+                Messages.send(s,Text.mm("<red>단계를 숫자로 적어 주세요. 예: /" + label + " level 10"));
                 return;
             }
             setLevel(hand, lv);
             p.getInventory().setItemInMainHand(hand);
-            s.sendMessage(Text.mm("<green>강화 단계를 +" + levelOf(hand) + "(으)로 바꿨어요."));
+            Messages.send(s,Text.mm("<green>강화 단계를 +" + levelOf(hand) + "(으)로 바꿨어요."));
         }
 
         @Override

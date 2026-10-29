@@ -1,5 +1,7 @@
 package com.htk.core.menu;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.common.Glyphs;
 import com.htk.core.common.Gui;
 import com.htk.core.common.Items;
@@ -52,7 +54,7 @@ public final class MenuGui extends Gui {
         var loc = plugin.points().get(point);
         if (loc == null) {
             String world = plugin.points().worldName(point);
-            player.sendMessage(Text.mm(world == null
+            Messages.send(player,Text.mm(world == null
                     ? plugin.msg("point-not-set").replace("%point%", point)
                     : plugin.msg("point-world-missing").replace("%world%", world)));
             return;
@@ -74,7 +76,7 @@ public final class MenuGui extends Gui {
         } else if (!b.teleport().isBlank()) {
             teleport(player, b);
         } else if (b.comingSoon()) {
-            player.sendMessage(Text.mm(feature.plugin().msg("coming-soon")));
+            Messages.send(player,Text.mm(feature.plugin().msg("coming-soon")));
         } else if (!b.command().isBlank()) {
             runNextTick(player, b.command());
         }

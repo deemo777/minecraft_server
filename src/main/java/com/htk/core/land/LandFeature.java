@@ -1,5 +1,7 @@
 package com.htk.core.land;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Text;
@@ -144,7 +146,7 @@ public final class LandFeature implements Feature, Listener {
     }
 
     void send(Player p, String key, String def) {
-        p.sendMessage(Text.mm(msg(key, def)));
+        Messages.send(p,Text.mm(msg(key, def)));
     }
 
     // ---------------- 다른 기능에서 쓰는 것 ----------------
@@ -267,7 +269,7 @@ public final class LandFeature implements Feature, Listener {
         }
         Land other = store.at(l);
         if (other != null) {
-            p.sendMessage(Text.mm(msg("taken", "<red>%owner%님의 땅이에요.").replace("%owner%", other.ownerName)));
+            Messages.send(p,Text.mm(msg("taken", "<red>%owner%님의 땅이에요.").replace("%owner%", other.ownerName)));
             return false;
         }
         if (!zones.allows(core.getX() >> 4, core.getZ() >> 4)) {
@@ -300,9 +302,9 @@ public final class LandFeature implements Feature, Listener {
         store.save();
         // 놓인 블록을 다음 틱에 "보이지 않는 단단한 블록 + 집 모형"으로 바꿔요
         Bukkit.getScheduler().runTask(plugin, () -> placeCoreVisual(land));
-        p.sendMessage(Text.mm(msg("claimed", "<#7acb52>🏠 여기를 내 집으로 정했어요! <gray>집터를 우클릭하면 집 지도가 열려요.")));
+        Messages.send(p,Text.mm(msg("claimed", "<#7acb52>🏠 여기를 내 집으로 정했어요! <gray>집터를 우클릭하면 집 지도가 열려요.")));
         if (land.debt > 0) sendDebt(p, land);
-        p.sendMessage(Text.mm("<gray>2×2 부지 4청크를 확보했어요. <white>집터 청크만 사용 가능<gray>하며, 빚을 갚고 나머지를 한 칸씩 해방해요."));
+        Messages.send(p,Text.mm("<gray>2×2 부지 4청크를 확보했어요. <white>집터 청크만 사용 가능<gray>하며, 빚을 갚고 나머지를 한 칸씩 해방해요."));
         showBorder(p, land);
         return true;
     }
@@ -312,13 +314,13 @@ public final class LandFeature implements Feature, Listener {
         Land land = store.of(p.getUniqueId());
         if (land == null) return false;
         if (land.debt > 0) {
-            p.sendMessage(Text.mm(msg("pay-first", "<red>빚 %debt%을 먼저 갚아야 해방할 수 있어요.")
+            Messages.send(p,Text.mm(msg("pay-first", "<red>빚 %debt%을 먼저 갚아야 해방할 수 있어요.")
                     .replace("%debt%", Economy.format(land.debt))));
             return false;
         }
         long cost = nextExpandCost(land);
         if (cost < 0) {
-            p.sendMessage(Text.mm(msg("max", "<gray>더 이상 해방할 수 없어요. (최대 %max%청크)")
+            Messages.send(p,Text.mm(msg("max", "<gray>더 이상 해방할 수 없어요. (최대 %max%청크)")
                     .replace("%max%", String.valueOf(maxChunks))));
             return false;
         }
@@ -327,7 +329,7 @@ public final class LandFeature implements Feature, Listener {
             return false;
         }
         store.addChunk(land, cx, cz, cost);
-        p.sendMessage(Text.mm(msg("expanded", "<#7acb52>🏠 청크를 해방했어요! <gray>(%size%/%max%청크)")
+        Messages.send(p,Text.mm(msg("expanded", "<#7acb52>🏠 청크를 해방했어요! <gray>(%size%/%max%청크)")
                 .replace("%size%", String.valueOf(land.size())).replace("%max%", String.valueOf(maxChunks))));
         sendDebt(p, land);
         showBorder(p, land);
@@ -349,16 +351,16 @@ public final class LandFeature implements Feature, Listener {
         }
         long pay = land.debt;
         if (DebtSettlement.settle(pay,economy.balance(p.getUniqueId()),value->economy.withdraw(p.getUniqueId(),value)) != DebtSettlement.Result.PAID) {
-            p.sendMessage(Text.mm("<red>돈이 부족합니다. 빚은 한 번에 전부 갚아야 해요."));return;
+            Messages.send(p,Text.mm("<red>돈이 부족합니다. 빚은 한 번에 전부 갚아야 해요."));return;
         }
         land.debt = 0;
         store.save();
-        p.sendMessage(Text.mm(msg("paid-off", "<#ffd34d>🎉 빚을 다 갚았어요! <gray>(%paid% 냄) 이제 땅을 더 해방할 수 있어요.")
+        Messages.send(p,Text.mm(msg("paid-off", "<#ffd34d>🎉 빚을 다 갚았어요! <gray>(%paid% 냄) 이제 땅을 더 해방할 수 있어요.")
                 .replace("%paid%", Economy.format(pay))));
     }
 
     void sendDebt(Player p, Land land) {
-        p.sendMessage(Text.mm(msg("debt", "<gray>빚: <#ffd34d>%debt%</#ffd34d> <dark_gray>(로비의 이장님께 갚아요)")
+        Messages.send(p,Text.mm(msg("debt", "<gray>빚: <#ffd34d>%debt%</#ffd34d> <dark_gray>(로비의 이장님께 갚아요)")
                 .replace("%debt%", Economy.format(land.debt))));
     }
 
@@ -406,10 +408,10 @@ public final class LandFeature implements Feature, Listener {
         if (target.getUniqueId().equals(p.getUniqueId())) return false;
         land.members.add(target.getUniqueId());
         store.save();
-        p.sendMessage(Text.mm(msg("trusted", "<#7acb52>%name%님을 이웃으로 허가했어요. <gray>(내 땅에서 전부 할 수 있어요)")
+        Messages.send(p,Text.mm(msg("trusted", "<#7acb52>%name%님을 이웃으로 허가했어요. <gray>(내 땅에서 전부 할 수 있어요)")
                 .replace("%name%", String.valueOf(target.getName()))));
         Player online = target.getPlayer();
-        if (online != null) online.sendMessage(Text.mm(msg("trusted-you", "<#7acb52>%owner%님이 집 이웃으로 허가해 줬어요.")
+        if (online != null) Messages.send(online,Text.mm(msg("trusted-you", "<#7acb52>%owner%님이 집 이웃으로 허가해 줬어요.")
                 .replace("%owner%", p.getName())));
         return true;
     }
@@ -418,7 +420,7 @@ public final class LandFeature implements Feature, Listener {
         Land land = store.of(p.getUniqueId());
         if (land == null || !land.members.remove(target)) return false;
         store.save();
-        p.sendMessage(Text.mm(msg("untrusted", "<gray>%name%님의 허가를 없앴어요.").replace("%name%", String.valueOf(name))));
+        Messages.send(p,Text.mm(msg("untrusted", "<gray>%name%님의 허가를 없앴어요.").replace("%name%", String.valueOf(name))));
         return true;
     }
 
@@ -437,12 +439,12 @@ public final class LandFeature implements Feature, Listener {
     void adminDelete(org.bukkit.command.CommandSender s, OfflinePlayer target) {
         Land land = store.of(target.getUniqueId());
         if (land == null) {
-            s.sendMessage(Text.mm("<red>그 플레이어는 땅이 없어요."));
+            Messages.send(s,Text.mm("<red>그 플레이어는 땅이 없어요."));
             return;
         }
         removeCoreBlock(land);
         store.remove(land);
-        s.sendMessage(Text.mm("<green>" + land.ownerName + "의 땅을 지웠어요. (집터 블록도 없앰)"));
+        Messages.send(s,Text.mm("<green>" + land.ownerName + "의 땅을 지웠어요. (집터 블록도 없앰)"));
     }
 
     // ---------------- 집터 블록 ----------------
@@ -701,7 +703,7 @@ public final class LandFeature implements Feature, Listener {
         Land land = store.of(p.getUniqueId());
         if (land == null) return;
         if (land.debt > 0) {
-            p.sendMessage(Text.mm(msg("pay-first", "<red>빚 %debt%을 먼저 갚아야 해방할 수 있어요.")
+            Messages.send(p,Text.mm(msg("pay-first", "<red>빚 %debt%을 먼저 갚아야 해방할 수 있어요.")
                     .replace("%debt%", Economy.format(land.debt))));
             return;
         }
@@ -750,8 +752,8 @@ public final class LandFeature implements Feature, Listener {
                 .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/land cancel"));
         Component again = Text.mm(msg("btn-expand-again", "<gray>[↻ 다시 보기]"))
                 .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/land preview"));
-        p.sendMessage(Text.mm(msg("expand-ask", "<#ffd34d>🏠 노란 선 안으로 해방할까요? <gray>(빚 +%cost%)").replace("%cost%", cost)));
-        p.sendMessage(yes.append(Component.text("   ")).append(no).append(Component.text("   ")).append(again));
+        Messages.send(p,Text.mm(msg("expand-ask", "<#ffd34d>🏠 노란 선 안으로 해방할까요? <gray>(빚 +%cost%)").replace("%cost%", cost)));
+        Messages.send(p,yes.append(Component.text("   ")).append(no).append(Component.text("   ")).append(again));
     }
 
     void confirmExpand(Player p) {
@@ -790,8 +792,8 @@ public final class LandFeature implements Feature, Listener {
         for (long k : zones.all())
             if (Math.abs(Land.cx(k) - pcx) <= 8 && Math.abs(Land.cz(k) - pcz) <= 8) near.add(k);
         if (near.isEmpty() || !border.show(p, w, List.of(new BorderDisplay.Layer(near, BorderDisplay.Style.ZONE)), 30))
-            p.sendMessage(Text.mm("<gray>근처(반경 8청크)에 집 구역이 없어요."));
-        else p.sendMessage(Text.mm("<#6aa8e0>하늘색 선 안이 집 구역이에요. <gray>(30초)"));
+            Messages.send(p,Text.mm("<gray>근처(반경 8청크)에 집 구역이 없어요."));
+        else Messages.send(p,Text.mm("<#6aa8e0>하늘색 선 안이 집 구역이에요. <gray>(30초)"));
     }
 
     // ---------------- 관리자: 청크 붙이기·떼기, 빚 정하기 ----------------
@@ -800,26 +802,26 @@ public final class LandFeature implements Feature, Listener {
     void adminAddChunk(Player admin, OfflinePlayer target) {
         Land land = store.of(target.getUniqueId());
         if (land == null) {
-            admin.sendMessage(Text.mm("<red>그 플레이어는 집이 없어요."));
+            Messages.send(admin,Text.mm("<red>그 플레이어는 집이 없어요."));
             return;
         }
         Location l = admin.getLocation();
         if (!l.getWorld().getName().equals(land.world)) {
-            admin.sendMessage(Text.mm("<red>그 사람 집이 있는 월드(" + land.world + ")에서 해 주세요."));
+            Messages.send(admin,Text.mm("<red>그 사람 집이 있는 월드(" + land.world + ")에서 해 주세요."));
             return;
         }
         int cx = l.getBlockX() >> 4, cz = l.getBlockZ() >> 4;
         Land other = store.at(l);
         if (!land.fixedPlot() || !land.plot.contains(Land.key(cx, cz)) || land.has(cx, cz)) {
-            admin.sendMessage(Text.mm("<red>이 집의 2×2 부지 안에 있는 잠긴 청크에서만 해방할 수 있어요."));
+            Messages.send(admin,Text.mm("<red>이 집의 2×2 부지 안에 있는 잠긴 청크에서만 해방할 수 있어요."));
             return;
         }
         if (other != null && other != land) {
-            admin.sendMessage(Text.mm("<red>이미 " + other.ownerName + "님의 땅이에요."));
+            Messages.send(admin,Text.mm("<red>이미 " + other.ownerName + "님의 땅이에요."));
             return;
         }
         store.addChunk(land, cx, cz);
-        admin.sendMessage(Text.mm("<green>" + land.ownerName + "님 땅에 이 청크를 붙였어요. <gray>(" + land.size() + "청크, 빚은 그대로)"));
+        Messages.send(admin,Text.mm("<green>" + land.ownerName + "님 땅에 이 청크를 붙였어요. <gray>(" + land.size() + "청크, 빚은 그대로)"));
         border.show(admin, l.getWorld(), List.of(new BorderDisplay.Layer(land.chunks, BorderDisplay.Style.MINE)), 15);
     }
 
@@ -827,35 +829,35 @@ public final class LandFeature implements Feature, Listener {
     void adminRemoveChunk(Player admin, OfflinePlayer target) {
         Land land = store.of(target.getUniqueId());
         if (land == null) {
-            admin.sendMessage(Text.mm("<red>그 플레이어는 집이 없어요."));
+            Messages.send(admin,Text.mm("<red>그 플레이어는 집이 없어요."));
             return;
         }
         Location l = admin.getLocation();
         int cx = l.getBlockX() >> 4, cz = l.getBlockZ() >> 4;
         if (!l.getWorld().getName().equals(land.world) || !land.has(cx, cz)) {
-            admin.sendMessage(Text.mm("<red>지금 서 있는 청크는 " + land.ownerName + "님의 땅이 아니에요."));
+            Messages.send(admin,Text.mm("<red>지금 서 있는 청크는 " + land.ownerName + "님의 땅이 아니에요."));
             return;
         }
         boolean coreChunk = land.firstChunk() == Land.key(cx, cz)
                 || (land.hasCore && (land.coreX >> 4) == cx && (land.coreZ >> 4) == cz);
         if (coreChunk) {
-            admin.sendMessage(Text.mm("<red>집터가 있는 청크는 뗄 수 없어요. <gray>(집 전체를 지우려면 /land delete " + land.ownerName + ")"));
+            Messages.send(admin,Text.mm("<red>집터가 있는 청크는 뗄 수 없어요. <gray>(집 전체를 지우려면 /land delete " + land.ownerName + ")"));
             return;
         }
         store.removeChunk(land, cx, cz);
-        admin.sendMessage(Text.mm("<green>" + land.ownerName + "님 땅에서 이 청크를 뗐어요. <gray>(" + land.size() + "청크, 빚은 그대로)"));
+        Messages.send(admin,Text.mm("<green>" + land.ownerName + "님 땅에서 이 청크를 뗐어요. <gray>(" + land.size() + "청크, 빚은 그대로)"));
         border.show(admin, l.getWorld(), List.of(new BorderDisplay.Layer(land.chunks, BorderDisplay.Style.MINE)), 15);
     }
 
     void adminSetDebt(org.bukkit.command.CommandSender s, OfflinePlayer target, long debt) {
         Land land = store.of(target.getUniqueId());
         if (land == null) {
-            s.sendMessage(Text.mm("<red>그 플레이어는 집이 없어요."));
+            Messages.send(s,Text.mm("<red>그 플레이어는 집이 없어요."));
             return;
         }
         land.debt = Math.max(0, debt);
         store.save();
-        s.sendMessage(Text.mm("<green>" + land.ownerName + "님의 빚을 " + Economy.format(land.debt) + "으로 정했어요."));
+        Messages.send(s,Text.mm("<green>" + land.ownerName + "님의 빚을 " + Economy.format(land.debt) + "으로 정했어요."));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

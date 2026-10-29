@@ -1,5 +1,7 @@
 package com.htk.core.skill;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.common.Text;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -29,7 +31,7 @@ final class HonorCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player p)) {
-            sender.sendMessage("게임 안에서만 쓸 수 있어요.");
+            Messages.send(sender,"게임 안에서만 쓸 수 있어요.");
             return true;
         }
         UUID id = p.getUniqueId();
@@ -37,21 +39,21 @@ final class HonorCommand implements TabExecutor {
             String arg = args[0].toLowerCase();
             if (arg.equals("off") || arg.equals("끄기")) {
                 f.equipTitle(p, "");
-                p.sendMessage(Text.mm("<gray>칭호를 뗐어요."));
+                Messages.send(p,Text.mm("<gray>칭호를 뗐어요."));
                 return true;
             }
             SkillFeature.HonorTitle t = f.title(arg);
             if (t == null || !f.hasTitle(id, t.id())) {
-                p.sendMessage(Text.mm("<red>아직 받지 않은 칭호예요."));
+                Messages.send(p,Text.mm("<red>아직 받지 않은 칭호예요."));
                 return true;
             }
             f.equipTitle(p, t.id());
-            p.sendMessage(Text.mm("<gray>칭호를 <white>" + t.text() + "</white><gray>(으)로 바꿨어요."));
+            Messages.send(p,Text.mm("<gray>칭호를 <white>" + t.text() + "</white><gray>(으)로 바꿨어요."));
             return true;
         }
 
         String equipped = f.equippedTitle(id);
-        p.sendMessage(Text.mm("<#ffd34d><bold>🏅 내 칭호</bold> <gray>(눌러서 달기)"));
+        Messages.send(p,Text.mm("<#ffd34d><bold>🏅 내 칭호</bold> <gray>(눌러서 달기)"));
         boolean any = false;
         for (Skill s : Skill.values()) {
             Component line = Text.mm("<gray>" + s.korean + " ");
@@ -72,10 +74,10 @@ final class HonorCommand implements TabExecutor {
                 line = line.append(Text.mm(first ? "" : "<dark_gray> · ")).append(part);
                 first = false;
             }
-            p.sendMessage(line);
+            Messages.send(p,line);
         }
-        if (!any) p.sendMessage(Text.mm("<gray>아직 받은 칭호가 없어요. 아무 분야나 10레벨이 되면 받아요."));
-        else p.sendMessage(Text.mm("<dark_gray>[칭호 떼기]").clickEvent(ClickEvent.runCommand("/honor off")));
+        if (!any) Messages.send(p,Text.mm("<gray>아직 받은 칭호가 없어요. 아무 분야나 10레벨이 되면 받아요."));
+        else Messages.send(p,Text.mm("<dark_gray>[칭호 떼기]").clickEvent(ClickEvent.runCommand("/honor off")));
         return true;
     }
 

@@ -1,5 +1,7 @@
 package com.htk.core.guide;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Placeholders;
@@ -51,11 +53,11 @@ public final class GuideFeature implements Feature, Listener {
         if (cmd != null) {
             cmd.setExecutor((sender, command, label, args) -> {
                 if (!(sender instanceof Player p)) {
-                    sender.sendMessage("게임 안에서만 쓸 수 있어요.");
+                    Messages.send(sender,"게임 안에서만 쓸 수 있어요.");
                     return true;
                 }
                 give(p);
-                p.sendMessage(Text.mm(msg("given", "<#f3c060>📖 <gray>서버 안내서를 받았어요. 손에 들고 우클릭해서 읽어 보세요!")));
+                Messages.send(p,Text.mm(msg("given", "<#f3c060>📖 <gray>서버 안내서를 받았어요. 손에 들고 우클릭해서 읽어 보세요!")));
                 return true;
             });
         }
@@ -109,7 +111,7 @@ public final class GuideFeature implements Feature, Listener {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!p.isOnline()) return;
             give(p);
-            p.sendMessage(Text.mm(msg("first-join", "<#f3c060>📖 <gray>서버 안내서를 받았어요! 손에 들고 우클릭해서 먼저 읽어 주세요. <dark_gray>(다시 받기: /guide)")));
+            Messages.send(p,Text.mm(msg("first-join", "<#f3c060>📖 <gray>서버 안내서를 받았어요! 손에 들고 우클릭해서 먼저 읽어 주세요. <dark_gray>(다시 받기: /guide)")));
         }, 60L);
     }
 }

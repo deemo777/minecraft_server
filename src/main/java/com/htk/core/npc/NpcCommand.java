@@ -1,5 +1,7 @@
 package com.htk.core.npc;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Text;
 import com.htk.core.merchant.WeaponMerchantFeature;
@@ -29,7 +31,7 @@ public final class NpcCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("servercore.admin")) {
-            sender.sendMessage(Text.mm(plugin.msg("no-permission")));
+            Messages.send(sender,Text.mm(plugin.msg("no-permission")));
             return true;
         }
         if (args.length == 0) return usage(sender);
@@ -75,11 +77,11 @@ public final class NpcCommand implements TabExecutor {
 
         PluginCommand target = plugin.getCommand(commandName);
         if (target == null) {
-            sender.sendMessage(Text.mm("<red>NPC 기능 명령을 찾을 수 없어요."));
+            Messages.send(sender,Text.mm("<red>NPC 기능 명령을 찾을 수 없어요."));
             return true;
         }
         if (target.getExecutor() == null) {
-            sender.sendMessage(Text.mm("<red>해당 NPC 기능이 꺼져 있어요."));
+            Messages.send(sender,Text.mm("<red>해당 NPC 기능이 꺼져 있어요."));
             return true;
         }
         return target.getExecutor().onCommand(sender, target, label, forwarded);
@@ -97,9 +99,9 @@ public final class NpcCommand implements TabExecutor {
     }
 
     private boolean usage(CommandSender sender) {
-        sender.sendMessage(Text.mm("<gray>사용법: /npc <create|remove|face> <type>"));
-        sender.sendMessage(Text.mm("<gray>첫 대화 초기화: /npc reset mayor <player>"));
-        sender.sendMessage(Text.mm("<dark_gray>종류: " + String.join(", ", availableTypes())));
+        Messages.send(sender,Text.mm("<gray>사용법: /npc <create|remove|face> <type>"));
+        Messages.send(sender,Text.mm("<gray>첫 대화 초기화: /npc reset mayor <player>"));
+        Messages.send(sender,Text.mm("<dark_gray>종류: " + String.join(", ", availableTypes())));
         return true;
     }
 }

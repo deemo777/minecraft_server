@@ -1,5 +1,7 @@
 package com.htk.core.hud;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Glyphs;
@@ -153,7 +155,7 @@ public final class HudFeature implements Feature, Listener {
                 if (args.length >= 2) {
                     Integer n = parse(args[1]);
                     if (n == null || n <= 0) {
-                        p.sendMessage(Text.mm("<red>칸 수는 1 이상 숫자로 적어 주세요. 예) /" + label + " " + sub + " 5"));
+                        Messages.send(p,Text.mm("<red>칸 수는 1 이상 숫자로 적어 주세요. 예) /" + label + " " + sub + " 5"));
                         return;
                     }
                     step = n;
@@ -163,7 +165,7 @@ public final class HudFeature implements Feature, Listener {
             case "pos" -> {
                 Integer n = args.length >= 2 ? parse(args[1]) : null;
                 if (n == null) {
-                    p.sendMessage(Text.mm("<gray>지금 위치: <white>" + offset(p)
+                    Messages.send(p,Text.mm("<gray>지금 위치: <white>" + offset(p)
                             + "</white>  (바꾸려면 /" + label + " pos <number>, 서버 기본 " + offsetX + ")"));
                     return;
                 }
@@ -172,9 +174,9 @@ public final class HudFeature implements Feature, Listener {
             case "reset" -> {
                 pdc.remove(offsetKey);
                 update(p);
-                p.sendMessage(Text.mm("<green>HUD 위치를 기본값(" + offsetX + ")으로 되돌렸어요."));
+                Messages.send(p,Text.mm("<green>HUD 위치를 기본값(" + offsetX + ")으로 되돌렸어요."));
             }
-            default -> p.sendMessage(Text.mm("<gray>사용법: /" + label
+            default -> Messages.send(p,Text.mm("<gray>사용법: /" + label
                     + " [on|off] | left [steps] | right [steps] | pos <number> | reset"));
         }
     }
@@ -184,7 +186,7 @@ public final class HudFeature implements Feature, Listener {
         if (hide) pdc.set(hiddenKey, PersistentDataType.BYTE, (byte) 1);
         else pdc.remove(hiddenKey);
         update(p);
-        p.sendMessage(Text.mm(hide ? "<gray>HUD를 껐어요. 다시 켜려면 /hud" : "<green>HUD를 켰어요."));
+        Messages.send(p,Text.mm(hide ? "<gray>HUD를 껐어요. 다시 켜려면 /hud" : "<green>HUD를 켰어요."));
     }
 
     private void setOffset(Player p, int value) {

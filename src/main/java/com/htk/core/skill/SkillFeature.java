@@ -1,5 +1,7 @@
 package com.htk.core.skill;
 
+import com.htk.core.common.Messages;
+
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Text;
@@ -77,7 +79,7 @@ public final class SkillFeature implements Feature, Listener {
     private String levelUpTitle, levelUpSubtitle;
     private double doubleDropPerLevel, combatDamagePerLevel, sellBonusPerLevel;
     private boolean perkMessage;
-    private String titleFormat, titleUnlocked, titleBroadcast;
+    private String titleFormat, titleUnlocked;
 
     public SkillFeature(ServerCore plugin) {
         this.plugin = plugin;
@@ -162,7 +164,6 @@ public final class SkillFeature implements Feature, Listener {
         }
         titleFormat = yml.getString("title-format", "<dark_gray>[</dark_gray>%title%<dark_gray>]</dark_gray> ");
         titleUnlocked = yml.getString("title-unlocked", "<#ffd34d>🏅 <gray>새 칭호 <white>%title%</white> 을(를) 얻었어요! <dark_gray>(/honor 로 바꾸기)");
-        titleBroadcast = yml.getString("title-broadcast", "<#ffd34d>🏅 <white>%player%</white><gray>님이 <white>%title%</white> 칭호를 얻었어요!");
     }
 
     // ---------------- 레벨 계산 ----------------
@@ -296,11 +297,7 @@ public final class SkillFeature implements Feature, Listener {
     private void unlockTitle(Player p, Skill skill, int level) {
         String text = titles.getOrDefault(skill, new TreeMap<>()).get(level);
         if (text == null) return;
-        p.sendMessage(Text.mm(titleUnlocked.replace("%title%", text)));
-        if (!titleBroadcast.isBlank()) {
-            Component msg = Text.mm(titleBroadcast.replace("%player%", p.getName()).replace("%title%", text));
-            for (Player other : Bukkit.getOnlinePlayers()) if (!other.equals(p)) other.sendMessage(msg);
-        }
+        Messages.send(p,Text.mm(titleUnlocked.replace("%title%", text)));
         // 칭호를 아직 안 골랐거나, 같은 분야의 낮은 칭호를 달고 있으면 새 칭호로
         HonorTitle cur = title(equippedTitle(p.getUniqueId()));
         if (cur == null || (cur.skill() == skill && cur.level() < level)) equipTitle(p, skill.key() + ":" + level);

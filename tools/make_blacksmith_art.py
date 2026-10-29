@@ -95,6 +95,13 @@ def install_blacksmith_assets(pack):
         top=-20+(94 if i>=2 else 0)
         data['providers'].append({'type':'bitmap','file':f'servercore:font/blacksmith_bg_{i}.png',
             'ascent':13-top,'height':94,'chars':[chr(0xE070+i)]})
+    merchant=generate_merchant_art(art)
+    image=Image.open(merchant).convert('RGBA')
+    for i,(x,y) in enumerate(((0,0),(176,0),(0,188),(176,188))):
+        image.crop((x,y,x+176,y+188)).save(texture/f'weapon_shop_bg_{i}.png')
+        top=-20+(94 if i>=2 else 0)
+        data['providers'].append({'type':'bitmap','file':f'servercore:font/weapon_shop_bg_{i}.png',
+            'ascent':13-top,'height':94,'chars':[chr(0xE074+i)]})
     font.write_text(json.dumps(data,ensure_ascii=True,indent=2),encoding='utf-8')
     for tool in TYPES:
         name='enhancement_'+tool
@@ -105,6 +112,46 @@ def install_blacksmith_assets(pack):
     Image.new('RGBA',(16,16)).save(sc/'textures/item/forge_button.png')
     (sc/'models/item/forge_button.json').write_text(json.dumps({'parent':'minecraft:item/generated','textures':{'layer0':'servercore:item/forge_button'}}),encoding='utf-8')
     (sc/'items/forge_button.json').write_text(json.dumps({'model':{'type':'minecraft:model','model':'servercore:item/forge_button'}}),encoding='utf-8')
+
+def generate_merchant_art(folder):
+    """Matching iron, copper and embers; frames align with the five purchase slots."""
+    folder=Path(folder)
+    # Preserve the forge's outer shell, inventory grid and hotbar coordinates.
+    image=Image.open(folder/'blacksmith_bg.png').convert('RGBA')
+    image=image.resize((176,188),Image.Resampling.NEAREST)
+    d=ImageDraw.Draw(image)
+    def rect(box,fill,outline=None,width=1):
+        x0,y0,x1,y1=box;d.rectangle((x0,y0+20,x1,y1+20),fill=fill,outline=outline,width=width)
+    rect((5,-15,170,0),'#303747','#ad8657')
+    rect((8,7,167,72),'#1c2635','#536078')
+    # A small anvil medallion above five individually framed tools.
+    rect((75,8,100,33),'#101823','#886b53')
+    rect((79,12,96,29),'#293546','#ad8657')
+    for col in (1,2,4,6,7):
+        x=8+18*col
+        rect((x-2,33,x+17,54),'#101823','#a77950')
+        rect((x-1,35,x+16,52),'#293546','#e2be88')
+        rect((x,36,x+15,51),'#18222f')
+        rect((x,55,x+15,56),'#8f4f3e')
+    rect((69,57,106,73),'#100f18','#d8ad73')
+    rect((72,59,103,71),'#8f4f3e','#e3b77c')
+    image=image.resize((352,376),Image.Resampling.NEAREST)
+    dd=ImageDraw.Draw(image)
+    font_path=next(p for p in (HERE/'fonts/Galmuri11-Bold.ttf',Path('C:/Windows/Fonts/malgunbd.ttf')) if p.exists())
+    def label(box,text,color,size):
+        x0,y0,x1,y1=box
+        for pixels in range(size,7,-1):
+            font=ImageFont.truetype(str(font_path),pixels)
+            b=dd.textbbox((0,0),text,font=font)
+            if b[2]-b[0]<=(x1-x0)*2-4 and b[3]-b[1]<=(y1-y0)*2-2: break
+        assert b[2]-b[0]<=(x1-x0)*2-4 and b[3]-b[1]<=(y1-y0)*2-2
+        dd.text((round(x0+x1-(b[0]+b[2])/2),round(y0+y1+40-(b[1]+b[3])/2)),text,font=font,fill=color)
+    label((12,-14,163,-1),'잊혀진 명장','#f3d7a4',18)
+    label((12,12,71,28),'남겨 둔 장비','#c0d7e3',15)
+    label((104,12,163,28),'새로운 여정','#c0d7e3',15)
+    label((73,60,102,70),'돌아가기','#ffebc3',14)
+    target=folder/'weapon_shop_bg.png';image.save(target)
+    return target
 
 if __name__=='__main__':
     print('Created forge art:',generate_art())
