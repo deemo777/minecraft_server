@@ -3,6 +3,7 @@
 
 # 기능 켜기/끄기 (바꾼 뒤에는 서버 재시작)
 features:
+  race: true       # 공용 동물 경주·골드 참가·관전 (economy 필요)
   achievements: true # 숨겨진 점프 업적·서버 최초 달성 보상·칭호
   weapon-merchant: true # 마을 도구 0강 판매 NPC (economy·tools 필요)
   ranking: true    # 농사·채광·벌목·낚시 누적 순위 게시판
@@ -20,6 +21,14 @@ features:
   tools: true     # 마을 도구 (곡괭이·도끼·괭이·낚싯대, 강화 단계별 3D 모양, 인챈트 금지 — tools.yml)
   blacksmith: true # 대장장이 NPC·강화 GUI·전용 강화 재료 (tools가 켜져 있어야 해요)
   hud: true      # 왼쪽 위 HUD + 경험치 바 (골드·레벨링이 켜져 있고 리소스팩을 쓸 때)
+
+# 공용 동물 경주. 기능 켜기/끄기는 위 features.race에서 설정 후 재시작.
+race:
+  countdown-seconds: 20 # 첫 참가 후 접수 시간, 10~60초
+  duration-seconds: 12  # 경주 시간, 8~30초
+  result-seconds: 8     # 결과 표시, 5~30초
+  # 참가금 100/500/1,000G, 한 경기 한 동물, 적중 시 원금 포함 3배 고정
+  # /race settrack: 현재 위치·바라보는 방향에 20블록 경기장 지정 (블록 설치 없음)
 
 # 리소스팩(스타듀밸리 배경 그림, 체크 표시, 화살표)을 쓰는지
 # false면 리소스팩 없이 바닐라 상자 모양으로 보여줘요 (테스트용)

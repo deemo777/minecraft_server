@@ -21,6 +21,8 @@ public final class Economy {
     private final File file;
     private final Map<UUID, Long> balances = new ConcurrentHashMap<>();
     private final java.util.Set<String> rewardReceipts=new java.util.HashSet<>();
+    public record Wager(UUID player, long amount) {}
+    private final Map<String, Wager> wagers = new java.util.HashMap<>();
     private volatile boolean dirty;
 
     public Economy(ServerCore plugin) {
@@ -39,6 +41,19 @@ public final class Economy {
             throw new IllegalStateException("money.yml을 읽지 못해 잔액·보상 영수증 초기화를 중지합니다",failure);
         }
         rewardReceipts.addAll(yml.getStringList("reward-receipts"));
+        var pending = yml.getConfigurationSection("wagers");
+        if (yml.contains("wagers") && pending == null)
+            throw new IllegalStateException("참가금 보관 기록의 형식이 잘못되어 경제 데이터 초기화를 중지합니다");
+        if (pending != null) for (String key : pending.getKeys(false)) {
+            try {
+                UUID player = UUID.fromString(pending.getString(key + ".player", ""));
+                long amount = pending.getLong(key + ".amount");
+                if (amount <= 0) throw new IllegalArgumentException("Invalid wager amount");
+                wagers.put(key, new Wager(player, amount));
+            } catch (IllegalArgumentException failure) {
+                throw new IllegalStateException("보관 중인 참가금을 읽지 못해 경제 데이터 초기화를 중지합니다", failure);
+            }
+        }
         var sec = yml.getConfigurationSection("balances");
         if (sec == null) return;
         for (String key : sec.getKeys(false)) {
@@ -58,6 +73,10 @@ public final class Economy {
         YamlConfiguration yml = new YamlConfiguration();
         balances.forEach((id, v) -> yml.set("balances." + id, v));
         yml.set("reward-receipts",new java.util.ArrayList<>(rewardReceipts));
+        wagers.forEach((key, wager) -> {
+            yml.set("wagers." + key + ".player", wager.player().toString());
+            yml.set("wagers." + key + ".amount", wager.amount());
+        });
         try {
             java.nio.file.Files.createDirectories(file.toPath().toAbsolutePath().getParent());
             var temporary=file.toPath().resolveSibling(file.getName()+".tmp");
@@ -72,6 +91,49 @@ public final class Economy {
         }
     }
     public synchronized boolean hasRewardReceipt(String receipt){return rewardReceipts.contains(receipt);}
+    /** Debit and escrow are saved together. A failed save or duplicate cannot charge the player. */
+    public synchronized boolean reserveWager(UUID player, long amount, String key) {
+        if (amount <= 0 || key == null || !key.matches("[a-zA-Z0-9/_-]+"))
+            throw new IllegalArgumentException("Invalid wager");
+        if (wagers.containsKey(key) || balance(player) < amount) return false;
+        long previous = balance(player);
+        balances.put(player, previous - amount);
+        wagers.put(key, new Wager(player, amount));
+        dirty = true;
+        if (persist()) return true;
+        balances.put(player, previous);
+        wagers.remove(key);
+        dirty = true;
+        return false;
+    }
+
+    public synchronized Map<String, Wager> pendingWagers(String prefix) {
+        Map<String, Wager> result = new java.util.HashMap<>();
+        wagers.forEach((key, wager) -> { if (key.startsWith(prefix)) result.put(key, wager); });
+        return Map.copyOf(result);
+    }
+
+    /** Settle the entire round atomically, including offline accounts. Removed holds make retries harmless. */
+    public synchronized boolean settleWagers(Map<String, Long> payouts) {
+        if (payouts.values().stream().anyMatch(amount -> amount == null || amount < 0))
+            throw new IllegalArgumentException("Invalid wager payout");
+        Map<String, Wager> removed = new java.util.HashMap<>();
+        Map<UUID, Long> previous = new java.util.HashMap<>();
+        for (var entry : payouts.entrySet()) {
+            Wager wager = wagers.remove(entry.getKey());
+            if (wager == null) continue;
+            removed.put(entry.getKey(), wager);
+            previous.putIfAbsent(wager.player(), balance(wager.player()));
+            deposit(wager.player(), entry.getValue());
+        }
+        if (removed.isEmpty()) return true;
+        dirty = true;
+        if (persist()) return true;
+        previous.forEach(balances::put);
+        wagers.putAll(removed);
+        dirty = true;
+        return false;
+    }
     /** Save the payment and its idempotency receipt in the same atomic file replacement. */
     public synchronized boolean depositOnce(UUID id,long amount,String receipt) {
         if(amount<=0 || receipt==null || receipt.isBlank())throw new IllegalArgumentException("Invalid unique reward");

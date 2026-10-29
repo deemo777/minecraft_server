@@ -79,6 +79,11 @@ public final class ServerCore extends JavaPlugin {
             features.add(shop);
             shop.enable();
         }
+        // The race owns one shared round and durable gold escrow.
+        if (economy != null && getConfig().getBoolean("features.race", true)) {
+            var race = new com.htk.core.race.RaceFeature(this, economy.economy());
+            features.add(race); race.enable();
+        }
         var villageTools=feature(com.htk.core.tools.VillageToolFeature.class);
         if(economy!=null && villageTools!=null && getConfig().getBoolean("features.weapon-merchant",true)) {
             var merchant=new com.htk.core.merchant.WeaponMerchantFeature(this,economy.economy(),villageTools);

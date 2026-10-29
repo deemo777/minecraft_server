@@ -5,6 +5,10 @@ api-version: '1.21'
 description: 서버 전용 기능 모음 (메뉴, 도감, 점프 패드, 도약, 골드, 상점, 레벨링·칭호, HUD, 집 땅, 이장님, 안내서)
 
 commands:
+  race:
+    description: 공용 동물 경주 관전·참가 및 경기장 관리
+    usage: /<command> [watch|help|settrack|removetrack|demo|cancel]
+    permission: servercore.race
   achievements:
     description: 공개된 히든 업적과 내 달성 상태 확인
     usage: /<command>
@@ -95,6 +99,9 @@ commands:
     usage: /<command> reload | setpoint <name> | delpoint <name> | points
 
 permissions:
+  servercore.race:
+    description: 동물 경주 관전·참가
+    default: true
   servercore.menu:
     description: 메뉴 열기
     default: true

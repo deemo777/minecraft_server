@@ -21,6 +21,7 @@
 | `/menu` | 마을 메뉴를 엽니다 | 일반 | — |
 | `/dogam` | 도감을 엽니다 | 일반/관리 | `/collection` |
 | `/money` | 골드 보기 / 골드 주머니 꺼내기 | 일반/관리 | `/gold` |
+| `/race [watch\|help]` | 공용 동물 경주 관전·골드 참가 | `servercore.race` (기본 허용) | — |
 | `/shop` | 상점 열기 (관리자) | 관리자 | — |
 | `/shopnpc` | 구 NPC 전용 명령 (호환용) | 관리자 | — |
 | `/skill` | 스킬 창 열기 / 레벨 설정 (관리자) | 일반/관리 | `/skills` |
@@ -36,6 +37,8 @@
 | `/servercore` | ServerCore 관리 명령어 | 관리자 | — |
 
 ## 자주 쓰는 관리자 명령
+
+동물 경주의 참가·보상·현장 경기장 설치·중단 환불은 [동물 경주 안내](../기능/동물경주.md)를 참고하세요.
 
 | 명령어 | 용도 |
 |---|---|
@@ -58,6 +61,8 @@
 | `/rankboard create <name> <category>` | 누적 순위 홀로그램 생성 |
 | `/rankboard remove <name>` · `/rankboard list` | 게시판 삭제·목록 |
 | `/money give <player> <amount>` | 골드 지급 (`take` 회수, `set` 지정) |
+| `/race settrack` · `/race removetrack` | 현재 위치·방향을 경주 출발선으로 지정 / 위치 삭제 |
+| `/race demo` · `/race cancel` | 골드 없는 시연 / 진행 중 경기 취소·환불 |
 | `/skill set <player> <category> <level>` | 스킬 레벨 지정 |
 | `/skill reset <player>` · `/dogam reset <player>` | 스킬·도감 초기화 |
 | `/jumppad [개수] [player]` | 점프 패드 지급 |

@@ -56,6 +56,9 @@ public final class EconomyFeature implements Feature, Listener, TabExecutor {
     @Override
     public void enable() {
         economy = new Economy(plugin);
+        // Interrupted stakes must also be returned when an operator disables the race feature.
+        boolean raceDisabledAtStartup = !plugin.getConfig().getBoolean("features.race", true);
+        if (raceDisabledAtStartup) refundRaceStakes();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         PluginCommand cmd = plugin.getCommand("money");
         if (cmd != null) {
@@ -63,12 +66,21 @@ public final class EconomyFeature implements Feature, Listener, TabExecutor {
             cmd.setTabCompleter(this);
         }
         for (Player p : plugin.getServer().getOnlinePlayers()) economy.ensureAccount(p.getUniqueId());
-        autosave = plugin.getServer().getScheduler().runTaskTimer(plugin, economy::save, 600L, 600L);
+        autosave = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            if (raceDisabledAtStartup) refundRaceStakes();
+            economy.save();
+        }, 600L, 600L);
         Placeholders.register("money", p -> Economy.format(economy.balance(p.getUniqueId())));
     }
 
     @Override
     public void reload() { }
+
+    private void refundRaceStakes() {
+        var refunds = new java.util.HashMap<String, Long>();
+        economy.pendingWagers("race/").forEach((key, hold) -> refunds.put(key, hold.amount()));
+        if (!economy.settleWagers(refunds)) plugin.getLogger().severe("꺼진 경주 기능의 참가금 환불 저장 실패: 자동 재시도합니다.");
+    }
 
     @Override
     public void disable() {
