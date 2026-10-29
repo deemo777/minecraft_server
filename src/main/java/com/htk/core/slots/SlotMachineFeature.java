@@ -2,6 +2,7 @@ package com.htk.core.slots;
 
 import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
+import com.htk.core.common.Glyphs;
 import com.htk.core.common.Messages;
 import com.htk.core.common.Text;
 import com.htk.core.economy.Economy;
@@ -121,7 +122,21 @@ public final class SlotMachineFeature implements Feature, Listener, TabExecutor 
         meta.lore(List.of(Text.mm("<gray>설치하면 위에 큰 슬롯 화면이 떠요"),
                 Text.mm("<gray>코인을 주손에 들고 블록 우클릭 · 한 판에 한 개")));
         meta.getPersistentDataContainer().set(itemKey, PersistentDataType.BYTE, (byte) 1);
+        if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("slot_machine"));
         item.setItemMeta(meta); return item;
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void checkSpace(BlockPlaceEvent e) {
+        Block b = e.getBlockPlaced();
+        // Reserve the visual upper half, while keeping a single ordinary block for recovery.
+        if (isMachine(b.getRelative(org.bukkit.block.BlockFace.DOWN))) {
+            e.setCancelled(true); Messages.send(e.getPlayer(), "슬롯 머신 윗부분은 비워 주세요."); return;
+        }
+        if (isItem(e.getItemInHand()) && (b.getY() + 1 >= b.getWorld().getMaxHeight()
+                || !b.getRelative(org.bukkit.block.BlockFace.UP).getType().isAir())) {
+            e.setCancelled(true); Messages.send(e.getPlayer(), "슬롯 머신은 높이 2칸의 빈 공간이 필요해요.");
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -232,7 +247,7 @@ public final class SlotMachineFeature implements Feature, Listener, TabExecutor 
                         float scale = Math.clamp((.69f - Math.abs(offset)) / .24f, 0f, 1f) * .82f;
                         ItemDisplay d = m.reels[reel][row];
                         d.setItemStack(new ItemStack(SYMBOLS[Math.floorMod((int) Math.floor(progress), 4)]));
-                        transform(m, d, (reel - 1) * 1.3f, 3.6f - offset, .08f, scale, scale, scale);
+                        boardTransform(m, d, (reel - 1) * 1.3f, 3.6f - offset, .08f, scale, scale, scale);
                     }
                 }
             }
@@ -307,16 +322,23 @@ public final class SlotMachineFeature implements Feature, Listener, TabExecutor 
         d.setInterpolationDelay(0);
         d.setTransformation(new Transformation(translation, rotation(m), new Vector3f(sx, sy, sz), new Quaternionf()));
     }
+    private void boardTransform(Machine m, Display d, float x, float y, float z, float sx, float sy, float sz) {
+        transform(m, d, x, y + 1, z, sx, sy, sz);
+    }
     private <T extends Display> T display(Machine m, Class<T> type) {
         T d = m.block.getWorld().spawn(m.block.getLocation().add(.5, 0, .5), type, e -> {
             e.setPersistent(false); e.setInvulnerable(true); e.setGravity(false); e.setSilent(true);
             e.setBillboard(Display.Billboard.FIXED); e.setBrightness(new Display.Brightness(15, 15));
-            e.setViewRange(1.25f); e.setDisplayWidth(6); e.setDisplayHeight(6);
+            e.setViewRange(1.25f); e.setDisplayWidth(6); e.setDisplayHeight(8);
             e.getPersistentDataContainer().set(displayKey, PersistentDataType.BYTE, (byte) 1);
         });
         m.entities.add(d); return d;
     }
     private void panel(Machine m, Material material, float x, float y, float z, float w, float h, float depth) {
+        BlockDisplay d = display(m, BlockDisplay.class); d.setBlock(material.createBlockData());
+        boardTransform(m, d, x, y, z, w, h, depth);
+    }
+    private void panelCabinet(Machine m, Material material, float x, float y, float z, float w, float h, float depth) {
         BlockDisplay d = display(m, BlockDisplay.class); d.setBlock(material.createBlockData());
         transform(m, d, x, y, z, w, h, depth);
     }
@@ -325,10 +347,21 @@ public final class SlotMachineFeature implements Feature, Listener, TabExecutor 
         d.text(Text.mm(text)); d.setAlignment(TextDisplay.TextAlignment.CENTER);
         d.setDefaultBackground(false); d.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
         d.setShadowed(true); d.setSeeThrough(false); d.setLineWidth(800);
-        transform(m, d, 0, y, .18f, scale, scale, scale); return d;
+        boardTransform(m, d, 0, y, .18f, scale, scale, scale); return d;
     }
     private void show(Machine m) {
         try {
+            if (plugin.resourcePackEnabled()) {
+                ItemDisplay cabinet = display(m, ItemDisplay.class);
+                ItemStack model = new ItemStack(BASE);
+                var meta = model.getItemMeta(); meta.setItemModel(Glyphs.model("slot_machine")); model.setItemMeta(meta);
+                cabinet.setItemStack(model); cabinet.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                transform(m, cabinet, 0, .5f, 0, 1, 1, 1);
+            } else {
+                // A compact brass/red cabinet remains visible when the pack is disabled.
+                panelCabinet(m, Material.RED_TERRACOTTA, -.5f, 1, -.4f, 1, .85f, .8f);
+                panelCabinet(m, Material.GOLD_BLOCK, -.5f, 1.85f, -.4f, 1, .15f, .8f);
+            }
             panel(m, Material.BLACK_CONCRETE, -2.3f, 1.45f, -.2f, 4.6f, 3.6f, .15f);
             panel(m, Material.YELLOW_CONCRETE, -2.42f, 1.33f, -.2f, 4.84f, .12f, .28f);
             panel(m, Material.YELLOW_CONCRETE, -2.42f, 5.05f, -.2f, 4.84f, .12f, .28f);
@@ -355,7 +388,7 @@ public final class SlotMachineFeature implements Feature, Listener, TabExecutor 
         for (int row = 0; row < 3; row++) {
             ItemDisplay d = m.reels[reel][row]; d.setItemStack(new ItemStack(SYMBOLS[symbol]));
             float scale = row == 1 ? .9f : 0;
-            transform(m, d, (reel - 1) * 1.3f, 3.6f, .08f, scale, scale, scale);
+            boardTransform(m, d, (reel - 1) * 1.3f, 3.6f, .08f, scale, scale, scale);
         }
     }
 

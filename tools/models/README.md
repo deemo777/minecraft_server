@@ -1,3 +1,11 @@
+# 슬롯 머신 본체 (4.6.0)
+
+`tools/make_slot_machine_art.py`가 `servercore:slot_machine`의 36개 직육면체와 12개 픽셀 텍스처를 생성합니다. 본체는 가로 1칸·높이 2칸이며 모델의 앞면은 +Z입니다. `ItemDisplay.NONE`에서 (0, 0.5, 0)에 놓으면 하단 외장이 실제 자석석을 감싸고 상단은 2블록 높이까지 표시됩니다. 동작하는 릴은 별도의 공용 게시판에 유지합니다.
+
+전체 팩 빌드에 자동 포함하며 `python tools/verify_slot_machine.py`로 모델·아이템 정의·PNG·UV·경계·최신 생성 결과 일치를 확인합니다. `python tools/preview_slot_machine.py`는 실제 모델과 텍스처를 렌더링해 `tools/build/slot_machine_preview.png`에 정면·사선 미리보기를 만듭니다. 미리보기 렌더러는 Pillow와 NumPy를 사용합니다.
+
+---
+
 # 도구의 1인칭 위치 (3.33.3)
 
 곡괭이·도끼·괭이(낫)·낚싯대의 모든 강화 단계·상태는 원본을 읽은 뒤 `tools/first_person_display.py`의 공통 보정을 한 번 적용합니다.
