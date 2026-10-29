@@ -13,6 +13,17 @@ public record MenuConfig(int headSlot, String headName, List<String> headLore, S
                          String command, String teleport, String teleportTitle, String teleportSubtitle,
                          boolean comingSoon, boolean close) {}
 
+    /** Apply the old built-in layout migration in memory, preserving custom buttons. */
+    public static void migrateLayout(YamlConfiguration yml, YamlConfiguration defaults) {
+        if ("skill".equals(com.htk.core.common.CommandNames.configured(yml.getString("head-command", ""))))
+            yml.set("head-command", "honor");
+        if (!yml.isConfigurationSection("buttons.skill") &&
+                yml.getIntegerList("buttons.warp.slots").equals(List.of(12,13,14,21,22,23,30,31,32,39,40,41))) {
+            yml.set("buttons.warp.slots", defaults.getIntegerList("buttons.warp.slots"));
+            yml.set("buttons.skill", defaults.getConfigurationSection("buttons.skill"));
+        }
+    }
+
     /** buttons가 예전(2.0 대화창) 형식이면 null */
     public static MenuConfig load(YamlConfiguration yml) {
         ConfigurationSection sec = yml.getConfigurationSection("buttons");
@@ -34,7 +45,7 @@ public record MenuConfig(int headSlot, String headName, List<String> headLore, S
         }
         return new MenuConfig(yml.getInt("head-slot", 0),
                 yml.getString("head-name", "%player%"), yml.getStringList("head-lore"),
-                com.htk.core.common.CommandNames.configured(yml.getString("head-command", "skill")),
+                com.htk.core.common.CommandNames.configured(yml.getString("head-command", "honor")),
                 Map.copyOf(bySlot), List.copyOf(buttons));
     }
 }

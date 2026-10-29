@@ -34,6 +34,13 @@ public final class HiddenAchievementFeature implements Feature,Listener,TabExecu
     @Override public void disable(){prefixes.clear();}
     public Component prefix(UUID id){return prefixes.getOrDefault(id,Component.empty());}
     public boolean hasTitles(UUID id){return store!=null && store.completed(id);}
+    public record OwnedTitle(String id, String name, boolean selected) {}
+    public List<OwnedTitle> ownedTitles(UUID id) {
+        if (store == null) return List.of();
+        return List.of(AchievementStore.NORMAL, AchievementStore.FIRST).stream()
+                .filter(title -> store.owns(id, title))
+                .map(title -> new OwnedTitle(title, titleName(title), title.equals(store.selected(id)))).toList();
+    }
     public boolean clearSelected(Player p){
         if(store==null || store.selected(p.getUniqueId())==null)return true;
         try{store.select(p.getUniqueId(),null);apply(p);return true;}

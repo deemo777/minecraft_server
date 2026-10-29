@@ -136,7 +136,7 @@ public final class Glyphs {
             moveTo(x);
             for (int i = 0; i < filled; i++) {
                 draw(piece, BAR_PIECE_WIDTH);
-                moveTo(pen - 1);
+                moveTo(pen - 2); // width+1 advance → overlap the previous piece by 1px
             }
             return this;
         }
@@ -169,7 +169,7 @@ public final class Glyphs {
             moveTo(x);
             for (int i = 0; i < filled; i++) {
                 draw(BAR_PIECE, BAR_PIECE_WIDTH);
-                moveTo(pen - 1);
+                moveTo(pen - 2);
             }
             return this;
         }

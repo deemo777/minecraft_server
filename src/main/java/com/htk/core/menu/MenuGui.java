@@ -65,7 +65,7 @@ public final class MenuGui extends Gui {
 
     @Override
     public void onClick(Player player, int slot, InventoryClickEvent event) {
-        if (slot == config.headSlot()) {          // 내 얼굴 → 스킬 창
+        if (slot == config.headSlot()) {          // 내 얼굴 → 칭호 창
             runNextTick(player, config.headCommand());
             return;
         }

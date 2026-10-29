@@ -101,6 +101,18 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("enhancement_" + type.id));
         item.setItemMeta(meta); return item;
     }
+    /** Refresh presentation only; preserve quantity and unrelated persistent item data. */
+    boolean refreshMaterial(ItemStack item) {
+        ToolType type = materialType(item);
+        if (type == null) return false;
+        ItemMeta fresh = material(type, 1).getItemMeta();
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(fresh.displayName());
+        meta.lore(fresh.lore());
+        meta.setItemModel(fresh.getItemModel());
+        item.setItemMeta(meta);
+        return true;
+    }
     private void reward(Player p, ToolType type, Location at) {
         reward(p,type,at,null);
     }

@@ -64,7 +64,9 @@ public final class MenuFeature implements Feature, Listener {
     public void disable() { }
 
     private void loadConfig() {
-        MenuConfig loaded = MenuConfig.load(plugin.loadYaml("menu.yml"));
+        var yml = plugin.loadYaml("menu.yml");
+        MenuConfig.migrateLayout(yml, plugin.loadDefaultYaml("menu.yml"));
+        MenuConfig loaded = MenuConfig.load(yml);
         if (loaded == null) {
             plugin.getLogger().warning("menu.yml이 예전 형식이에요. plugins/ServerCore/menu.yml 을 지우고 재시작하면 새 형식으로 만들어져요. (지금은 기본 메뉴로 동작)");
             loaded = MenuConfig.load(plugin.loadDefaultYaml("menu.yml"));

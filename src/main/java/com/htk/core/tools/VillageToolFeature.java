@@ -97,7 +97,7 @@ public final class VillageToolFeature implements Feature, Listener {
     }
 
     @Override
-    public void disable() { accepting=false;for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
+    public void disable() { accepting=false;pendingRefresh.clear();for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
 
     private void loadConfig() {
         cfg = plugin.loadYaml("tools.yml");
@@ -272,18 +272,57 @@ public final class VillageToolFeature implements Feature, Listener {
 
     /** 기존 도구도 새 이름·강화 성능으로 갱신한다. 내구도와 기타 아이템 데이터는 보존. */
     private void refreshTools(Player player) {
-        var inv=player.getInventory();
+        refreshInventory(player.getInventory());
+        ItemStack cursor = player.getItemOnCursor();
+        ItemStack updated = refreshed(cursor);
+        if (updated != null && !updated.equals(cursor)) player.setItemOnCursor(updated);
+    }
+
+    private ItemStack refreshed(ItemStack item) {
+        if (item == null || item.getType().isAir()) return null;
+        ItemStack updated = item.clone();
+        if (typeOf(item) != null) setLevel(updated, levelOf(item));
+        else {
+            var smith = plugin.feature(BlacksmithFeature.class);
+            if (smith == null || !smith.refreshMaterial(updated)) return null;
+        }
+        return updated;
+    }
+
+    private void refreshInventory(Inventory inv) {
         for(int i=0;i<inv.getSize();i++) {
             ItemStack item=inv.getItem(i);
-            if(typeOf(item)==null)continue;
-            ItemStack updated=item.clone();setLevel(updated,levelOf(item));
-            if(!updated.equals(item))inv.setItem(i,updated);
+            ItemStack updated=refreshed(item);
+            if(updated!=null && !updated.equals(item))inv.setItem(i,updated);
         }
     }
 
+    private final java.util.Set<java.util.UUID> pendingRefresh = new java.util.HashSet<>();
     private void refreshNextTick(Player player) {
-        if(!plugin.isEnabled())return;
-        Bukkit.getScheduler().runTask(plugin,()->{if(player.isOnline())refreshTools(player);});
+        if(!accepting || !plugin.isEnabled() || !pendingRefresh.add(player.getUniqueId()))return;
+        Bukkit.getScheduler().runTask(plugin,()->{
+            pendingRefresh.remove(player.getUniqueId());
+            if(player.isOnline() && accepting)refreshTools(player);
+        });
+    }
+
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void onItemInventoryOpen(org.bukkit.event.inventory.InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) return;
+        Inventory opened = event.getInventory();
+        refreshNextTick(player);
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (accepting && player.isOnline() && player.getOpenInventory().getTopInventory() == opened)
+                refreshInventory(opened);
+        });
+    }
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void onItemClick(org.bukkit.event.inventory.InventoryClickEvent event) {
+        if(event.getWhoClicked() instanceof Player player)refreshNextTick(player);
+    }
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void onItemDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if(event.getWhoClicked() instanceof Player player)refreshNextTick(player);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -319,7 +358,7 @@ public final class VillageToolFeature implements Feature, Listener {
     public void onRodSwap(org.bukkit.event.player.PlayerSwapHandItemsEvent e){refreshNextTick(e.getPlayer());}
     @EventHandler public void onRodInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent e){if(e.getPlayer() instanceof Player p)refreshNextTick(p);}
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
-    public void onRodPickup(org.bukkit.event.entity.EntityPickupItemEvent e){if(e.getEntity() instanceof Player p && typeOf(e.getItem().getItemStack())!=null)refreshNextTick(p);}
+    public void onRodPickup(org.bukkit.event.entity.EntityPickupItemEvent e){if(e.getEntity() instanceof Player p)refreshNextTick(p);}
 
     private final java.util.Set<java.util.UUID> felling=new java.util.HashSet<>();
     private final java.util.Map<java.util.UUID,org.bukkit.scheduler.BukkitTask> work=new java.util.HashMap<>();

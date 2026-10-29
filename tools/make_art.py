@@ -570,56 +570,35 @@ def tile_village(cv, x0, y0, x1, y1):
 
 
 def tile_warp(cv, x0, y0, x1, y1):
-    """가운데 큰 버튼: 별밤 언덕 위의 돌 아치 포털"""
+    """Compact portal fitted to the upper half of the centre column."""
     cv.rect(x0, y0, x1, y1, c("#8f7ae8"))
-    cv.rect(x0, y0 + 14, x1, y1, c("#a693f0"))
-    cv.rect(x0, y0 + 28, x1, y1, c("#bdaef5"))
     rnd = random.Random(7)
-    for _ in range(14):                                        # 별
-        cv.px(rnd.randint(x0 + 1, x1 - 2), rnd.randint(y0 + 1, y0 + 26), c(rnd.choice(["#ffffff", "#fff3a0", "#d8ccff"])))
-    sparkle(cv, x0 + 5, y0 + 4, WHITE)
-    sparkle(cv, x1 - 9, y0 + 9, c("#fff3a0"))
-    # 언덕 + 길
-    cv.rect(x0, y1 - 10, x1, y1, c("#8fd16a"))
-    cv.rect(x0, y1 - 10, x1, y1 - 9, c("#b6e88c"))
-    cv.rect(x0 + 6, y1 - 12, x0 + 12, y1 - 10, c("#8fd16a"))
-    cv.rect(x1 - 14, y1 - 13, x1 - 6, y1 - 10, c("#8fd16a"))
+    for _ in range(14):
+        cv.px(rnd.randint(x0 + 1, x1 - 2), rnd.randint(y0 + 1, y1 - 2), WHITE)
     mx = (x0 + x1) // 2
-    for i, w in enumerate((6, 8, 10, 12)):
-        cv.rect(mx - w // 2, y1 - 9 + i * 2, mx + w // 2, y1 - 8 + i * 2, c("#f0d49c"))
-    # 돌 아치 (바깥 26 x 34)
-    ax0, ax1, ay0, ay1 = mx - 13, mx + 13, y0 + 15, y1 - 9
-    stone, stone_dk, stone_hl = c("#c9c3d6"), c("#9a93ad"), c("#ece8f5")
-    cv.rect(ax0 + 4, ay0 - 2, ax1 - 4, ay0, LINE)
-    cv.rect(ax0 + 2, ay0, ax1 - 2, ay0 + 2, LINE)
-    cv.rect(ax0, ay0 + 2, ax1, ay1, LINE)
-    cv.rect(ax0 + 5, ay0 - 1, ax1 - 5, ay0 + 1, stone)
-    cv.rect(ax0 + 3, ay0 + 1, ax1 - 3, ay0 + 3, stone)
-    cv.rect(ax0 + 1, ay0 + 3, ax1 - 1, ay1, stone)
-    for yy in range(ay0 + 6, ay1, 6):                         # 돌 이음매
-        cv.rect(ax0 + 1, yy, ax0 + 5, yy + 1, stone_dk)
-        cv.rect(ax1 - 5, yy, ax1 - 1, yy + 1, stone_dk)
-    cv.rect(ax0 + 1, ay0 + 3, ax0 + 2, ay1, stone_hl)
-    # 포털 (안쪽 소용돌이)
-    px0, px1, py0, py1 = ax0 + 5, ax1 - 5, ay0 + 5, ay1
-    cv.rect(px0 + 2, py0 - 1, px1 - 2, py0, LINE)
-    cv.rect(px0, py0, px1, py1, LINE)
-    cv.rect(px0 + 1, py0 + 1, px1 - 1, py1, c("#6a3fd8"))
-    cv.rect(px0 + 3, py0 + 3, px1 - 3, py1 - 1, c("#8f5cf5"))
-    cv.rect(px0 + 5, py0 + 6, px1 - 5, py1 - 3, c("#b98cff"))
-    cv.rect(px0 + 7, py0 + 9, px1 - 7, py1 - 6, c("#e2cfff"))
-    for (dx, dy) in [(2, 4), (12, 7), (4, 15), (13, 18), (8, 2)]:
-        cv.px(px0 + dx, py0 + dy, WHITE)
-    # 아치 위 꽃덩굴
-    for (vx, col) in [(ax0 + 2, "#ff9ec4"), (ax1 - 4, "#ffd34d"), (ax0 + 6, "#ffffff")]:
-        cv.px(vx, ay0 + 3, c(col))
-        cv.px(vx + 1, ay0 + 4, c("#5cc04a"))
+    top, bottom = y0 + 3, y1 - 2
+    cv.rect(mx - 9, top + 2, mx + 9, bottom, LINE)
+    cv.rect(mx - 6, top, mx + 6, top + 2, LINE)
+    cv.rect(mx - 8, top + 3, mx + 8, bottom, c("#c9c3d6"))
+    cv.rect(mx - 5, top + 1, mx + 5, top + 3, c("#ece8f5"))
+    cv.rect(mx - 5, top + 4, mx + 5, bottom, c("#6a3fd8"))
+    cv.rect(mx - 3, top + 5, mx + 3, bottom - 1, c("#b98cff"))
+    cv.rect(mx - 10, bottom, mx + 10, bottom + 1, c("#8fd16a"))
+
+
+def tile_skill(cv, x0, y0, x1, y1):
+    cv.rect(x0, y0, x1, y1, c("#e5f2d2"))
+    for i, height in enumerate((4, 7, 10, 13)):
+        x = (x0 + x1) / 2 - 14 + i * 8
+        cv.rect(x, y1 - height - 2, x + 5, y1 - 2, c("#5cb84a"))
+        cv.rect(x, y1 - height - 2, x + 5, y1 - height - 1, c("#a6e477"))
 
 
 MENU_TILES = [  # (열 범위, 줄 범위, 그리기, 이름표, 이름표 색)
     ((0, 2), (1, 2), tile_dogam, "도감", "#5cb84a"),
     ((6, 8), (1, 2), tile_lobby, "로비", "#f2a33a"),
-    ((3, 5), (1, 4), tile_warp, "워프", "#8a5ce0"),
+    ((3, 5), (1, 2), tile_warp, "워프", "#8a5ce0"),
+    ((3, 5), (3, 4), tile_skill, "직업 경험치", "#5cb84a"),
     ((0, 2), (3, 4), tile_wild, "야생", "#4aa0e8"),
     ((6, 8), (3, 4), tile_village, "마을로", "#e8709a"),
 ]
