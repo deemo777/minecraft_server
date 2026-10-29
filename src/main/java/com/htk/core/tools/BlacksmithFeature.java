@@ -228,6 +228,11 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         ItemStack upgraded = item.clone();
         if (!tools.setLevel(upgraded, result)) return;
         tools.setArtisanProgress(upgraded,outcome.progress());
+        // Refill only on a successful upgrade; failed attempts and presentation refreshes preserve wear.
+        if (result > current && upgraded.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable durability) {
+            durability.setDamage(0);
+            upgraded.setItemMeta(durability);
+        }
         ItemStack originalItem=item.clone(),originalMaterial=material==null?null:material.clone();
         ItemStack remaining=originalMaterial==null?null:originalMaterial.clone();
         if(required>0)remaining.setAmount(remaining.getAmount()-required);
