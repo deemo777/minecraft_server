@@ -84,10 +84,12 @@ final class RaceScene implements Listener {
         }
         return true;
     }
-    boolean start() {
+    boolean start(Player initiator) {
         stop(); frame = 0;
-        start = plugin.points().get("race-track");
-        if (start == null) return plugin.points().worldName("race-track") == null;
+        // Player-started rounds never depend on an administrator's saved point or its world.
+        start = initiator == null ? plugin.points().get("race-track")
+                : RacePlacement.find(initiator.getLocation(), RaceScene::clear);
+        if (start == null) return true;
         start.setPitch(0); start.setYaw(Math.round(start.getYaw() / 90f) * 90f);
         if (!clear(start)) { start = null; return false; }
         try {
@@ -149,6 +151,7 @@ final class RaceScene implements Listener {
     boolean near(Player player) {
         return start != null && player.getWorld().equals(start.getWorld()) && player.getLocation().distanceSquared(point(start, 10, 0)) <= 48 * 48;
     }
+    boolean visible() { return start != null; }
     void celebrate(int winner) {
         if (start == null) return;
         start.getWorld().spawnParticle(Particle.FIREWORK, runners.get(winner).getLocation().add(0, 1, 0), 35, 0.6, 0.8, 0.6, 0.03);

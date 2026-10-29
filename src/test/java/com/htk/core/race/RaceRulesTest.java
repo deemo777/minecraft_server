@@ -6,6 +6,27 @@ public final class RaceRulesTest {
     private static int checks;
     private static void check(boolean value, String message) { checks++; if (!value) throw new AssertionError(message); }
     public static void main(String[] args) {
+        var player = new org.bukkit.Location(null, 10.2, 70.9, -5.8, 32, 40);
+        var candidates = RacePlacement.candidates(player);
+        check(candidates.size() == 60, "automatic scene search is bounded");
+        check(player.getX() == 10.2 && player.getY() == 70.9 && player.getYaw() == 32 && player.getPitch() == 40,
+                "nearby search preserves player location and view");
+        for (var candidate : candidates) {
+            check(candidate.getPitch() == 0 && candidate.getYaw() % 90 == 0, "automatic tracks use horizontal cardinal headings");
+            check(Math.abs(candidate.getY() - 70) <= 1, "search remains near the player's floor");
+            var center = new org.bukkit.util.Vector(10.5, 0, -5.5);
+            var finish = RaceScene.point(candidate, 20, 0).toVector().setY(0);
+            check(finish.distance(center) < 32, "whole track remains near the initiating player");
+        }
+        int[] evaluated = {0};
+        var first = RacePlacement.find(player, at -> { evaluated[0]++; return true; });
+        check(first.equals(candidates.getFirst()) && evaluated[0] == 1, "solo round uses first available terrain without saved point");
+        evaluated[0] = 0;
+        var later = RacePlacement.find(player, at -> ++evaluated[0] == 3);
+        check(later.equals(candidates.get(2)), "obstructed direction falls back to another nearby track");
+        evaluated[0] = 0;
+        check(RacePlacement.find(player, at -> { evaluated[0]++; return false; }) == null && evaluated[0] == 60,
+                "no terrain still permits GUI-only race without admin setup");
         for (int yaw : new int[]{-180, -90, 0, 90, 180, 270}) {
             var origin = new org.bukkit.Location(null, 0.5, 70, 0.5, yaw, 0);
             var finish = RaceScene.point(origin, 20, 0);

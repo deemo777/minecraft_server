@@ -82,12 +82,12 @@ public final class RaceFeature implements Feature, TabExecutor {
         scene.stop(); recover();
     }
 
-    private boolean prepare(int seconds) {
-        if (!scene.start()) return false;
+    private void prepare(int seconds, Player initiator) {
+        // A missing/blocked scene must never require an admin to unlock ordinary play.
+        if (!scene.start(initiator)) scene.stop();
         countdown = seconds * 20;
         duration = 20 * Math.clamp(plugin.getConfig().getInt("race.duration-seconds", 12), 8, 30);
         resultTicks = 20 * Math.clamp(plugin.getConfig().getInt("race.result-seconds", 8), 5, 30);
-        return true;
     }
     private void begin() {
         remaining = countdown; phase = Phase.OPEN;
@@ -105,16 +105,18 @@ public final class RaceFeature implements Feature, TabExecutor {
         }
         if (!economy.has(id, stake)) { tell(player, "<red>골드가 부족해요."); return; }
         boolean first = phase == Phase.IDLE;
-        if (first && !prepare(Math.clamp(plugin.getConfig().getInt("race.countdown-seconds", 20), 10, 60))) {
-            tell(player, "<red>경기장 공간·청크·월드를 확인해 주세요. 참가금은 차감하지 않았어요."); return;
-        }
+        if (first) prepare(Math.clamp(plugin.getConfig().getInt("race.countdown-seconds", 20), 10, 60), player);
         String key = PREFIX + round + "/" + id;
         if (!economy.reserveWager(id, stake, key)) {
             if (first) scene.stop();
             tell(player, "<red>참가금을 저장하지 못했어요. 골드는 차감되지 않았어요."); return;
         }
         bets.put(id, new Bet(runner, stake, key));
-        if (first) begin();
+        if (first) {
+            begin();
+            tell(player, scene.visible() ? "<green>주변에 임시 경주장을 열었어요. 혼자서도 경기가 진행돼요!"
+                    : "<yellow>현장 경주장을 표시할 수 없어 공용 관전 창에서 진행해요. /race watch");
+        }
         tell(player, COLORS[runner] + NAMES[runner] + "<white>에 " + Economy.format(stake) + " 참가 완료! <gray>적중 시 총 " + Economy.format(stake * 3));
         player.playSound(player.getLocation(), "minecraft:block.note_block.pling", 0.5f, 1.4f);
     }
@@ -125,7 +127,7 @@ public final class RaceFeature implements Feature, TabExecutor {
             switch (phase) {
                 case OPEN -> {
                     remaining -= 2;
-                    if (!scene.update()) { abort(); break; }
+                    updateScene();
                     if (remaining <= 0) {
                         plan = RaceRules.plan(random); elapsed = 0; phase = Phase.RUNNING;
                         broadcast("<green>출발! <gray>모두 같은 경주를 보고 있어요.");
@@ -134,7 +136,7 @@ public final class RaceFeature implements Feature, TabExecutor {
                 }
                 case RUNNING -> {
                     elapsed = Math.min(duration, elapsed + 2);
-                    if (!scene.update()) { abort(); break; }
+                    updateScene();
                     if (elapsed >= duration) {
                         Map<String, Long> payouts = new HashMap<>();
                         bets.values().forEach(bet -> payouts.put(bet.key(), RaceRules.payout(bet.stake(), bet.runner() == plan.winner())));
@@ -155,6 +157,11 @@ public final class RaceFeature implements Feature, TabExecutor {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "경주 처리 실패", failure);
             if (phase != Phase.SETTLING) abort();
         }
+    }
+    private void updateScene() {
+        if (scene.update()) return;
+        scene.stop();
+        broadcast("<yellow>현장 연출을 종료하고 공용 관전 창에서 경주를 계속합니다. <white>/race watch");
     }
     private void finish() {
         if (!economy.settleWagers(settlement)) return;
@@ -226,16 +233,16 @@ public final class RaceFeature implements Feature, TabExecutor {
     }
 
     @Override public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 0 || (args.length == 1 && args[0].equalsIgnoreCase("watch"))) {
+        if (args.length == 0 || (args.length == 1 && (args[0].equalsIgnoreCase("watch") || args[0].equalsIgnoreCase("start")))) {
             if (sender instanceof Player player) open(player);
             else tell(sender, "게임 안에서 /race를 사용해 주세요.");
             return true;
         }
         if (args.length == 1 && args[0].equalsIgnoreCase("help")) {
-            tell(sender, "<gold>/race <gray>무료 관전 · 동물과 금액 선택 후 참가 확정 / 적중 시 총 3배 / 한 경기 1회 / 동물별 승률 1/3");
+            tell(sender, "<gold>/race start <gray>동물·금액 선택 후 혼자 시작 가능 · <gold>/race watch <gray>무료 관전 / 적중 시 총 3배 / 동물별 승률 1/3");
             return true;
         }
-        if (!sender.hasPermission("servercore.admin")) { tell(sender, "<gray>/race 또는 /race help를 사용해 주세요."); return true; }
+        if (!sender.hasPermission("servercore.admin")) { tell(sender, "<gray>/race start로 시작하거나 /race watch로 구경하세요."); return true; }
         if (args.length == 1 && args[0].equalsIgnoreCase("cancel")) {
             if (phase == Phase.SETTLING) tell(sender, "<yellow>이미 끝난 경기의 결과를 저장 중이에요. 정산을 재시도합니다.");
             else { abort(); tell(sender, "<yellow>경주 취소·환불을 처리했어요. 저장 실패 시 자동 재시도합니다."); }
@@ -249,19 +256,18 @@ public final class RaceFeature implements Feature, TabExecutor {
             if (!RaceScene.clear(location)) tell(sender, "<red>앞쪽 20블록·폭 7블록에 평평한 바닥과 높이 3블록의 빈 공간, 로드된 청크가 필요해요.");
             else {
                 plugin.points().set("race-track", location);
-                tell(sender, "<green>현재 위치를 출발선 가운데로 저장했어요. 바라보는 방향으로 20블록 달립니다. /race demo로 무료 시연하세요.");
+                tell(sender, "<green>무료 시연용 출발선을 저장했어요. /race demo로 확인하세요. 일반 경주는 플레이어 주변에서 자동으로 진행돼요.");
             }
         } else if (args.length == 1 && args[0].equalsIgnoreCase("removetrack")) {
-            plugin.points().remove("race-track"); tell(sender, "<green>경기장 위치를 지웠어요. 공용 관전 창은 계속 사용할 수 있어요.");
+            plugin.points().remove("race-track"); tell(sender, "<green>무료 시연용 위치를 지웠어요. 일반 경주의 자동 시작·관전은 계속 사용할 수 있어요.");
         } else if (args.length == 1 && args[0].equalsIgnoreCase("demo")) {
-            if (prepare(5)) { demo = true; begin(); }
-            else { scene.stop(); tell(sender, "<red>경기장 공간·청크·월드를 확인해 주세요."); }
-        } else tell(sender, "<gray>/race [watch|help] · 관리자: settrack | removetrack | demo | cancel");
+            prepare(5, null); demo = true; begin();
+        } else tell(sender, "<gray>/race [start|watch|help] · 관리자: settrack | removetrack | demo | cancel");
         return true;
     }
     @Override public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length != 1) return List.of();
-        return (sender.hasPermission("servercore.admin") ? List.of("watch", "help", "settrack", "removetrack", "demo", "cancel") : List.of("watch", "help"))
+        return (sender.hasPermission("servercore.admin") ? List.of("start", "watch", "help", "settrack", "removetrack", "demo", "cancel") : List.of("start", "watch", "help"))
                 .stream().filter(value -> value.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
     }
 }

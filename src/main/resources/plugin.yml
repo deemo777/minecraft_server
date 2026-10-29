@@ -15,7 +15,7 @@ commands:
     permission: servercore.admin
   race:
     description: 공용 동물 경주 관전·참가 및 경기장 관리
-    usage: /<command> [watch|help|settrack|removetrack|demo|cancel]
+    usage: /<command> [start|watch|help|settrack|removetrack|demo|cancel]
     permission: servercore.race
   achievements:
     description: 공개된 히든 업적과 내 달성 상태 확인

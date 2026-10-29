@@ -39,6 +39,7 @@ final class RaceGui extends Gui {
         }
         inventory.setItem(27, Items.of(Material.CLOCK, 1, "<gold>" + feature.status(),
                 List.of("<gray>관전 무료 · 참가 " + feature.participants() + "명", "<gray>첫 참가자가 들어오면 접수를 시작해요.",
+                        "<gray>혼자 시작 가능 · 관리자·경기장 설정 불필요", "<gray>/race watch · 다른 사람도 무료 관전",
                         "<gray>동물별 승률 <white>1/3", "<gray>적중 시 <gold>원금 포함 3배", "<gray>실패 시 참가금을 잃어요."), null));
         var bet = feature.bet(player.getUniqueId());
         inventory.setItem(31, Items.of(Material.NAME_TAG, 1, "<white>내 참가 내역", bet == null
@@ -62,7 +63,8 @@ final class RaceGui extends Gui {
         }
         boolean accepting = feature.accepting() && bet == null;
         inventory.setItem(49, Items.of(accepting ? Material.LIME_DYE : Material.GRAY_DYE, 1,
-                accepting ? "<green><bold>참가 확정</bold>" : "<gray>지금은 참가할 수 없어요", selected < 0
+                accepting ? (feature.phase() == RaceFeature.Phase.IDLE ? "<green><bold>경주 시작 · 참가 확정</bold>" : "<green><bold>참가 확정</bold>")
+                        : "<gray>지금은 참가할 수 없어요", selected < 0
                         ? List.of("<yellow>먼저 응원할 동물을 선택해 주세요.")
                         : List.of(RaceFeature.COLORS[selected] + RaceFeature.NAMES[selected], "<gold>" + Economy.format(stake) + " 차감",
                                 "<gray>적중 시 총 <gold>" + Economy.format(stake * 3), "<red>실패 시 참가금을 잃어요.",
