@@ -35,7 +35,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
     private final Map<UUID, EquipmentSlot> fishingHands = new HashMap<>();
     private final Set<UUID> wateringChecks = new HashSet<>();
     private YamlConfiguration config;
-    private double dropChance,dropPerLevel,dropMaximum,fishingMultiplier;
+    private double dropChance,dropPerLevel,dropMaximum;
     private boolean accepting;
 
     public BlacksmithFeature(ServerCore plugin, VillageToolFeature tools) {
@@ -63,7 +63,6 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         dropChance = Math.clamp(config.getDouble("enhancement.drop-chance", .02), 0, 1);
         dropPerLevel=config.getDouble("enhancement.drop-per-skill-level",.002);
         dropMaximum=config.getDouble("enhancement.drop-max-chance",.12);
-        fishingMultiplier=config.getDouble("enhancement.fishing-drop-multiplier",3);
         for (EnhancementGui gui : sessions.values()) gui.refresh();
     }
     @Override public void disable() {
@@ -125,7 +124,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
             if(mined==null)return;
             chance=CrystalDropRules.miningChance(mined.name(),dropChance,dropPerLevel,dropMaximum,level);
         }
-        if(type==ToolType.FISHING_ROD)chance=CrystalDropRules.fishingChance(chance,fishingMultiplier);
+        if(type==ToolType.FISHING_ROD)chance=CrystalDropRules.fishingChance(level);
         if (ThreadLocalRandom.current().nextDouble() >= chance) return;
         at.getWorld().dropItemNaturally(at, material(type, 1));
     }

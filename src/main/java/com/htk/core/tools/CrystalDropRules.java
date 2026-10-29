@@ -9,9 +9,9 @@ public final class CrystalDropRules {
         double cap=Double.isFinite(maximum)?Math.clamp(maximum,0,1):.12;
         return Math.min(Math.max(start,cap),start+Math.max(0,skillLevel)*gain);
     }
-    public static double fishingChance(double chance,double multiplier) {
-        double scale=Double.isFinite(multiplier)?Math.max(1,multiplier):3;
-        return Math.min(1,Math.clamp(chance,0,1)*scale);
+    /** Fishing has an independent ten-to-forty-percent curve through skill level 50. */
+    public static double fishingChance(int skillLevel) {
+        return .10 + .30 * (Math.clamp(skillLevel, 0, 50) / 50.0);
     }
     /** Ordinary stone is a fixed exception; only actual ores receive skill growth. */
     public static double miningBase(String material) {

@@ -132,12 +132,20 @@ public final class ArtisanRulesTest {
         check(CrystalDropRules.chance(.02,.002,.12,50)==.12,"level fifty crystal chance reaches twelve percent");
         check(CrystalDropRules.chance(.02,.002,.12,-1)==.02,"missing or invalid skill level uses the base probability");
         check(CrystalDropRules.chance(Double.NaN,Double.NaN,Double.NaN,0)==.02,"non-finite configuration uses safe defaults");
-        check(Math.abs(CrystalDropRules.fishingChance(.022,3)-.066)<1e-12,"fishing level one gets a threefold drop boost");
-        check(Math.abs(CrystalDropRules.fishingChance(.04,3)-.12)<1e-12,"fishing level ten has twelve percent crystal chance");
-        check(Math.abs(CrystalDropRules.fishingChance(.12,3)-.36)<1e-12,"fishing's capped base chance becomes thirty-six percent");
-        check(CrystalDropRules.fishingChance(.9,3)==1,"fishing probability never exceeds one hundred percent");
-        check(CrystalDropRules.fishingChance(.04,0)==.04,"a multiplier cannot accidentally penalize fishing");
-        check(Math.abs(CrystalDropRules.fishingChance(.04,Double.NaN)-.12)<1e-12,"invalid fishing multiplier uses the threefold default");
+        check(CrystalDropRules.fishingChance(0)==.10,"fishing base is ten percent without skill bonuses");
+        check(Math.abs(CrystalDropRules.fishingChance(1)-.106)<1e-12,"fishing level one is ten point six percent");
+        check(Math.abs(CrystalDropRules.fishingChance(10)-.16)<1e-12,"fishing level ten is sixteen percent");
+        check(Math.abs(CrystalDropRules.fishingChance(30)-.28)<1e-12,"fishing level thirty is twenty-eight percent");
+        check(CrystalDropRules.fishingChance(50)==.40,"fishing level fifty reaches forty percent");
+        check(CrystalDropRules.fishingChance(-1)==.10,"negative fishing levels clamp to base");
+        check(CrystalDropRules.fishingChance(Integer.MAX_VALUE)==.40,"oversized fishing levels stay capped at forty percent");
+        double previousFishing=.10;
+        for(int level=0;level<=100;level++) {
+            double fishing=CrystalDropRules.fishingChance(level);
+            check(fishing>=previousFishing && fishing<=.40,"fishing increases monotonically to forty percent");
+            check((level>=50)==(fishing==.40),"fishing reaches its cap exactly at level fifty");
+            previousFishing=fishing;
+        }
         check(ToolType.PICKAXE.relatedSkill()==Skill.MINING && ToolType.AXE.relatedSkill()==Skill.WOODCUTTING,"mining and woodcutting map to the correct tools");
         check(ToolType.HOE.relatedSkill()==Skill.FARMING && ToolType.WATERING_CAN.relatedSkill()==Skill.FARMING
             && ToolType.FISHING_ROD.relatedSkill()==Skill.FISHING,"crop, watering and fishing rewards use the player's corresponding skill");
