@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "3.34.0"
+version = "3.34.1"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -101,3 +101,10 @@ val verifyMessages by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.common.MessagesTest")
 }
 tasks.check { dependsOn(verifyMessages) }
+
+val verifyLobbyVision by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.lobby.LobbyVisionTest")
+}
+tasks.check { dependsOn(verifyLobbyVision) }

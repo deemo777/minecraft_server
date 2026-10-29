@@ -46,6 +46,7 @@ public final class ServerCore extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GuiListener(), this);
 
         EconomyFeature economy = null;
+        features.add(new com.htk.core.lobby.LobbyVisionFeature(this));
         if (getConfig().getBoolean("features.economy", true)) {
             economy = new EconomyFeature(this);
             features.add(economy);
