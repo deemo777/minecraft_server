@@ -6,6 +6,7 @@
 # 모든 +20 마을 도구: 내구도 무한, 용암·불 피해 면역.
 # /villagetool give <type> [level] [player] · /villagetool level <level>
 # 기존 도구도 로그인·손 교체·인벤토리 닫기 때 이름/강화 성능을 갱신합니다.
+# 도구 설명은 강화 별만 표시합니다. 이전 tools.*.lore 및 lore-footer는 사용하지 않습니다.
 
 max-level: 20          # 최대 강화 단계
 allow-enchant: false   # false = 인챈트 테이블·모루·숫돌에 못 올림
@@ -33,8 +34,6 @@ tools:
       10: "<#6aa8e0><bold>광 곡괭이"
       15: "<#b57edc><bold>광 곡괭이"
       20: "<#ffd34d><bold>광 곡괭이"
-    lore:
-      - "<gray>마을 곡괭이 · 대장장이의 작품"
   axe:
     names:
       0: "<#d9d9d9><bold>광 도끼"
@@ -42,8 +41,6 @@ tools:
       10: "<#6aa8e0><bold>광 도끼"
       15: "<#b57edc><bold>광 도끼"
       20: "<#ffd34d><bold>광 도끼"
-    lore:
-      - "<gray>마을 도끼 · 대장장이의 작품"
   hoe:
     names:
       0: "<#d9d9d9><bold>광 괭이"
@@ -51,8 +48,6 @@ tools:
       10: "<#6aa8e0><bold>광 괭이"
       15: "<#b57edc><bold>광 괭이"
       20: "<#ffd34d><bold>광 괭이"
-    lore:
-      - "<gray>마을 괭이 · 대장장이의 작품"
   fishing_rod:
     names:
       0: "<#d9d9d9><bold>광 낚싯대"
@@ -60,22 +55,13 @@ tools:
       10: "<#6aa8e0><bold>광 낚싯대"
       15: "<#b57edc><bold>광 낚싯대"
       20: "<#ffd34d><bold>광 낚싯대"
-    lore:
-      - "<gray>마을 낚싯대 · 대장장이의 작품"
-  watering_can:     # 지금은 아이템만 (물 주기 농사는 나중에)
+  watering_can:
     names:
       0: "<#d9d9d9><bold>광 물뿌리개"
       5: "<#7acb52><bold>광 물뿌리개"
       10: "<#6aa8e0><bold>광 물뿌리개"
       15: "<#b57edc><bold>광 물뿌리개"
       20: "<#ffd34d><bold>광 물뿌리개"
-    lore:
-      - "<gray>마을 물뿌리개 · 대장장이의 작품"
-
-# 별 아래에 붙는 줄
-lore-footer:
-  - ""
-  - "<dark_gray>인챈트할 수 없어요 · 강화는 대장장이에게"
 
 messages:
   not-tool: "<red>손에 마을 도구를 들어 주세요."

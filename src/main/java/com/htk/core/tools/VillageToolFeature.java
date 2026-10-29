@@ -26,6 +26,7 @@ import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.inventory.PrepareGrindstoneEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
 import io.papermc.paper.registry.RegistryAccess;
@@ -186,19 +187,12 @@ public final class VillageToolFeature implements Feature, Listener {
         String name = nameFor(type, lv);
         if (lv > 0) name += cfg.getString("level-suffix", " +%level%").replace("%level%", String.valueOf(lv));
         meta.displayName(noItalic(Text.mm(name)));
-        meta.lore(lore(type, lv));
+        meta.lore(lore(lv));
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS,ItemFlag.HIDE_ATTRIBUTES,
+                ItemFlag.HIDE_UNBREAKABLE,ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
         if (type == ToolType.WATERING_CAN) {
             pdc.set(waterUsesKey, PersistentDataType.INTEGER, waterUses);
             pdc.remove(waterFullKey);
-            List<Component> lines = new ArrayList<>(meta.lore());
-            lines.add(noItalic(Text.mm("<aqua>물: " + (WateringCanRules.infinite(lv) ? "무한"
-                    : waterUses + "/" + WateringCanRules.capacity(lv) + "회")
-                    + " · 범위 " + WateringCanRules.areaLabel(lv))));
-            lines.add(noItalic(Text.mm(WateringCanRules.infinite(lv) ? "<aqua>물 보충 없이 주변 물주기"
-                    : waterUses > 0
-                    ? "<aqua>밭에 우클릭하여 주변 물주기 · 물에 우클릭하여 보충"
-                    : "<gray>물: 비어 있음 · 물에 우클릭하여 채우기")));
-            meta.lore(lines);
         }
         if(type==ToolType.PICKAXE) {
             meta.removeEnchant(org.bukkit.enchantments.Enchantment.EFFICIENCY);
@@ -224,27 +218,19 @@ public final class VillageToolFeature implements Feature, Listener {
         return color+"<bold>광 "+type.korean;
     }
 
-    private List<Component> lore(ToolType type, int lv) {
-        List<String> lines = new ArrayList<>(cfg.getStringList("tools." + type.id + ".lore"));
-        if(type==ToolType.PICKAXE)lines.add("<gray>효율 "+ToolPerformance.efficiency(lv)+" · 행운 "+ToolPerformance.fortune(lv));
-        if(type==ToolType.AXE){
-            lines.add("<gray>원목 2배 확률 "+String.format(java.util.Locale.ROOT,"%.1f",ToolPerformance.axeDoubleChance(lv)*100)+"%");
-            if(lv>=20)lines.add("<green>자연 나무 전체 벌목");
-        }
-        if (ToolPerformance.indestructible(lv)) lines.add("<gold>내구도 무한 · 용암/불 면역");
+    private List<Component> lore(int lv) {
+        List<String> lines = new ArrayList<>();
         // 별: 한 줄에 10칸씩 (최대 단계까지)
         String on = cfg.getString("stars.filled", "<#ffd34d>★");
         String off = cfg.getString("stars.empty", "<dark_gray>☆");
         int perRow = Math.max(1, cfg.getInt("stars.per-row", 10));
         if (maxLevel > 0) {
-            if (!lines.isEmpty()) lines.add("");
             for (int start = 0; start < maxLevel; start += perRow) {
                 StringBuilder row = new StringBuilder();
                 for (int i = start; i < Math.min(maxLevel, start + perRow); i++) row.append(i < lv ? on : off);
                 lines.add(row.toString());
             }
         }
-        lines.addAll(cfg.getStringList("lore-footer"));
         List<Component> out = new ArrayList<>(lines.size());
         for (String l : lines) out.add(noItalic(Text.mm(l)));
         return out;
