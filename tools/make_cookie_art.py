@@ -1,6 +1,6 @@
 """Deemo777 스킨 테마의 실제 얼굴을 보존한 둥근 아이싱 쿠키. 네트워크 요청 없음."""
 from pathlib import Path
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageChops
 import json
 import math
 HERE = Path(__file__).resolve().parent
@@ -23,7 +23,13 @@ def install_cookie_assets(pack):
     # 분홍 장식은 실제 스킨 귀 색을 그대로 사용.
     for x,y in [(6, 10), (32, 10), (8, 33), (30, 33)]:
         d.line((x, y, x+1, y), fill="#d8978a")
-    im.alpha_composite(face, (8, 8))
+    # 얼굴의 아래 양옆 모서리를 안쪽 원에 맞춰 잘라 흰 아이싱 테두리를 보존.
+    face_layer = Image.new("RGBA", im.size)
+    face_layer.alpha_composite(face, (8, 8))
+    face_mask = Image.new("L", im.size)
+    ImageDraw.Draw(face_mask).ellipse((4, 4, 35, 32), fill=255)
+    face_layer.putalpha(ImageChops.multiply(face_layer.getchannel("A"), face_mask))
+    im.alpha_composite(face_layer)
     dest = Path(pack) / "assets/servercore"
     for sub in ["textures/item", "models/item", "items"]: (dest/sub).mkdir(parents=True, exist_ok=True)
     im.save(dest / "textures/item/deemo_cookie.png")
