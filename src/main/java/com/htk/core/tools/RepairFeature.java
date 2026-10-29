@@ -27,7 +27,6 @@ public final class RepairFeature implements Feature, Listener, TabExecutor {
     private final Map<UUID, RepairGui> sessions = new HashMap<>();
     private BukkitTask refreshTask;
     private boolean active;
-    private long fullCost;
 
     public RepairFeature(ServerCore plugin, VillageToolFeature tools, Economy economy) {
         this.plugin = plugin; this.tools = tools; this.economy = economy;
@@ -45,8 +44,6 @@ public final class RepairFeature implements Feature, Listener, TabExecutor {
         refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> sessions.values().forEach(RepairGui::refresh), 20, 20);
     }
     @Override public void reload() {
-        var config = plugin.loadYaml("tools.yml"); config.setDefaults(plugin.loadDefaultYaml("tools.yml"));
-        fullCost = Math.clamp(config.getLong("repair.full-cost", 500), 0, 1_000_000_000L);
         sessions.values().forEach(RepairGui::refresh);
     }
     @Override public void disable() {
@@ -68,7 +65,7 @@ public final class RepairFeature implements Feature, Listener, TabExecutor {
         var meta = item.getItemMeta();
         return meta instanceof Damageable damage && damage.hasMaxDamage() ? damage.getMaxDamage() : item.getType().getMaxDurability();
     }
-    long cost(ItemStack item) { return RepairRules.cost(((Damageable) item.getItemMeta()).getDamage(), maximum(item), fullCost); }
+    long cost(ItemStack item) { return RepairRules.cost(((Damageable) item.getItemMeta()).getDamage(), maximum(item)); }
     boolean canAfford(UUID player, long cost) { return economy.has(player, cost); }
     private boolean isNpc(Entity entity) { return entity.getPersistentDataContainer().has(npcKey, PersistentDataType.BYTE); }
     private void open(Player player) {
