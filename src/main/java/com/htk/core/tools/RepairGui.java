@@ -58,7 +58,7 @@ final class RepairGui implements InventoryHolder {
             }
         }
         var button = Items.of(pack ? Material.PAPER : enabled ? Material.ANVIL : Material.GRAY_DYE,
-                1, name, lore, pack ? Glyphs.model(enabled ? "forge_button" : "repair_button_disabled") : null);
+                1, name, lore, pack ? Glyphs.model("forge_button") : null);
         inventory.setItem(REPAIR, button);
         // The painted button extends into its neighbors; all three cells expose the same tooltip.
         for (int slot : new int[]{REPAIR - 1, REPAIR + 1}) inventory.setItem(slot,

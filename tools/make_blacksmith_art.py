@@ -2,7 +2,7 @@
 Slots match EnhancementGui: tool=11, material=15, upgrade=22 (three rows).
 """
 from pathlib import Path
-from PIL import Image,ImageDraw,ImageFont,ImageOps
+from PIL import Image,ImageDraw,ImageFont
 import json,shutil
 
 HERE=Path(__file__).resolve().parent
@@ -69,13 +69,6 @@ def generate_art(folder=None):
     label((76,56,100,69),'강화','#ffebc3',14)
     label((9,72,37,80),'가방','#b5c5d8',14)
     im.save(folder/'blacksmith_bg.png')
-    # 36 GUI pixels centered on slot 22. Only the existing 33x19 button is opaque.
-    # Scale 2.25 in its item model maps the 72px texture back to this exact overlay.
-    disabled=ImageOps.colorize(ImageOps.grayscale(im.crop((140,128,212,200))), '#27313d', '#b8c2cc').convert('RGBA')
-    mask=Image.new('L',(72,72),0)
-    ImageDraw.Draw(mask).rectangle((4,18,69,55),fill=255)
-    disabled.putalpha(mask)
-    disabled.save(folder/'forge_button_disabled.png')
     for tool,color in zip(TYPES,COLORS):
         icon=Image.new('RGBA',(32,32));p=ImageDraw.Draw(icon)
         if tool=='pickaxe': points=[(7,24),(5,13),(11,6),(14,12),(20,3),(26,17),(21,27),(13,29)]
@@ -121,18 +114,11 @@ def install_blacksmith_assets(pack):
         shutil.copy2(art/(name+'.png'),sc/'textures/item'/(name+'.png'))
         (sc/'models/item'/(name+'.json')).write_text(json.dumps({'parent':'minecraft:item/generated','textures':{'layer0':'servercore:item/'+name}}),encoding='utf-8')
         (sc/'items'/(name+'.json')).write_text(json.dumps({'model':{'type':'minecraft:model','model':'servercore:item/'+name}}),encoding='utf-8')
-    Image.new('RGBA',(16,16)).save(sc/'textures/item/forge_button.png')
-    (sc/'models/item/forge_button.json').write_text(json.dumps({'parent':'minecraft:item/generated','textures':{'layer0':'servercore:item/forge_button'}}),encoding='utf-8')
-    (sc/'items/forge_button.json').write_text(json.dumps({'model':{'type':'minecraft:model','model':'servercore:item/forge_button'}}),encoding='utf-8')
-    for name in ('forge_button_disabled','repair_button_disabled'):
-        shutil.copy2(art/(name+'.png'),sc/'textures/item'/(name+'.png'))
-        (sc/'models/item'/(name+'.json')).write_text(json.dumps({
-            'parent':'minecraft:item/generated', 'gui_light':'front',
-            'textures':{'layer0':'servercore:item/'+name},
-            'display':{'gui':{'scale':[2.25,2.25,1]}}
-        }),encoding='utf-8')
+    # The title font paints the entire button. Items only provide hover/click targets.
+    # Keep old disabled IDs empty too, so the updated pack fixes older deployed JARs.
+    for name in ('forge_button','forge_button_disabled','repair_button_disabled'):
         (sc/'items'/(name+'.json')).write_text(json.dumps({
-            'model':{'type':'minecraft:model','model':'servercore:item/'+name}
+            'model':{'type':'minecraft:empty'}
         }),encoding='utf-8')
 
 
@@ -165,9 +151,6 @@ def generate_repair_art(folder):
     label((64,12,112,24),'장비','#c0d7e3',16)
     label((76,56,100,69),'수리','#ffebc3',14)
     image.save(folder/'repair_bg.png')
-    disabled=ImageOps.colorize(ImageOps.grayscale(image.crop((140,128,212,200))),'#27313d','#b8c2cc').convert('RGBA')
-    mask=Image.new('L',(72,72),0);ImageDraw.Draw(mask).rectangle((4,18,69,55),fill=255)
-    disabled.putalpha(mask);disabled.save(folder/'repair_button_disabled.png')
     return folder/'repair_bg.png'
 
 def generate_merchant_art(folder):

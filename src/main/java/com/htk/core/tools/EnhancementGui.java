@@ -70,7 +70,7 @@ final class EnhancementGui implements InventoryHolder {
         }
         boolean pack = feature.plugin().resourcePackEnabled();
         inventory.setItem(UPGRADE, Items.of(pack ? Material.PAPER : upgradeEnabled ? Material.ANVIL : Material.GRAY_DYE,
-                1, name, lore, pack ? Glyphs.model(upgradeEnabled ? "forge_button" : "forge_button_disabled") : null));
+                1, name, lore, pack ? Glyphs.model("forge_button") : null));
     }
 
     boolean upgradeEnabled() { return upgradeEnabled; }
