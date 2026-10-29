@@ -20,6 +20,7 @@ enhancement:
   drop-chance: 0.02
   drop-per-skill-level: 0.002
   drop-max-chance: 0.12
+  fishing-drop-multiplier: 3.0  # 낚시 성공 1회는 작업 시간이 길어 최종 결정 확률을 3배로 보정 (기본 상한 36%)
   success-rates: [100, 95, 90, 85, 80, 75, 72.5, 70, 67.5, 65, 62.5, 60, 57.5, 55, 52.5, 25, 20, 15, 12, 10, 8, 6, 5, 4, 3]
 
 level-suffix: " +%level%"   # 이름 뒤에 붙는 단계 (+0 이면 안 붙어요)

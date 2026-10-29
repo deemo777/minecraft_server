@@ -33,7 +33,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
     private final Map<UUID, EquipmentSlot> fishingHands = new HashMap<>();
     private final Set<UUID> wateringChecks = new HashSet<>();
     private YamlConfiguration config;
-    private double dropChance,dropPerLevel,dropMaximum;
+    private double dropChance,dropPerLevel,dropMaximum,fishingMultiplier;
     private boolean accepting;
 
     public BlacksmithFeature(ServerCore plugin, VillageToolFeature tools) {
@@ -61,6 +61,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         dropChance = Math.clamp(config.getDouble("enhancement.drop-chance", .02), 0, 1);
         dropPerLevel=config.getDouble("enhancement.drop-per-skill-level",.002);
         dropMaximum=config.getDouble("enhancement.drop-max-chance",.12);
+        fishingMultiplier=config.getDouble("enhancement.fishing-drop-multiplier",3);
         for (EnhancementGui gui : sessions.values()) gui.refresh();
     }
     @Override public void disable() {
@@ -97,7 +98,9 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         if (p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR) return;
         var skills=plugin.feature(SkillFeature.class);
         int level=skills==null?0:skills.progress(p.getUniqueId(),type.relatedSkill()).level;
-        if (ThreadLocalRandom.current().nextDouble() >= CrystalDropRules.chance(dropChance,dropPerLevel,dropMaximum,level)) return;
+        double chance=CrystalDropRules.chance(dropChance,dropPerLevel,dropMaximum,level);
+        if(type==ToolType.FISHING_ROD)chance=CrystalDropRules.fishingChance(chance,fishingMultiplier);
+        if (ThreadLocalRandom.current().nextDouble() >= chance) return;
         at.getWorld().dropItemNaturally(at, material(type, 1));
     }
     private void open(Player p) {
