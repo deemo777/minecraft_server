@@ -8,7 +8,7 @@ ServerCore NPC를 한 명령으로 관리합니다. 생성·제거·방향 변�
 | 대장장이 | 대장장이 | `blacksmith` |
 | 생선 상인 | 어부 | `fish` |
 | 농작물 상인 | 농부 | `crops` |
-| 농지 상인 | 농지 상인 | `farmplots` |
+| 상인 (농지 판매) | 상인 | `farmplots` |
 | 광물 상인 | 광부 | `ores` |
 | 광쿠키 요리사 | 광쿠키 요리사 | `cookie` |
 | 무기 상인 | 모험가 | `weaponmerchant` |

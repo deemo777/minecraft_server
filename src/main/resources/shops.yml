@@ -72,7 +72,7 @@ shops:
   farmplots:
     title: "<#4f7d2a>비옥한 농지 상점"
     theme: crops
-    npc-name: "<#91d46b><bold>농지 상인"
+    npc-name: "<#91d46b><bold>상인"
     npc-profession: farmer
     items:
       farm_plot: { material: MOSS_BLOCK, buy: 500, product: farm_plot }
