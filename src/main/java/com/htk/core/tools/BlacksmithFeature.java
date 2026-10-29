@@ -6,6 +6,7 @@ import com.htk.core.ServerCore;
 import com.htk.core.common.Feature;
 import com.htk.core.common.Glyphs;
 import com.htk.core.common.Text;
+import com.htk.core.skill.SkillFeature;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
@@ -32,7 +33,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
     private final Map<UUID, EquipmentSlot> fishingHands = new HashMap<>();
     private final Set<UUID> wateringChecks = new HashSet<>();
     private YamlConfiguration config;
-    private double dropChance;
+    private double dropChance,dropPerLevel,dropMaximum;
     private boolean accepting;
 
     public BlacksmithFeature(ServerCore plugin, VillageToolFeature tools) {
@@ -58,6 +59,8 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         config = plugin.loadYaml("tools.yml");
         config.setDefaults(plugin.loadDefaultYaml("tools.yml"));
         dropChance = Math.clamp(config.getDouble("enhancement.drop-chance", .02), 0, 1);
+        dropPerLevel=config.getDouble("enhancement.drop-per-skill-level",.002);
+        dropMaximum=config.getDouble("enhancement.drop-max-chance",.12);
         for (EnhancementGui gui : sessions.values()) gui.refresh();
     }
     @Override public void disable() {
@@ -92,7 +95,9 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
     }
     private void reward(Player p, ToolType type, Location at) {
         if (p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR) return;
-        if (ThreadLocalRandom.current().nextDouble() >= dropChance) return;
+        var skills=plugin.feature(SkillFeature.class);
+        int level=skills==null?0:skills.progress(p.getUniqueId(),type.relatedSkill()).level;
+        if (ThreadLocalRandom.current().nextDouble() >= CrystalDropRules.chance(dropChance,dropPerLevel,dropMaximum,level)) return;
         at.getWorld().dropItemNaturally(at, material(type, 1));
     }
     private void open(Player p) {
@@ -180,10 +185,11 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         if (!UpgradeRules.hasMaterials(current+1,materialType(material)==type,material==null?0:material.getAmount())) {
             Messages.send(p,Text.mm("<red>" + type.korean + " 강화 결정 " + required + "개가 필요해요.")); return;
         }
-        int result = UpgradeRules.resolve(current, ThreadLocalRandom.current().nextDouble(),
-                ThreadLocalRandom.current().nextDouble(), successPercent(current + 1) / 100.0);
+        var outcome=ArtisanRules.attempt(current,successPercent(current+1),tools.artisanProgress(item),ThreadLocalRandom.current().nextDouble());
+        int result=outcome.level();
         ItemStack upgraded = item.clone();
         if (!tools.setLevel(upgraded, result)) return;
+        tools.setArtisanProgress(upgraded,outcome.progress());
         if(required>0){
             material.setAmount(material.getAmount() - required);
             gui.inventory.setItem(EnhancementGui.MATERIAL, material.getAmount() == 0 ? null : material);
@@ -191,11 +197,13 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         gui.inventory.setItem(EnhancementGui.TOOL, upgraded);
         gui.refresh();
         if (result > current) {
-            Messages.send(p,Text.mm("<#ffc773><bold>강화 성공!</bold> <white>+" + current + " → +" + result));
+            Messages.send(p,Text.mm((outcome.guaranteed()?"<gold><bold>장기백! 확정 강화 성공!</bold>":"<#ffc773><bold>강화 성공!</bold>")+" <white>+" + current + " → +" + result));
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, .7f, 1.3f);
         } else {
-            Messages.send(p,Text.mm("<red>강화 실패 <gray>· " + (result < current ? "+" + current + " → +" + result : "단계 유지")
-                    + (required==0?" · 재료 소모 없음":" · 재료 " + required + "개 소비")));
+            Messages.send(p,Text.mm("<red>강화 실패 <gray>· 단계 유지"
+                    + (required==0?" · 재료 소모 없음":" · 재료 " + required + "개 소비")
+                    + " <gold>· 장인의 기운 " + ArtisanRules.energyLabel(outcome.progress()) + "%"
+                    + (outcome.progress().guaranteed()?" · 다음 강화 확정 성공!":"")));
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_LAND, .5f, .7f);
         }
     }

@@ -145,6 +145,17 @@ public final class VillageToolFeature implements Feature, Listener {
         return maxLevel;
     }
 
+    public ArtisanRules.Progress artisanProgress(ItemStack item) {
+        if(!isTool(item))return ArtisanRules.Progress.EMPTY;
+        return ArtisanProgressStore.read(item.getItemMeta().getPersistentDataContainer(),levelOf(item));
+    }
+    public void setArtisanProgress(ItemStack item,ArtisanRules.Progress progress) {
+        if(!isTool(item))return;
+        var meta=item.getItemMeta();
+        ArtisanProgressStore.write(meta.getPersistentDataContainer(),levelOf(item),progress);
+        item.setItemMeta(meta);
+    }
+
     public int waterCapacity(ItemStack item) {
         return typeOf(item) == ToolType.WATERING_CAN ? WateringCanRules.capacity(levelOf(item)) : 0;
     }
@@ -175,6 +186,7 @@ public final class VillageToolFeature implements Feature, Listener {
         ToolType type = typeOf(it);
         if (type == null) return false;
         int lv = Math.max(0, Math.min(maxLevel, level));
+        int previousLevel=levelOf(it);
         // Read old capacity before changing level, so upgrades cannot refill the can.
         int waterUses = type == ToolType.WATERING_CAN
                 ? Math.min(waterUses(it), WateringCanRules.capacity(lv)) : 0;
@@ -189,6 +201,7 @@ public final class VillageToolFeature implements Feature, Listener {
         }
         ItemMeta meta = it.getItemMeta();
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        if(lv!=previousLevel)ArtisanProgressStore.clear(pdc);
         pdc.set(levelKey, PersistentDataType.INTEGER, lv);
         if(!pdc.has(instanceKey,PersistentDataType.STRING))pdc.set(instanceKey,PersistentDataType.STRING,java.util.UUID.randomUUID().toString());
         boolean indestructible = ToolPerformance.indestructible(lv);

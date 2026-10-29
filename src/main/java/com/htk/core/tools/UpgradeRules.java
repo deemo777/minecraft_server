@@ -21,12 +21,4 @@ public final class UpgradeRules {
         double value=legacy || target>configured.size()?fallback:configured.get(target-1);
         return Double.isFinite(value)?Math.clamp(value,0,100):fallback;
     }
-    public static int floor(int target) { return target>=21?20:target >= 16 ? 15 : target >= 11 ? 10 : 0; }
-    public static double downgradeChance(int target) { return target >= 16 ? .5 : target >= 11 ? .3 : 0; }
-    public static int resolve(int current, double successRoll, double downgradeRoll, double successChance) {
-        int target = current + 1;
-        required(target);
-        if (successRoll < successChance) return target;
-        return downgradeRoll < downgradeChance(target) ? Math.max(floor(target), current - 1) : current;
-    }
 }

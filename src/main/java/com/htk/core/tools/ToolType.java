@@ -1,6 +1,7 @@
 package com.htk.core.tools;
 
 import org.bukkit.Material;
+import com.htk.core.skill.Skill;
 
 /**
  * 마을 도구 5종. 곡괭이·도끼·괭이는 +0~4 철, +5부터 다이아 바탕이며 물뿌리개·낚싯대 바탕은 고정입니다.
@@ -50,6 +51,14 @@ public enum ToolType {
             case AXE -> Material.IRON_AXE;
             case HOE -> Material.IRON_HOE;
             default -> material;
+        };
+    }
+    public Skill relatedSkill() {
+        return switch(this) {
+            case PICKAXE -> Skill.MINING;
+            case AXE -> Skill.WOODCUTTING;
+            case HOE,WATERING_CAN -> Skill.FARMING;
+            case FISHING_ROD -> Skill.FISHING;
         };
     }
 }

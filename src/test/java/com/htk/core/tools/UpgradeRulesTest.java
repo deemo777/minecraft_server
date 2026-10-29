@@ -105,21 +105,14 @@ public final class UpgradeRulesTest {
         for (int target=1;target<=25;target++) {
             check(UpgradeRules.required(target)==new int[]{0,1,2,4,8}[(target-1)/5], "material cost tier boundary");
             double chance=UpgradeRules.success(target)/100.0;
-            check(UpgradeRules.resolve(target-1,0,.99,chance)==target, "success always advances exactly one");
+            check(ArtisanRules.attempt(target-1,chance*100,ArtisanRules.Progress.EMPTY,0).level()==target, "success always advances exactly one");
             if (target>1) {
-                check(UpgradeRules.resolve(target-1,chance,.99,chance)==target-1,"failure threshold is exclusive");
-                int expected=target<=10 ? target-1 : Math.max(UpgradeRules.floor(target),target-2);
-                check(UpgradeRules.resolve(target-1,.999,0,chance)==expected,"failure checkpoint floor");
+                check(ArtisanRules.attempt(target-1,chance*100,ArtisanRules.Progress.EMPTY,chance).level()==target-1,"failure threshold is exclusive");
+                int expected=target-1;
+                check(ArtisanRules.attempt(target-1,chance*100,ArtisanRules.Progress.EMPTY,.999).level()==expected,"failure always retains the current level");
             }
         }
         check(UpgradeRules.success(1)==100 && UpgradeRules.success(10)==65 && UpgradeRules.success(20)==10 && UpgradeRules.success(25)==3,"specified probabilities");
-        check(UpgradeRules.resolve(10,.99,0,.5)==10,"+10 checkpoint is never lost");
-        check(UpgradeRules.resolve(20,.99,0,.08)==20,"+20 checkpoint is never lost");
-        check(UpgradeRules.resolve(15,.99,0,.25)==15,"+15 checkpoint is never lost");
-        check(UpgradeRules.resolve(13,.99,.299,.35)==12,"30 percent downgrade interval");
-        check(UpgradeRules.resolve(13,.99,.30,.35)==13,"30 percent upper boundary");
-        check(UpgradeRules.resolve(18,.99,.499,.12)==17,"50 percent downgrade interval");
-        check(UpgradeRules.resolve(18,.99,.5,.12)==18,"50 percent upper boundary");
         for (int bad : new int[]{0,26,-1}) {
             boolean failed=false;try{UpgradeRules.required(bad);}catch(IllegalArgumentException ex){failed=true;}
             check(failed,"reject invalid or maxed target");
