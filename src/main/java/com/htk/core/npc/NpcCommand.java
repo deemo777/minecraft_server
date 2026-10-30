@@ -66,6 +66,7 @@ public final class NpcCommand implements TabExecutor {
         if (type.equals("mayor") && plugin.feature(MayorFeature.class) != null) commandName = "mayornpc";
         else if (type.equals("blacksmith") && plugin.feature(BlacksmithFeature.class) != null) commandName = "blacksmithnpc";
         else if (type.equals("repairer") && plugin.feature(com.htk.core.tools.RepairFeature.class) != null) commandName = "repairnpc";
+        else if (type.equals("armsmerchant") && plugin.feature(com.htk.core.merchant.ArmsMerchantFeature.class)!=null) commandName="armsmerchantnpc";
         else if (type.equals("cookie") && plugin.feature(CookieFeature.class) != null) commandName = "cookienpc";
         else if ((type.equals("weaponmerchant") || type.equals("merchant"))
                 && plugin.feature(WeaponMerchantFeature.class) != null) commandName = "weaponmerchantnpc";
@@ -95,6 +96,7 @@ public final class NpcCommand implements TabExecutor {
         if (plugin.feature(com.htk.core.tools.RepairFeature.class) != null) types.add("repairer");
         if (plugin.feature(CookieFeature.class) != null) types.add("cookie");
         if (plugin.feature(WeaponMerchantFeature.class) != null) types.add("weaponmerchant");
+        if(plugin.feature(com.htk.core.merchant.ArmsMerchantFeature.class)!=null)types.add("armsmerchant");
         ShopFeature shops = plugin.feature(ShopFeature.class);
         if (shops != null) types.addAll(shops.shopIds());
         return types;

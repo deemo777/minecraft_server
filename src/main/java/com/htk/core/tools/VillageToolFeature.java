@@ -244,6 +244,7 @@ public final class VillageToolFeature implements Feature, Listener {
         cmd.setFloats(List.of((float) lv));
         if (type == ToolType.WATERING_CAN) cmd.setFlags(List.of(WateringCanRules.canWater(waterUses, lv)));
         meta.setCustomModelDataComponent(cmd);
+        if(type.weapon()) WeaponPerformance.apply(plugin,type,lv,meta);
         it.setItemMeta(meta);
         return true;
     }

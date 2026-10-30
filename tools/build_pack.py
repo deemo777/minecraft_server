@@ -436,6 +436,8 @@ def main():
     install_farm_plot_assets(pack)
     from make_slot_machine_art import install_slot_machine_assets
     install_slot_machine_assets(pack)
+    from install_weapon_assets import install_weapon_assets
+    install_weapon_assets(pack)
     zip_path = os.path.join(args.out, "servercore_pack.zip")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
         for root, _dirs, files in os.walk(pack):

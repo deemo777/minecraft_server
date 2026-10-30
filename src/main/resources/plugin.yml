@@ -5,6 +5,14 @@ api-version: '1.21'
 description: 서버 전용 기능 모음 (메뉴, 도감, 점프 패드, 도약, 골드, 상점, 레벨링·칭호, HUD, 집 땅, 이장님, 안내서)
 
 commands:
+  armsmerchantnpc:
+    description: 무기 상인 생성·제거·방향
+    usage: /<command> create|remove|face
+    permission: servercore.admin
+  armsshop:
+    description: 무기 구매 창
+    usage: /<command> [player]
+    permission: servercore.admin
   slotmachine:
     description: 설치형 코인 슬롯 머신 아이템 지급
     usage: /<command> [1~64] [player]

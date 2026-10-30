@@ -46,6 +46,7 @@ public final class ServerCore extends JavaPlugin {
         points.remove("race-track"); // Retire the removed feature's saved demonstration point.
         getServer().getPluginManager().registerEvents(new GuiListener(), this);
 
+        features.add(new com.htk.core.tools.CombatImmunityFeature(this));
         EconomyFeature economy = null;
         features.add(new com.htk.core.lobby.LobbyVisionFeature(this));
         if (getConfig().getBoolean("features.economy", true)) {
@@ -92,6 +93,10 @@ public final class ServerCore extends JavaPlugin {
         if(economy!=null && villageTools!=null && getConfig().getBoolean("features.weapon-merchant",true)) {
             var merchant=new com.htk.core.merchant.WeaponMerchantFeature(this,economy.economy(),villageTools);
             features.add(merchant);merchant.enable();
+        }
+        if(economy!=null && villageTools!=null) {
+            var arms=new com.htk.core.merchant.ArmsMerchantFeature(this,economy.economy(),villageTools);
+            features.add(arms); arms.enable();
         }
         // HUD는 레벨과 골드가 있어야 해요
         if (skills != null && economy != null && getConfig().getBoolean("features.hud", true)) {

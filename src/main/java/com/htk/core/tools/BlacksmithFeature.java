@@ -343,6 +343,13 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         return List.of();
     }
 
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void combatCrystal(EntityDeathEvent event) {
+        if(event.getEntity() instanceof Player)return;
+        Player killer=event.getEntity().getKiller();if(killer==null)return;
+        ToolType type=tools.typeOf(killer.getInventory().getItemInMainHand());
+        if(type!=null && type.weapon())reward(killer,type,event.getEntity().getLocation());
+    }
     private static boolean stone(Material type) {
         String n = type.name();
         return n.endsWith("_ORE") || Set.of(Material.STONE, Material.DEEPSLATE, Material.GRANITE,

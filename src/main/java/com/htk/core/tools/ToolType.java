@@ -9,6 +9,9 @@ import com.htk.core.skill.Skill;
  * defaultName: tools.yml 에 이름이 없을 때 (+0 이름)
  */
 public enum ToolType {
+    DAGGER("dagger", "단검", Material.DIAMOND_SWORD, "weapons/dagger/iron_dagger", "단검"),
+    TACHI("tachi", "태도", Material.DIAMOND_SWORD, "weapons/tachi/uchigatana", "태도"),
+    GREATSWORD("greatsword", "대검", Material.DIAMOND_SWORD, "weapons/greatsword/black_iron_greatsword", "대검"),
     PICKAXE("pickaxe", "곡괭이", Material.DIAMOND_PICKAXE, "village_pickaxe", "<#d9d9d9><bold>광 곡괭이"),
     AXE("axe", "도끼", Material.DIAMOND_AXE, "village_axe", "<#d9d9d9><bold>광 도끼"),
     HOE("hoe", "괭이", Material.DIAMOND_HOE, "village_hoe", "<#d9d9d9><bold>광 괭이"),
@@ -45,6 +48,7 @@ public enum ToolType {
     }
 
     public Material materialAt(int level) {
+        if (weapon()) return level < 5 ? Material.IRON_SWORD : Material.DIAMOND_SWORD;
         if (level >= 20) return switch (this) {
             case PICKAXE -> Material.NETHERITE_PICKAXE;
             case AXE -> Material.NETHERITE_AXE;
@@ -59,12 +63,14 @@ public enum ToolType {
             default -> material;
         };
     }
+    public boolean weapon() { return this==DAGGER || this==TACHI || this==GREATSWORD; }
     public Skill relatedSkill() {
         return switch(this) {
             case PICKAXE -> Skill.MINING;
             case AXE -> Skill.WOODCUTTING;
             case HOE,WATERING_CAN -> Skill.FARMING;
             case FISHING_ROD -> Skill.FISHING;
+            case DAGGER,TACHI,GREATSWORD -> Skill.COMBAT;
         };
     }
 }

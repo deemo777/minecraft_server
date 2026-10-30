@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.6.0"
+version = "4.7.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -168,3 +168,10 @@ val verifySlotSettlement by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.economy.SlotCoinSettlementTest")
 }
 tasks.check { dependsOn(verifySlotRules, verifySlotSettlement) }
+
+val verifyWeapons by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.tools.WeaponPerformanceTest")
+}
+tasks.check { dependsOn(verifyWeapons) }
