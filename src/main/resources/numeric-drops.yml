@@ -1,0 +1,607 @@
+ACACIA_LEAVES:
+  bonuses:
+    acacia_sapling:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: acacia_leaves
+AMETHYST_CLUSTER:
+  bonuses:
+    amethyst_shard:
+      formula: ore_drops
+  preserve: amethyst_cluster
+AZALEA_LEAVES:
+  bonuses:
+    azalea:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: azalea_leaves
+BEEHIVE:
+  preserve: beehive
+BEETROOTS:
+  bonuses:
+    beetroot_seeds:
+      extra: 3
+      formula: binomial_with_bonus_count
+      probability: 0.5714286
+BIRCH_LEAVES:
+  bonuses:
+    birch_sapling:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: birch_leaves
+BOOKSHELF:
+  preserve: bookshelf
+BRAIN_CORAL_BLOCK:
+  preserve: brain_coral_block
+BROWN_MUSHROOM_BLOCK:
+  preserve: brown_mushroom_block
+BUBBLE_CORAL_BLOCK:
+  preserve: bubble_coral_block
+CAMPFIRE:
+  preserve: campfire
+CARROTS:
+  bonuses:
+    carrot:
+      extra: 3
+      formula: binomial_with_bonus_count
+      probability: 0.5714286
+CHERRY_LEAVES:
+  bonuses:
+    cherry_sapling:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: cherry_leaves
+CLAY:
+  preserve: clay
+COAL_ORE:
+  bonuses:
+    coal:
+      formula: ore_drops
+  preserve: coal_ore
+COBWEB:
+  preserve: cobweb
+COPPER_ORE:
+  bonuses:
+    raw_copper:
+      formula: ore_drops
+  preserve: copper_ore
+CREAKING_HEART:
+  bonuses:
+    resin_clump:
+      bonusMultiplier: 1
+      cap: 9
+      formula: uniform_bonus_count
+  preserve: creaking_heart
+CRIMSON_NYLIUM:
+  preserve: crimson_nylium
+DARK_OAK_LEAVES:
+  bonuses:
+    apple:
+      chances:
+      - 0.005
+      - 0.0055555557
+      - 0.00625
+      - 0.008333334
+      - 0.025
+      formula: chance
+      max: 1
+      min: 1
+    dark_oak_sapling:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: dark_oak_leaves
+DEEPSLATE:
+  preserve: deepslate
+DEEPSLATE_COAL_ORE:
+  bonuses:
+    coal:
+      formula: ore_drops
+  preserve: deepslate_coal_ore
+DEEPSLATE_COPPER_ORE:
+  bonuses:
+    raw_copper:
+      formula: ore_drops
+  preserve: deepslate_copper_ore
+DEEPSLATE_DIAMOND_ORE:
+  bonuses:
+    diamond:
+      formula: ore_drops
+  preserve: deepslate_diamond_ore
+DEEPSLATE_EMERALD_ORE:
+  bonuses:
+    emerald:
+      formula: ore_drops
+  preserve: deepslate_emerald_ore
+DEEPSLATE_GOLD_ORE:
+  bonuses:
+    raw_gold:
+      formula: ore_drops
+  preserve: deepslate_gold_ore
+DEEPSLATE_IRON_ORE:
+  bonuses:
+    raw_iron:
+      formula: ore_drops
+  preserve: deepslate_iron_ore
+DEEPSLATE_LAPIS_ORE:
+  bonuses:
+    lapis_lazuli:
+      formula: ore_drops
+  preserve: deepslate_lapis_ore
+DEEPSLATE_REDSTONE_ORE:
+  bonuses:
+    redstone:
+      bonusMultiplier: 1
+      formula: uniform_bonus_count
+  preserve: deepslate_redstone_ore
+DIAMOND_ORE:
+  bonuses:
+    diamond:
+      formula: ore_drops
+  preserve: diamond_ore
+EMERALD_ORE:
+  bonuses:
+    emerald:
+      formula: ore_drops
+  preserve: emerald_ore
+ENDER_CHEST:
+  preserve: ender_chest
+FERN:
+  bonuses:
+    wheat_seeds:
+      bonusMultiplier: 2
+      formula: uniform_bonus_count
+FIRE_CORAL_BLOCK:
+  preserve: fire_coral_block
+FLOWERING_AZALEA_LEAVES:
+  bonuses:
+    flowering_azalea:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: flowering_azalea_leaves
+GILDED_BLACKSTONE:
+  bonuses:
+    gold_nugget:
+      chances:
+      - 0.1
+      - 0.14285715
+      - 0.25
+      - 1.0
+      formula: chance
+      max: 5
+      min: 2
+  preserve: gilded_blackstone
+GLOWSTONE:
+  bonuses:
+    glowstone_dust:
+      bonusMultiplier: 1
+      cap: 4
+      formula: uniform_bonus_count
+  preserve: glowstone
+GOLD_ORE:
+  bonuses:
+    raw_gold:
+      formula: ore_drops
+  preserve: gold_ore
+GRASS_BLOCK:
+  preserve: grass_block
+GRAVEL:
+  bonuses:
+    flint:
+      chances:
+      - 0.1
+      - 0.14285715
+      - 0.25
+      - 1.0
+      formula: chance
+      max: 1
+      min: 1
+  preserve: gravel
+HORN_CORAL_BLOCK:
+  preserve: horn_coral_block
+IRON_ORE:
+  bonuses:
+    raw_iron:
+      formula: ore_drops
+  preserve: iron_ore
+JUNGLE_LEAVES:
+  bonuses:
+    jungle_sapling:
+      chances:
+      - 0.025
+      - 0.027777778
+      - 0.03125
+      - 0.041666668
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: jungle_leaves
+LAPIS_ORE:
+  bonuses:
+    lapis_lazuli:
+      formula: ore_drops
+  preserve: lapis_ore
+MANGROVE_LEAVES:
+  bonuses:
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: mangrove_leaves
+MELON:
+  bonuses:
+    melon_slice:
+      bonusMultiplier: 1
+      cap: 9
+      formula: uniform_bonus_count
+  preserve: melon
+MYCELIUM:
+  preserve: mycelium
+NETHER_GOLD_ORE:
+  bonuses:
+    gold_nugget:
+      formula: ore_drops
+  preserve: nether_gold_ore
+NETHER_QUARTZ_ORE:
+  bonuses:
+    quartz:
+      formula: ore_drops
+  preserve: nether_quartz_ore
+NETHER_WART:
+  bonuses:
+    nether_wart:
+      bonusMultiplier: 1
+      formula: uniform_bonus_count
+OAK_LEAVES:
+  bonuses:
+    apple:
+      chances:
+      - 0.005
+      - 0.0055555557
+      - 0.00625
+      - 0.008333334
+      - 0.025
+      formula: chance
+      max: 1
+      min: 1
+    oak_sapling:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: oak_leaves
+ORANGE_POPLAR_LEAVES:
+  bonuses:
+    poplar_sapling:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: orange_poplar_leaves
+PALE_OAK_LEAVES:
+  bonuses:
+    pale_oak_sapling:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: pale_oak_leaves
+PODZOL:
+  preserve: podzol
+POTATOES:
+  bonuses:
+    potato:
+      extra: 3
+      formula: binomial_with_bonus_count
+      probability: 0.5714286
+REDSTONE_ORE:
+  bonuses:
+    redstone:
+      bonusMultiplier: 1
+      formula: uniform_bonus_count
+  preserve: redstone_ore
+RED_MUSHROOM_BLOCK:
+  preserve: red_mushroom_block
+RED_POPLAR_LEAVES:
+  bonuses:
+    poplar_sapling:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: red_poplar_leaves
+SCULK_VEIN:
+  preserve: sculk_vein
+SEA_LANTERN:
+  bonuses:
+    prismarine_crystals:
+      bonusMultiplier: 1
+      cap: 5
+      formula: uniform_bonus_count
+  preserve: sea_lantern
+SHORT_GRASS:
+  bonuses:
+    wheat_seeds:
+      bonusMultiplier: 2
+      formula: uniform_bonus_count
+SNOW_BLOCK:
+  preserve: snow_block
+SOUL_CAMPFIRE:
+  preserve: soul_campfire
+SPRUCE_LEAVES:
+  bonuses:
+    spruce_sapling:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: spruce_leaves
+STONE:
+  preserve: stone
+SWEET_BERRY_BUSH:
+  bonuses:
+    sweet_berries:
+      bonusMultiplier: 1
+      formula: uniform_bonus_count
+TUBE_CORAL_BLOCK:
+  preserve: tube_coral_block
+TWISTING_VINES:
+  bonuses:
+    twisting_vines:
+      chances:
+      - 0.33
+      - 0.55
+      - 0.77
+      - 1.0
+      formula: chance
+      max: 1
+      min: 1
+  preserve: twisting_vines
+TWISTING_VINES_PLANT:
+  bonuses:
+    twisting_vines:
+      chances:
+      - 0.33
+      - 0.55
+      - 0.77
+      - 1.0
+      formula: chance
+      max: 1
+      min: 1
+  preserve: twisting_vines
+WARPED_NYLIUM:
+  preserve: warped_nylium
+WEEPING_VINES:
+  bonuses:
+    weeping_vines:
+      chances:
+      - 0.33
+      - 0.55
+      - 0.77
+      - 1.0
+      formula: chance
+      max: 1
+      min: 1
+  preserve: weeping_vines
+WEEPING_VINES_PLANT:
+  bonuses:
+    weeping_vines:
+      chances:
+      - 0.33
+      - 0.55
+      - 0.77
+      - 1.0
+      formula: chance
+      max: 1
+      min: 1
+  preserve: weeping_vines
+WHEAT:
+  bonuses:
+    wheat_seeds:
+      extra: 3
+      formula: binomial_with_bonus_count
+      probability: 0.5714286
+YELLOW_POPLAR_LEAVES:
+  bonuses:
+    poplar_sapling:
+      chances:
+      - 0.05
+      - 0.0625
+      - 0.083333336
+      - 0.1
+      formula: chance
+      max: 1
+      min: 1
+    stick:
+      chances:
+      - 0.02
+      - 0.022222223
+      - 0.025
+      - 0.033333335
+      - 0.1
+      formula: chance
+      max: 2
+      min: 1
+  preserve: yellow_poplar_leaves

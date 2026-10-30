@@ -364,6 +364,7 @@ public final class SkillFeature implements Feature, Listener {
         Player p = e.getPlayer();
         var tools=plugin.feature(com.htk.core.tools.VillageToolFeature.class);
         if(tools!=null) {
+            if(tools.ownsNumericDrops(e))return;
             var type=tools.typeOf(p.getInventory().getItemInMainHand());
             if((s==Skill.WOODCUTTING&&type==com.htk.core.tools.ToolType.AXE)
                     ||(s==Skill.MINING&&type==com.htk.core.tools.ToolType.PICKAXE))return;

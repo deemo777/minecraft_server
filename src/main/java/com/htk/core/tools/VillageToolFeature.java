@@ -45,7 +45,7 @@ import java.util.List;
  *   - 아이템 데이터: servercore:village_tool = 종류(pickaxe…), servercore:tool_level = 강화 단계
  *   - 모양: 아이템 모델 servercore:village_pickaxe + custom_model_data floats[0] = 강화 단계
  *     (리소스팩이 0/5/10/15/20 으로 모델을 골라요, ⚠ tools/build_pack.py 의 TOOL_TIERS 와 약속)
- *   - 인챈트 금지 (tools.yml allow-enchant): 인챈트 테이블·모루·숫돌에 못 올려요
+ *   - 인챈트 금지 (커스텀 장비는 수치 효과만 사용): 인챈트 테이블·모루·숫돌에 못 올려요
  *   - 관리자: /villagetool give <type> [level] [player], /villagetool level <level> (손에 든 도구)
  * 대장장이·재료 드롭·확률 강화는 BlacksmithFeature가 담당해요. 곡괭이·도끼 성능은 강화 단계에 맞게 적용해요.
  * 설정: tools.yml
@@ -63,7 +63,10 @@ public final class VillageToolFeature implements Feature, Listener {
     private YamlConfiguration cfg = new YamlConfiguration();
     private int maxLevel = 25;
     private boolean accepting;
-    private boolean allowEnchant = false;
+    private NumericDrops numericDrops;
+    public boolean ownsNumericDrops(org.bukkit.event.block.BlockDropItemEvent event) {
+        return numericDrops!=null && numericDrops.handles(event);
+    }
 
     public VillageToolFeature(ServerCore plugin) {
         this.plugin = plugin;
@@ -80,6 +83,7 @@ public final class VillageToolFeature implements Feature, Listener {
     @Override
     public void enable() {
         loadConfig();accepting=true;
+        plugin.getServer().getPluginManager().registerEvents(numericDrops=new NumericDrops(plugin,this), plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for(Player p:Bukkit.getOnlinePlayers())refreshTools(p);
         PluginCommand cmd = plugin.getCommand("villagetool");
@@ -97,14 +101,13 @@ public final class VillageToolFeature implements Feature, Listener {
     }
 
     @Override
-    public void disable() { accepting=false;pendingRefresh.clear();for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
+    public void disable() { accepting=false;if(numericDrops!=null)numericDrops.close();pendingRefresh.clear();for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
 
     private void loadConfig() {
         cfg = plugin.loadYaml("tools.yml");
         cfg.setDefaults(plugin.loadDefaultYaml("tools.yml"));
         int configured=cfg.getInt("max-level",25);
         maxLevel=configured==20?25:Math.clamp(configured,0,25);
-        allowEnchant = cfg.getBoolean("allow-enchant", false);
     }
 
     private String msg(String key, String def) {
@@ -212,10 +215,9 @@ public final class VillageToolFeature implements Feature, Listener {
                 ? RegistryAccess.registryAccess().getRegistry(RegistryKey.DAMAGE_TYPE).getTag(DamageTypeTagKeys.IS_FIRE)
                 : null);
         if (indestructible && meta instanceof Damageable damageable) damageable.setDamage(0);
-        // These are managed effects on all five tools, including fishing rods and watering cans.
-        meta.removeEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING);
-        int unbreaking = ToolPerformance.unbreaking(lv);
-        if (unbreaking > 0) meta.addEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING, unbreaking, true);
+        // Migrate all legacy enchanted equipment; performance is now numeric only.
+        for(var enchantment:java.util.Set.copyOf(meta.getEnchants().keySet()))meta.removeEnchant(enchantment);
+        meta.setEnchantmentGlintOverride(false);
 
         String name = nameFor(type, lv);
         if (lv > 0) name += cfg.getString("level-suffix", " +%level%").replace("%level%", String.valueOf(lv));
@@ -227,16 +229,12 @@ public final class VillageToolFeature implements Feature, Listener {
             pdc.set(waterUsesKey, PersistentDataType.INTEGER, waterUses);
             pdc.remove(waterFullKey);
         }
-        if(type==ToolType.PICKAXE || type==ToolType.AXE || type==ToolType.HOE) {
-            meta.removeEnchant(org.bukkit.enchantments.Enchantment.EFFICIENCY);
-            meta.removeEnchant(org.bukkit.enchantments.Enchantment.FORTUNE);
-            meta.removeEnchant(org.bukkit.enchantments.Enchantment.SILK_TOUCH);
-            int efficiency=type==ToolType.PICKAXE?ToolPerformance.efficiency(lv):type==ToolType.AXE?ToolPerformance.axeEfficiency(lv):0;
-            int fortune=type==ToolType.PICKAXE?ToolPerformance.fortune(lv):type==ToolType.HOE?ToolPerformance.hoeFortune(lv):0;
-            if(efficiency>0)meta.addEnchant(org.bukkit.enchantments.Enchantment.EFFICIENCY,efficiency,true);
-            if(fortune>0)meta.addEnchant(org.bukkit.enchantments.Enchantment.FORTUNE,fortune,true);
-            if(type==ToolType.AXE && ToolPerformance.silkTouch(lv))meta.addEnchant(org.bukkit.enchantments.Enchantment.SILK_TOUCH,1,true);
-        }
+        // Explicit defaults preserve the material's ordinary combat stats when adding a modifier.
+        meta.setAttributeModifiers(type.materialAt(lv).getDefaultAttributeModifiers(org.bukkit.inventory.EquipmentSlot.HAND));
+        int mining=type==ToolType.PICKAXE?ToolPerformance.efficiency(lv):type==ToolType.AXE?ToolPerformance.axeEfficiency(lv):0;
+        if(mining>0)meta.addAttributeModifier(org.bukkit.attribute.Attribute.MINING_EFFICIENCY,
+            new org.bukkit.attribute.AttributeModifier(new NamespacedKey(plugin,"numeric_mining"),NumericEffects.miningBonus(mining),
+                org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,org.bukkit.inventory.EquipmentSlotGroup.MAINHAND));
 
         // 모양: 아이템 모델 + 강화 단계 (리소스팩이 단계에 맞는 모델을 골라요)
         if (type.model != null && plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model(type.model));
@@ -337,6 +335,9 @@ public final class VillageToolFeature implements Feature, Listener {
         if (typeOf(event.getItem()) != null && ToolPerformance.indestructible(levelOf(event.getItem()))) {
             event.setCancelled(true);
             refreshNextTick(event.getPlayer());
+        } else if(isTool(event.getItem())) {
+            int wear=NumericEffects.wear(event.getDamage(),ToolPerformance.unbreaking(levelOf(event.getItem())),java.util.concurrent.ThreadLocalRandom.current());
+            if(wear==0)event.setCancelled(true);else event.setDamage(wear);
         }
     }
 
@@ -392,13 +393,6 @@ public final class VillageToolFeature implements Feature, Listener {
     }
     private static String family(org.bukkit.Material material) {
         return material.name().replace("DEEPSLATE_","");
-    }
-    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void fractionalFortune(org.bukkit.event.block.BlockBreakEvent event) {
-        ItemStack tool=event.getPlayer().getInventory().getItemInMainHand();int level=levelOf(tool);
-        if(typeOf(tool)==ToolType.PICKAXE && level>=10 && level<15)
-            tool.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.FORTUNE,
-                ToolPerformance.rolledFortune(level,java.util.concurrent.ThreadLocalRandom.current().nextDouble()));
     }
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void connectedBreak(org.bukkit.event.block.BlockBreakEvent event) {
@@ -493,24 +487,24 @@ public final class VillageToolFeature implements Feature, Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPrepareEnchant(PrepareItemEnchantEvent e) {
-        if (!allowEnchant && isTool(e.getItem())) e.setCancelled(true);
+        if (isTool(e.getItem())) e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onEnchant(EnchantItemEvent e) {
-        if (!allowEnchant && isTool(e.getItem())) e.setCancelled(true);
+        if (isTool(e.getItem())) e.setCancelled(true);
     }
 
     /** 모루: 인챈트 책·이름 바꾸기·합치기 전부 막아요 (수리는 수리 기사에게) */
     @EventHandler(priority = EventPriority.HIGH)
     public void onAnvil(PrepareAnvilEvent e) {
-        if (!allowEnchant && hasTool(e.getInventory())) e.setResult(null);
+        if (hasTool(e.getInventory())) e.setResult(null);
     }
 
     /** 숫돌: 인챈트를 지우거나 두 도구를 합치지 못하게 */
     @EventHandler(priority = EventPriority.HIGH)
     public void onGrindstone(PrepareGrindstoneEvent e) {
-        if (!allowEnchant && hasTool(e.getInventory())) e.setResult(null);
+        if (hasTool(e.getInventory())) e.setResult(null);
     }
 
     private boolean hasTool(Inventory inv) {
