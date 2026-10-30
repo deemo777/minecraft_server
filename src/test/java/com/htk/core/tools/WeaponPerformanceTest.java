@@ -3,8 +3,17 @@ public final class WeaponPerformanceTest {
  public static void main(String[] args) {
   ToolType[] types={ToolType.DAGGER,ToolType.TACHI,ToolType.GREATSWORD};
   double[] initial={4,6,9},maximum={10.7,13,24},startSpeed={3,2,1.3},endSpeed={4.5,2.4,1},ratios={.1,.77,1.8};
+  int[] startAnimation={7,10,15},endAnimation={4,8,20};
   for(int t=0;t<types.length;t++) {
    var type=types[t];
+   var expectedAnimation=type==ToolType.DAGGER?io.papermc.paper.datacomponent.item.SwingAnimation.Animation.STAB:io.papermc.paper.datacomponent.item.SwingAnimation.Animation.WHACK;
+   if(WeaponPerformance.animationType(type)!=expectedAnimation)throw new AssertionError("Dagger stabs, other weapons swing");
+   if(WeaponPerformance.animationTicks(type,0)!=startAnimation[t] || WeaponPerformance.animationTicks(type,25)!=endAnimation[t])throw new AssertionError("Animation duration endpoints");
+   for(int level=0;level<=25;level++) {
+    int ticks=WeaponPerformance.animationTicks(type,level);
+    if(ticks<1 || Math.abs(ticks-20.0/WeaponPerformance.speed(type,level))>.500000001)throw new AssertionError("Animation matches attack charge within half a tick");
+    if(level>0 && (type==ToolType.GREATSWORD?ticks<WeaponPerformance.animationTicks(type,level-1):ticks>WeaponPerformance.animationTicks(type,level-1)))throw new AssertionError("Animation follows specialized speed growth");
+   }
    if(WeaponPerformance.damage(type,0)!=initial[t] || Math.abs(WeaponPerformance.damage(type,25)-maximum[t])>1e-10)throw new AssertionError("Damage endpoints");
    if(WeaponPerformance.speed(type,0)!=startSpeed[t] || Math.abs(WeaponPerformance.speed(type,25)-endSpeed[t])>1e-10)throw new AssertionError("Speed endpoints");
    if(Math.abs(WeaponPerformance.sweepRatio(type,25)-ratios[t])>1e-10)throw new AssertionError("Maximum sweep ratio");
@@ -46,6 +55,6 @@ public final class WeaponPerformanceTest {
   }
   if(new SweepTargets.Budget<>(java.util.List.of(1),1,java.util.Comparator.naturalOrder()).claim(1))throw new AssertionError("Primary-only budget has no secondary slots");
   if(new SweepTargets.Budget<Integer>(java.util.List.of(),5,java.util.Comparator.naturalOrder()).claim(1))throw new AssertionError("No targets outside the candidate set");
-  System.out.println("All 26 weapon levels: specialized growth, target budgets, native-cap compensation passed");
+  System.out.println("All 26 weapon levels: attack animation type/timing, specialized growth, target budgets, native-cap compensation passed");
  }
 }

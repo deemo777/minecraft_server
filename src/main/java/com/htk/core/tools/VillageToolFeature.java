@@ -280,6 +280,7 @@ public final class VillageToolFeature implements Feature, Listener {
         meta.setCustomModelDataComponent(cmd);
         if(type.weapon()) WeaponPerformance.apply(plugin,type,lv,meta);
         it.setItemMeta(meta);
+        if(type.weapon()) WeaponPerformance.applyAnimation(it,type,lv);
         return true;
     }
 

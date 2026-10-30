@@ -2,10 +2,13 @@ package com.htk.core.tools;
 
 import com.htk.core.ServerCore;
 import com.htk.core.common.Text;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.SwingAnimation;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.EquipmentSlotGroup;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /** Weapon milestones share the existing enhancement, repair and durability transactions. */
@@ -25,6 +28,14 @@ public final class WeaponPerformance {
     public static double speed(ToolType type) {return type==ToolType.DAGGER?3:type==ToolType.TACHI?2:1.3;}
     public static double reach(ToolType type) {return type==ToolType.DAGGER?2:type==ToolType.TACHI?3:3.5;}
     public static double speed(ToolType type,int level){return between(level,speed(type),type==ToolType.DAGGER?4.5:type==ToolType.TACHI?2.4:1);}
+    /** Match one attack charge period, rounded to the nearest client animation tick. */
+    static int animationTicks(ToolType type,int level){return Math.max(1,(int)Math.round(20.0/speed(type,level)));}
+    static SwingAnimation.Animation animationType(ToolType type){return type==ToolType.DAGGER?SwingAnimation.Animation.STAB:SwingAnimation.Animation.WHACK;}
+    static void applyAnimation(ItemStack item,ToolType type,int level) {
+        // Apply after ItemMeta: setting a previously captured meta would overwrite component changes.
+        item.setData(DataComponentTypes.ATTACK_ANIMATION,SwingAnimation.swingAnimation()
+                .type(animationType(type)).duration(animationTicks(type,level)).build());
+    }
     public static double reach(ToolType type,int level){return reach(type)+.02*Math.clamp(level,0,25);}
     static void apply(ServerCore plugin,ToolType type,int level,ItemMeta meta) {
         set(plugin,meta,Attribute.SWEEPING_DAMAGE_RATIO,"weapon_sweep",Math.min(1,sweepRatio(type,level)));
