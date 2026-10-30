@@ -1,0 +1,60 @@
+dagger:
+  default: iron_dagger
+  damage: 4.5
+  attack-speed: 3.6
+  reach: 2
+  skins:
+  - amethyst_greatblade_dagger
+  - azure_dagger
+  - calamity_blade_dagger
+  - demons_blood_blade_dagger
+  - dragon_sword_dagger
+  - gloomsteel_knife
+  - iron_dagger
+  - iron_sai
+  - nature_sword
+  - nocturne_dagger
+  - solstice_dagger
+  - spider_sword_dagger
+  - talonbrand_dagger
+  - vindicator
+tachi:
+  default: uchigatana
+  damage: 7
+  attack-speed: 2
+  reach: 3
+  skins:
+  - azure_sabre
+  - calamity_blade_thin
+  - crystal_frostblade
+  - demonslayers_greatsword
+  - ethereal_frostblade
+  - gloomsteel_katana
+  - lycanbane
+  - moonlight
+  - oculus
+  - uchigatana
+  - valhakyra
+  - vengeance_blade
+  - void_oculus
+  - zenith
+greatsword:
+  default: black_iron_greatsword
+  damage: 12
+  attack-speed: 1
+  reach: 3.5
+  skins:
+  - azure_greatsword
+  - berserkers_cleaver
+  - black_iron_greatsword
+  - claymore
+  - crimson_cleaver
+  - demonic_sword
+  - emerald_greatcleaver
+  - grand_claymore
+  - ravenous_blade
+  - revenants_gravecleaver
+  - runic_piercer
+  - vaelith
+  - vesper
+  - winterthorn
