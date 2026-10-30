@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 /**
- * 마을 메뉴 (5줄 상자). 그림은 리소스팩 배경(나무 간판 + 큰 버튼 4개),
+ * 마을 메뉴 (5줄 상자). 그림은 리소스팩 배경(나무 간판 + 큰 버튼 6개),
  * 칸에는 보이지 않는 아이템을 깔아서 마우스를 올리면 설명이 떠요.
  */
 public final class MenuGui extends Gui {
@@ -73,6 +73,10 @@ public final class MenuGui extends Gui {
         if (b == null) return;
         if (b.close()) {
             player.closeInventory();
+        } else if (b.openMenu().equalsIgnoreCase("warp")) {
+            Bukkit.getScheduler().runTask(feature.plugin(), () -> {
+                if (player.isOnline()) feature.openWarp(player);
+            });
         } else if (!b.teleport().isBlank()) {
             teleport(player, b);
         } else if (b.comingSoon()) {

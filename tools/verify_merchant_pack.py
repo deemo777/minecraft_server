@@ -107,6 +107,23 @@ def verify(path):
         for element in npc['elements']:
             assert all(-16<=v<=32 for key in ('from','to') for v in element[key]), 'NPC model outside supported bounds'
         gui=documents['assets/servercore/font/gui.json']
+        warp={}
+        for provider in gui['providers']:
+            if provider['type']=='bitmap':
+                for row in provider['chars']:
+                    for char in row:
+                        if 0xE0A4<=ord(char)<=0xE0A7:warp[ord(char)]=provider
+        assert len(warp)==4, 'missing warp selector background'
+        assembled=Image.new('RGBA',(352,448))
+        for index in range(4):
+            provider=warp[0xE0A4+index]
+            assert provider['file']==f'servercore:font/warp_bg_{index}.png'
+            assert provider['height']==112 and provider['ascent']==(33 if index<2 else -79)
+            with Image.open(io.BytesIO(pack.read(f'assets/servercore/textures/font/warp_bg_{index}.png'))) as tile:
+                assert tile.size==(176,224)
+                assembled.paste(tile,(176*(index%2),224*(index//2)))
+        with Image.open(Path(__file__).resolve().parent/'art/warp_bg.png') as original:
+            assert assembled.tobytes()==original.convert('RGBA').tobytes()
         honor={}
         seen=set()
         for provider in gui['providers']:

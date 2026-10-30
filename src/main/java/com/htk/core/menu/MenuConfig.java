@@ -6,12 +6,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.util.*;
 
 /** menu.yml 읽기 */
-public record MenuConfig(int headSlot, String headName, List<String> headLore, String headCommand,
+public record MenuConfig(int headSlot, String headName, List<String> headLore, String headCommand, String warpPoint,
                          Map<Integer, Button> bySlot, List<Button> buttons) {
 
     public record Button(String id, List<Integer> slots, String name, List<String> lore,
                          String command, String teleport, String teleportTitle, String teleportSubtitle,
-                         boolean comingSoon, boolean close) {}
+                         boolean comingSoon, boolean close, String openMenu) {}
 
     /** Apply the old built-in layout migration in memory, preserving custom buttons. */
     public static void migrateLayout(YamlConfiguration yml, YamlConfiguration defaults) {
@@ -21,6 +21,22 @@ public record MenuConfig(int headSlot, String headName, List<String> headLore, S
                 yml.getIntegerList("buttons.warp.slots").equals(List.of(12,13,14,21,22,23,30,31,32,39,40,41))) {
             yml.set("buttons.warp.slots", defaults.getIntegerList("buttons.warp.slots"));
             yml.set("buttons.skill", defaults.getConfigurationSection("buttons.skill"));
+        }
+        // Upgrade only the built-in actions; retain custom layouts and commands.
+        if (!yml.isConfigurationSection("buttons.dungeon")
+                && yml.getIntegerList("buttons.wild.slots").equals(defaults.getIntegerList("buttons.dungeon.slots"))
+                && !yml.getString("buttons.wild.teleport", "").isBlank()
+                && yml.getString("buttons.wild.command", "").isBlank()) {
+            if (!yml.contains("warp-point")) yml.set("warp-point", yml.getString("buttons.wild.teleport"));
+            yml.set("buttons.dungeon", defaults.getConfigurationSection("buttons.dungeon"));
+            yml.set("buttons.wild", null);
+        }
+        if (yml.getBoolean("buttons.warp.coming-soon", false)
+                && yml.getString("buttons.warp.command", "").isBlank()
+                && yml.getString("buttons.warp.teleport", "").isBlank()) {
+            yml.set("buttons.warp.coming-soon", false);
+            yml.set("buttons.warp.open-menu", "warp");
+            yml.set("buttons.warp.lore", defaults.getStringList("buttons.warp.lore"));
         }
     }
 
@@ -39,13 +55,14 @@ public record MenuConfig(int headSlot, String headName, List<String> headLore, S
                     b.getString("name", id), b.getStringList("lore"),
                     com.htk.core.common.CommandNames.configured(b.getString("command", "")), b.getString("teleport", ""),
                     b.getString("teleport-title", ""), b.getString("teleport-subtitle", ""),
-                    b.getBoolean("coming-soon", false), b.getBoolean("close", false));
+                    b.getBoolean("coming-soon", false), b.getBoolean("close", false), b.getString("open-menu", ""));
             buttons.add(button);
             for (int s : slots) if (s >= 0 && s < 45) bySlot.put(s, button);
         }
         return new MenuConfig(yml.getInt("head-slot", 0),
                 yml.getString("head-name", "%player%"), yml.getStringList("head-lore"),
                 com.htk.core.common.CommandNames.configured(yml.getString("head-command", "honor")),
+                yml.getString("warp-point", "wild"),
                 Map.copyOf(bySlot), List.copyOf(buttons));
     }
 }

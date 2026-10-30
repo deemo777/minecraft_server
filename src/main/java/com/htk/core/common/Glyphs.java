@@ -37,6 +37,8 @@ public final class Glyphs {
     /** 배경 4조각의 첫 글자 (왼위) — 나머지는 +1, +2, +3 */
     public static final char DOGAM_BG = '\uE020';
     public static final char MENU_BG = '\uE024';
+    /** 워프 선택 창 4조각 — tools/build_pack.py의 E0A4~E0A7. */
+    public static final char WARP_BG = '\uE0A4';
     public static final char SKILL_BG = '\uE028';
     public static final char LAND_BG = '\uE02C';
     public static final char MEMBERS_BG = '\uE03C';

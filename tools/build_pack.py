@@ -78,6 +78,7 @@ def font_json():
         {"type": "space", "advances": {**neg, **pos}},
         *bg_tiles("dogam_bg", 222 + TOP, 0xE020),   # 도감 배경 4조각 \uE020~\uE023
         *bg_tiles("menu_bg", 204 + TOP, 0xE024),    # 메뉴 배경 4조각 \uE024~\uE027
+        *bg_tiles("warp_bg", 204 + TOP, 0xE0A4),    # 야생 워프 6개 버튼
         *bg_tiles("skill_bg", 222 + TOP, 0xE028),   # 스킬 창 배경 4조각 \uE028~\uE02B
         *bg_tiles("land_bg", 222 + TOP, 0xE02C),    # 집 지도 창 배경 4조각 \uE02C~\uE02F
         *bg_tiles("members_bg", 222 + TOP, 0xE03C), # 이웃 허가 창 배경 4조각 \uE03C~\uE03F
@@ -295,6 +296,7 @@ def main():
         shutil.copy(os.path.join(ART, name), font_tex)
     split_bg("dogam_bg", font_tex)
     split_bg("menu_bg", font_tex)
+    split_bg("warp_bg", font_tex)
     split_bg("skill_bg", font_tex)
     split_bg("land_bg", font_tex)
     split_bg("members_bg", font_tex)

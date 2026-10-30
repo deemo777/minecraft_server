@@ -386,7 +386,7 @@ def draw_shop(theme):
 #    0번 줄: 0열 내 머리, 1·7열 하트, 2~6열 "오늘도 좋은 모험!", 8열 닫기
 #    1~2줄: 0~2열 도감,   6~8열 로비
 #    1~2줄: 3~5열 워프, 3~4줄: 3~5열 직업 경험치
-#    3~4줄: 0~2열 야생,   6~8열 마을로
+#    3~4줄: 0~2열 던전,   6~8열 마을로
 #    ⚠ menu.yml 의 slots 와 같아야 해요
 # ======================================================================
 def cell(c0, c1, r0, r1):
@@ -632,17 +632,75 @@ def tile_skill(cv, x0, y0, x1, y1):
               {"g": c("#83b65e"), "G": c("#548742")})
 
 
+def tile_dungeon(cv, x0, y0, x1, y1):
+    """A sealed stone dungeon entrance, waiting for its destination to be set."""
+    cv.rect(x0,y0,x1,y1,c('#40475d'))
+    cv.rect(x0,y1-4,x1,y1,c('#62647a'))
+    mx=(x0+x1)//2
+    cv.rect(mx-16,y0+4,mx+16,y1-2,c('#84839a'))
+    cv.rect(mx-12,y0+1,mx+12,y1-2,c('#a7a4b5'))
+    cv.rect(mx-9,y0+6,mx+9,y1-2,c('#25253a'))
+    cv.rect(mx-6,y0+4,mx+6,y1-2,c('#25253a'))
+    for x in (mx-12,mx+10):
+        for y in range(y0+7,y1-3,4):cv.rect(x,y,x+2,y+1,c('#6e6b84'))
+    for x in (mx-5,mx,mx+5):cv.rect(x,y0+9,x+1,y1-2,c('#636079'))
+    cv.rect(mx-7,y0+14,mx+8,y0+15,c('#838097'))
+    cv.box(mx-2,y0+13,mx+3,y0+18,c('#d3ad62'),round_=False)
+    for x in (x0+5,x1-7):
+        cv.rect(x,y0+9,x+2,y0+17,c('#735539'))
+        cv.rect(x-1,y0+6,x+3,y0+10,c('#d18ff3'))
+        cv.rect(x,y0+5,x+2,y0+9,c('#f0d0ff'))
+
+
+def wild_card(direction):
+    def draw(cv,x0,y0,x1,y1):
+        tile_wild(cv,x0,y0,x1,y1)
+        # A separate compass plaque distinguishes otherwise familiar wild scenery.
+        x,y=x1-13,y0+3
+        cv.box(x-2,y-1,x+10,y+11,c('#fff4d7'),line=c('#8b6a47'))
+        if direction=='center':
+            cv.box(x+1,y+3,x+6,y+7,c('#e6b54e'),round_=False)
+        else:
+            dx,dy={'north':(0,-1),'south':(0,1),'east':(1,0),'west':(-1,0)}[direction]
+            cx,cy=x+4,y+5
+            for step in range(-2,2):cv.rect(cx+dx*step,cy+dy*step,cx+dx*step+1,cy+dy*step+1,c('#496c8d'))
+            for step in range(3):
+                for side in range(-step,step+1):
+                    px,py=cx+dx*(3-step)-dy*side,cy+dy*(3-step)+dx*side
+                    cv.px(px,py,c('#496c8d'))
+    return draw
+
+
+def tile_reserved(cv,x0,y0,x1,y1):
+    cv.rect(x0,y0,x1,y1,c('#c8c8d1'))
+    cv.rect(x0,y1-4,x1,y1,c('#b2b3c1'))
+    mx=(x0+x1)//2
+    cv.box(mx-9,y0+8,mx+9,y0+20,c('#9995ad'))
+    cv.box(mx-5,y0+3,mx+5,y0+12,c('#ddd8e7'))
+    cv.rect(mx-3,y0+5,mx+3,y0+8,c('#b6b2c6'))
+    cv.rect(mx-1,y0+13,mx+1,y0+17,c('#efdfb5'))
+
+
 MENU_TILES = [  # (열 범위, 줄 범위, 그리기, 이름표, 이름표 색)
     ((0, 2), (1, 2), tile_dogam, "도감", "#5cb84a"),
     ((6, 8), (1, 2), tile_lobby, "로비", "#f2a33a"),
     ((3, 5), (1, 2), tile_warp, "워프", "#8a5ce0"),
     ((3, 5), (3, 4), tile_skill, "직업 경험치", "#5cb84a"),
-    ((0, 2), (3, 4), tile_wild, "야생", "#4aa0e8"),
+    ((0, 2), (3, 4), tile_dungeon, "던전", "#9473bd"),
     ((6, 8), (3, 4), tile_village, "마을로", "#e8709a"),
 ]
 
+WARP_TILES = [
+    ((0,2),(1,2),wild_card('center'),'야생 중앙','#5cb84a'),
+    ((3,5),(1,2),wild_card('north'),'야생 북쪽','#7799cf'),
+    ((6,8),(1,2),wild_card('east'),'야생 동쪽','#e3a04e'),
+    ((0,2),(3,4),wild_card('west'),'야생 서쪽','#55a3a4'),
+    ((3,5),(3,4),wild_card('south'),'야생 남쪽','#d67e8c'),
+    ((6,8),(3,4),tile_reserved,'준비 중','#9691a9'),
+]
 
-def draw_menu():
+
+def draw_menu(warp=False):
     W, H = 176, 204
     cv = Canvas(W, H)
     inventory(cv, label_y=110, inv_y=122, hotbar_y=180, bottom=H)
@@ -655,7 +713,7 @@ def draw_menu():
     # A quiet header explains the profile action; the face itself stays unobstructed.
     cv.rect(36, 9, 56, 10, c("#dfc28f"))
     cv.rect(120, 9, 140, 10, c("#dfc28f"))
-    crisp_label(cv, 88, 10, "얼굴 클릭 · 칭호 변경", 5, c("#91643e"), c("#fff3d6"))
+    crisp_label(cv, 88, 10, "야생 이동 지점 선택" if warp else "얼굴 클릭 · 칭호 변경", 5, c("#91643e"), c("#fff3d6"))
     for x in (29, 143):
         cv.sprite(x, 7, [".g..", "ggG.", ".GGg", "..G."],
                   {"g": c("#a7c77b"), "G": c("#739c52")})
@@ -671,6 +729,11 @@ def draw_menu():
     for x, y in ((x0, y0), (x1 - 1, y0), (x0, y1 - 1), (x1 - 1, y1 - 1)):
         cv.px(x, y, c("#fff3d6"))
     cv.rect(x0 + 6, y0 - 1, x1 - 6, y0, c("#d9a820"))
+    if warp:
+        # Return control occupies the same single slot as the main menu portrait.
+        cv.rect(x0+3,y0+3,x1-3,y1-3,c('#8fd16a'))
+        for dx,dy in ((0,0),(1,-1),(1,1),(2,-2),(2,2),(3,0),(4,0),(5,0)):
+            cv.rect(x0+5+dx,y0+8+dy,x0+7+dx,y0+10+dy,WHITE)
     x0, y0, x1, y1 = cell(8, 8, 0, 0)                # 닫기
     round_button(cv, x0 + 1, y0 + 1, x1 - 1, y1 - 1, c("#ff7b6b"), c("#ffb3a8"), c("#d9534a"))
     for i in range(8):
@@ -679,14 +742,14 @@ def draw_menu():
     x0, y0, x1, y1 = cell(2, 6, 0, 0)                # 리본
     cv.box(x0 + 1, y0 + 3, x1 - 1, y1 - 3, c("#ff9ec4"))
     cv.bevel(x0 + 1, y0 + 3, x1 - 1, y1 - 3, c("#ffd0e2"), c("#e8679a"))
-    cv.text((x0 + x1) / 2, (y0 + y1) / 2, "오늘도 좋은 모험!", 7, WHITE, stroke=c("#b04a72"), sw=0.5)
+    cv.text((x0 + x1) / 2, (y0 + y1) / 2, "어디로 떠날까요?" if warp else "오늘도 좋은 모험!", 7, WHITE, stroke=c("#b04a72"), sw=0.5)
     for col in (1, 7):                               # 하트 (자기 칸 가운데)
         x0, y0, x1, y1 = cell(col, col, 0, 0)
         cv.sprite(x0 + 6, y0 + 7, [".hh.hh.", "hhhhhhH", ".hhhhH.", "..hhH..", "...H..."],
                   {"h": c("#ff6b8a"), "H": c("#d94a6a")})
 
     # 큰 버튼: 칸 영역 안쪽 1px부터 그려서 밖으로 안 나가게 ---------
-    for (c0, c1), (r0, r1), draw, label, band in MENU_TILES:
+    for (c0, c1), (r0, r1), draw, label, band in (WARP_TILES if warp else MENU_TILES):
         x0, y0, x1, y1 = cell(c0, c1, r0, r1)
         x0, y0, x1, y1 = x0 + 1, y0 + 1, x1 - 1, y1 - 3
         # Recessed card shadow, warm metal edging and a shaded label rail.
@@ -713,12 +776,12 @@ def draw_menu():
     cv.sprite(157, 112, ["..oooo..", ".ottTTo.", "ottttTTo", "otyyyyTo", "ottyyTTo", ".oooooo."],
               {"o": c("#a87942"), "t": c("#d9ac69"), "T": c("#ba8a4f"), "y": c("#ffe4a0")})
 
-    chalk_sign(cv, 88, -19, 70, 17, "MENU")
+    chalk_sign(cv, 88, -19, 70, 17, "WARP" if warp else "MENU")
     flowers(cv, 2, -4)
     flowers(cv, W - 21, -4, mirror=True)
     sparkle(cv, 45, -14, c("#fff3a0"))
     sparkle(cv, 128, -12, WHITE)
-    cv.save("menu_bg.png")
+    cv.save("warp_bg.png" if warp else "menu_bg.png")
     return cv
 
 
@@ -1198,6 +1261,7 @@ if __name__ == "__main__":
     for t in SHOP_THEMES:
         draw_shop(t)
     draw_menu()
+    draw_menu(warp=True)
     draw_items()
     draw_hud()
     draw_skill()

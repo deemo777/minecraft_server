@@ -8,6 +8,9 @@ import com.htk.core.common.Text;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Location;
+import org.bukkit.HeightMap;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.entity.Player;
@@ -27,6 +30,8 @@ public final class MenuFeature implements Feature, Listener {
 
     private final ServerCore plugin;
     private MenuConfig config;
+    private volatile boolean active;
+    private final Map<UUID, UUID> landings = new HashMap<>();
 
     public MenuFeature(ServerCore plugin) {
         this.plugin = plugin;
@@ -35,6 +40,7 @@ public final class MenuFeature implements Feature, Listener {
     @Override
     public void enable() {
         loadConfig();
+        active = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
         PluginCommand cmd = plugin.getCommand("menu");
@@ -61,7 +67,11 @@ public final class MenuFeature implements Feature, Listener {
     }
 
     @Override
-    public void disable() { }
+    public void disable() {
+        active=false;
+        pending.values().forEach(BukkitTask::cancel);
+        pending.clear();landings.clear();
+    }
 
     private void loadConfig() {
         var yml = plugin.loadYaml("menu.yml");
@@ -80,6 +90,69 @@ public final class MenuFeature implements Feature, Listener {
             return;
         }
         new MenuGui(this, player).open(player);
+    }
+
+    public void openWarp(Player player) {
+        if (!active || !player.hasPermission("servercore.menu")) return;
+        new WarpGui(this).open(player);
+    }
+
+    void warp(Player player, WarpDestination destination) {
+        if (!active || !destination.enabled() || !player.hasPermission("servercore.menu")) return;
+        String point=config.warpPoint();
+        Location origin=plugin.points().get(point);
+        if(origin==null){
+            String world=plugin.points().worldName(point);
+            Messages.send(player,Text.mm(world==null?plugin.msg("point-not-set").replace("%point%",point)
+                    :plugin.msg("point-world-missing").replace("%world%",world)));
+            return;
+        }
+        Location target=destination.offset(origin);
+        player.closeInventory();
+        cancelCountdown(player);
+        if(destination==WarpDestination.CENTER){
+            countdownTeleport(player,target,"<#e8709a><bold>야생","");return;
+        }
+        if(!target.getWorld().getWorldBorder().isInside(target)){
+            Messages.send(player,Text.mm("<yellow>해당 야생 지점이 월드 경계 밖에 있어요."));return;
+        }
+        UUID request=UUID.randomUUID();
+        landings.put(player.getUniqueId(),request);
+        target.getWorld().getChunkAtAsync(target).whenComplete((chunk,error)->{
+            if(!active || !plugin.isEnabled())return;
+            plugin.getServer().getScheduler().runTask(plugin,()->{
+                if(!active || !player.isOnline() || !request.equals(landings.get(player.getUniqueId())))return;
+                landings.remove(player.getUniqueId());
+                Location landing=error==null?safeLanding(target):null;
+                if(landing==null){
+                    Messages.send(player,Text.mm("<yellow>해당 좌표에 안전하게 설 땅이 없어요. 다른 야생 지점을 선택해 주세요."));return;
+                }
+                countdownTeleport(player,landing,"<#7acb52><bold>"+destination.label,"");
+            });
+        });
+    }
+
+    /** Keep the exact X/Z offset, finding dry ground in that column without editing terrain. */
+    private Location safeLanding(Location target) {
+        var world=target.getWorld();
+        if(!world.getWorldBorder().isInside(target))return null;
+        int x=target.getBlockX(),z=target.getBlockZ();
+        int top=Math.min(world.getMaxHeight()-3,world.getHighestBlockYAt(x,z,HeightMap.MOTION_BLOCKING_NO_LEAVES));
+        Block floor=world.getBlockAt(x,top,z),feet=world.getBlockAt(x,top+1,z),head=world.getBlockAt(x,top+2,z);
+        if(!floor.getType().isSolid() || hazardous(floor.getType()) || !clear(feet) || !clear(head))return null;
+        // Fences and walls can extend into the nominally empty block above.
+        if(floor.getCollisionShape().getBoundingBoxes().stream().anyMatch(box->box.getMaxY()>1))return null;
+        Location landing=target.clone();landing.setY(top+1);return landing;
+    }
+    private static boolean clear(Block block){
+        return block.isPassable() && !block.isLiquid() && !hazardous(block.getType());
+    }
+    static boolean hazardous(Material material){
+        return switch(material){
+            case LAVA,WATER,FIRE,SOUL_FIRE,MAGMA_BLOCK,CACTUS,CAMPFIRE,SOUL_CAMPFIRE,
+                    POWDER_SNOW,SWEET_BERRY_BUSH,WITHER_ROSE,COBWEB -> true;
+            default -> false;
+        };
     }
 
     // Shift + F
@@ -140,6 +213,7 @@ public final class MenuFeature implements Feature, Listener {
     }
 
     private void cancelCountdown(Player player) {
+        landings.remove(player.getUniqueId());
         BukkitTask t = pending.remove(player.getUniqueId());
         if (t != null) t.cancel();
     }

@@ -1,13 +1,13 @@
 # 마을 메뉴 (Shift + F, /menu)
 #
-# 메뉴 그림(칠판 간판, 큰 버튼 5개)은 리소스팩 배경이고,
+# 메뉴 그림(칠판 간판, 큰 버튼 6개)은 리소스팩 배경이고,
 # 여기서는 "어느 칸을 누르면 무엇을 할지"와 마우스를 올렸을 때 설명을 정해요.
 #
 # 칸 번호: 줄 × 9 + 열   (0번 줄 0열 = 0번, 1번 줄 0열 = 9번 ...)
 #   열:      0  1  2 | 3  4  5 | 6  7  8
 #   0번 줄:  [0] 내 머리 (누르면 칭호 창)     [8] 닫기
-#   1~2줄 :  도감     |  워프   |  상점        도감 [9,10,11,18,19,20]   상점 [15,16,17,24,25,26]
-#   3~4줄 :  집으로   | 직업 경험치 |  마을로      집으로 [27,28,29,36,37,38] 마을로 [33,34,35,42,43,44]
+#   1~2줄 :  도감     |  워프   |  로비        도감 [9,10,11,18,19,20]   로비 [15,16,17,24,25,26]
+#   3~4줄 :  던전     | 직업 경험치 |  마을로      던전 [27,28,29,36,37,38] 마을로 [33,34,35,42,43,44]
 #                                                워프 [12,13,14,21,22,23] / 직업 경험치 [30,31,32,39,40,41]
 #
 # 버튼 항목
@@ -19,10 +19,13 @@
 #                (권한 없이 누구나 이동돼요. 지점 목록: /servercore points)
 #                누르면 화면에 3, 2, 1 을 센 뒤 이동해요 (초는 config.yml 의 teleport.countdown-seconds)
 #   teleport-title / teleport-subtitle   도착했을 때 화면 가운데에 크게 뜨는 글자
+#   open-menu    warp면 6개 버튼의 야생 워프 창 열기
 #   coming-soon  true면 "준비 중" 안내만
 #   close        true면 메뉴 닫기
 #
 # ⚠ 버튼 그림 자체(그림, 이름 띠)는 tools/make_art.py 의 MENU_TILES 에서 바꿔요. 칸을 바꾸면 그쪽도 같이.
+
+warp-point: wild # 야생 중앙 기준점. 동/서 X ±1000, 남/북 Z ±1000
 
 head-slot: 0
 head-command: "honor"     # 내 얼굴을 누르면 실행할 명령어 (앞에 / 빼고) — 칭호 창
@@ -44,10 +47,8 @@ buttons:
     slots: [12, 13, 14, 21, 22, 23]
     name: "<#a07af0><bold>✦ 워프</bold>"
     lore:
-      - "<gray>마을 곳곳으로 순간이동해요."
-      - ""
-      - "<dark_gray>🔒 준비 중"
-    coming-soon: true
+      - "<gray>중앙·동·서·남·북 야생 지점을 선택해요."
+    open-menu: warp
   skill:
     slots: [30, 31, 32, 39, 40, 41]
     name: "<#7acb52><bold>직업 경험치</bold>"
@@ -70,14 +71,12 @@ buttons:
     teleport: lobby
     teleport-title: "<#e8709a><bold>로비"
     teleport-subtitle: ""
-  wild:
+  dungeon:
     slots: [27, 28, 29, 36, 37, 38]
-    name: "<#e8709a><bold>🏘 야생으로</bold>"
+    name: "<#ba8aee><bold>던전</bold>"
     lore:
-      - "<gray>야생으로 이동해요."
-    teleport: wild
-    teleport-title: "<#e8709a><bold>야생"
-    teleport-subtitle: ""
+      - "<gray>준비 중이에요. 이동 지점은 나중에 설정해요."
+    coming-soon: true
   close:
     slots: [8]
     name: "<#e06c6c>닫기"
