@@ -14,7 +14,6 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.*;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.joml.Vector3f;
 import org.joml.Quaternionf;
@@ -24,24 +23,16 @@ public final class ArmsMerchantFeature implements Feature,Listener,TabExecutor {
     private final ServerCore plugin;
     private final Economy economy;
     private final VillageToolFeature tools;
-    private final NamespacedKey npcKey,visualKey,yawKey,introKey;
+    private final NamespacedKey npcKey,visualKey,yawKey;
     private final EnumMap<ToolType,Long> prices=new EnumMap<>(ToolType.class);
     private final Map<UUID,Long> clicks=new HashMap<>();
-    private final Map<UUID,BukkitTask> conversations=new HashMap<>();
     private final Map<UUID,Long> interactions=new HashMap<>();
-    private static final List<String> INTRO=List.of(
-        "…이런 곳까지 발길이 닿다니. 길을 잃은 건가, 낯선 이여?",
-        "한때는 내 망치가 빚은 물건을 전설이라 불렀지. 이제는 내 이름조차 기억하는 이가 없네.",
-        "힘은 예전 같지 않아도, 쓸 만한 무기를 고르는 눈까지 녹슬지는 않았네.",
-        "마침 남겨 둔 물건들이 있군. 자네의 여정에 쓸 것이 있다면 하나 골라 보게."
-    );
     private boolean active;
     public ArmsMerchantFeature(ServerCore plugin,Economy economy,VillageToolFeature tools) {
         this.plugin=plugin;this.economy=economy;this.tools=tools;
         npcKey=new NamespacedKey(plugin,"arms_merchant_npc");
         visualKey=new NamespacedKey(plugin,"arms_merchant_visual");
         yawKey=new NamespacedKey(plugin,"arms_merchant_yaw");
-        introKey=new NamespacedKey(plugin,"arms_merchant_intro_done");
     }
     @Override public void enable() {
         reload();active=true;Bukkit.getPluginManager().registerEvents(this,plugin);
@@ -56,7 +47,6 @@ public final class ArmsMerchantFeature implements Feature,Listener,TabExecutor {
     }
     @Override public void disable() {
         active=false;clicks.clear();interactions.clear();
-        conversations.values().forEach(BukkitTask::cancel);conversations.clear();
         for(Player p:Bukkit.getOnlinePlayers()) if(p.getOpenInventory().getTopInventory().getHolder() instanceof ShopGui)p.closeInventory();
     }
     private boolean isNpc(Entity e) { return e.getPersistentDataContainer().has(npcKey,PersistentDataType.BYTE); }
@@ -68,43 +58,24 @@ public final class ArmsMerchantFeature implements Feature,Listener,TabExecutor {
         if(!canBuy(p)){Messages.send(p,Text.mm("<yellow>집터를 먼저 설치해야 무기를 구매할 수 있어요."));return;}
         if(active)new ShopGui().open(p);
     }
-    private void meet(Player p,Entity npc) {
-        if(!active || conversations.containsKey(p.getUniqueId()))return;
+    private void meet(Player p) {
+        if(!active)return;
         long now=System.nanoTime();Long last=interactions.put(p.getUniqueId(),now);
         if(last!=null && now-last<350_000_000L)return;
-        if(p.getPersistentDataContainer().has(introKey,PersistentDataType.BYTE)){open(p);return;}
-        p.closeInventory();
-        int[] line={0};
-        BukkitTask task=Bukkit.getScheduler().runTaskTimer(plugin,()->{
-            if(!active || !p.isOnline() || p.isDead() || !npc.isValid()
-                    || !p.getWorld().equals(npc.getWorld()) || p.getLocation().distanceSquared(npc.getLocation())>64){
-                stopConversation(p.getUniqueId());return;
-            }
-            if(line[0]<INTRO.size()){
-                Messages.send(p,Text.mm("<#d8ad73><bold>무기 상인</bold> <dark_gray>» <#e0d5c5>"+INTRO.get(line[0]++)));
-                p.playSound(p.getLocation(),Sound.ENTITY_VILLAGER_AMBIENT,SoundCategory.PLAYERS,.35f,.7f);
-            }else{
-                p.getPersistentDataContainer().set(introKey,PersistentDataType.BYTE,(byte)1);
-                stopConversation(p.getUniqueId());open(p);
-            }
-        },0L,70L);
-        conversations.put(p.getUniqueId(),task);
-    }
-    private void stopConversation(UUID id){
-        BukkitTask task=conversations.remove(id);if(task!=null)task.cancel();
+        open(p);
     }
     @EventHandler(priority=EventPriority.HIGHEST) public void interact(PlayerInteractEntityEvent e) {
         if(!isNpc(e.getRightClicked()))return;e.setCancelled(true);
-        if(e.getHand()==EquipmentSlot.HAND)meet(e.getPlayer(),e.getRightClicked());
+        if(e.getHand()==EquipmentSlot.HAND)meet(e.getPlayer());
     }
     @EventHandler(priority=EventPriority.HIGHEST) public void interactAt(PlayerInteractAtEntityEvent e){interact(e);}
     @EventHandler public void damage(EntityDamageEvent e){if(isNpc(e.getEntity()))e.setCancelled(true);}
     @EventHandler public void quit(PlayerQuitEvent e){
-        UUID id=e.getPlayer().getUniqueId();clicks.remove(id);interactions.remove(id);stopConversation(id);
+        UUID id=e.getPlayer().getUniqueId();clicks.remove(id);interactions.remove(id);
     }
     @EventHandler public void chunkLoad(ChunkLoadEvent e){Bukkit.getScheduler().runTask(plugin,()->{if(e.getChunk().isLoaded())repair(e.getChunk());});}
     private final class ShopGui extends Gui {
-        // Five equally spaced displays: tools/make_blacksmith_art.py columns 0,2,4,6,8.
+        // Three named displays: tools/install_weapon_assets.py columns 2,4,6.
         private final Map<Integer,ToolType> slots=Map.of(11,ToolType.DAGGER,13,ToolType.TACHI,15,ToolType.GREATSWORD);
         private final EnumMap<ToolType,Long> shown=new EnumMap<>(prices);
         ShopGui(){
@@ -121,12 +92,12 @@ public final class ArmsMerchantFeature implements Feature,Listener,TabExecutor {
             for(int i=0;i<27;i++)inventory.setItem(i,pane);
             for(var entry:slots.entrySet()) {
                 ItemStack icon=tools.createTool(entry.getValue(),0);var meta=icon.getItemMeta();
-                var lore=new ArrayList<net.kyori.adventure.text.Component>();if(meta.lore()!=null)lore.addAll(meta.lore());
-                long price=shown.get(entry.getValue());lore.add(Text.mm(price>0?"<#ffd577>가격: "+Economy.format(price):"<red>판매 중지"));
-                if(price>0)lore.add(Text.mm("<gray>클릭하면 1개 구매"));meta.lore(lore);icon.setItemMeta(meta);inventory.setItem(entry.getKey(),icon);
+                long price=shown.get(entry.getValue());
+                meta.lore(List.of(Text.mm(price>0?"<#ffd577>가격: "+Economy.format(price):"<red>판매 중지")));
+                icon.setItemMeta(meta);inventory.setItem(entry.getKey(),icon);
             }
             inventory.setItem(22,Items.of(pack?Material.PAPER:Material.BARRIER,1,"<#e2bc85>돌아가기",
-                List.of("<gray>필요한 것이 생기면 다시 오게."),pack?Glyphs.model("forge_button"):null));
+                List.of(),pack?Glyphs.model("forge_button"):null));
         }
         @Override public void onClick(Player p,int slot,InventoryClickEvent event){
             if(!active || (event.getClick()!=ClickType.LEFT && event.getClick()!=ClickType.RIGHT))return;

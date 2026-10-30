@@ -78,6 +78,29 @@ def verify(path):
             assert documents[f'assets/servercore/items/{button}.json']['model']=={'type':'minecraft:empty'}, 'button items must not paint over the background'
             assert f'assets/servercore/models/item/{button}.json' not in names, 'obsolete button overlay model'
             assert f'assets/servercore/textures/item/{button}.png' not in names, 'obsolete button overlay texture'
+        # Inspect the pixels actually shipped, rather than just generator constants.
+        for background in ('blacksmith','repair','weapon_shop','arms_shop'):
+            full=Image.new('RGBA',(352,376))
+            for index in range(4):
+                with Image.open(io.BytesIO(pack.read(f'assets/servercore/textures/font/{background}_bg_{index}.png'))) as tile:
+                    full.paste(tile,(176*(index%2),188*(index//2)))
+            def pixel(x,y):return full.getpixel((x*2,(y+20)*2))[:3]
+            # Bottom panel border stays intact, with two empty rows under button.
+            assert all(pixel(x,71)==(83,96,120) for x in range(4,172)), background
+            assert all(pixel(x,y)==(28,38,53) for x in range(6,170) for y in (69,70)), background
+            # No baked 'bag' label anywhere in vanilla's inventory caption strip.
+            assert all(pixel(x,y)==(181,193,204) for x in range(6,170) for y in range(73,83)), background
+        arms=documents['assets/servercore/items/arms_merchant.json']['model']
+        assert arms=={'type':'minecraft:model','model':'servercore:item/arms_merchant'}
+        dealer=documents['assets/servercore/models/item/arms_merchant.json']
+        master=documents['assets/servercore/models/item/weapon_merchant.json']
+        assert dealer['textures']['skin']=='servercore:item/skin_arms_merchant'
+        assert dealer['elements']!=master['elements'], 'arms dealer must have its own silhouette'
+        assert pack.read('assets/servercore/textures/item/skin_arms_merchant.png')!=pack.read('assets/servercore/textures/item/skin_weapon_merchant.png')
+        for element in dealer['elements']:
+            assert all(-16<=v<=32 for key in ('from','to') for v in element[key])
+            for face in element['faces'].values():
+                assert all(0<=v<=16 for v in face['uv'])
         npc=documents['assets/servercore/models/item/npc_repairer.json']
         assert len(npc['elements'])>12, 'repairer must include its own goggles and wrench'
         assert npc['textures']['skin']=='servercore:item/skin_npc_repairer'
@@ -99,7 +122,7 @@ def verify(path):
             assert provider['height']==121 and provider['ascent']==(33 if index<2 else -88)
             with Image.open(io.BytesIO(pack.read('assets/servercore/textures/font/honor_bg_'+str(index)+'.png'))) as tile:
                 assert tile.size==(176,242)
-        print(f'PASS: {len(documents)} JSON documents, {images} PNGs, {references} local references; {len(kinds)} unique equipment gems; forge, merchant and honor glyphs verified.')
+        print(f'PASS: {len(documents)} JSON documents, {images} PNGs, {references} local references; {len(kinds)} unique equipment gems; 4 clear forge layouts; distinct arms NPC; forge, merchant and honor glyphs verified.')
 
 
 if __name__=='__main__':

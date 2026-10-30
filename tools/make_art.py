@@ -189,7 +189,7 @@ def inventory(cv, label_y, inv_y, hotbar_y, bottom):
 PIXEL_FONT = os.path.join(HERE, "fonts", "Galmuri11-Bold.ttf")   # 갈무리11 굵게 (SIL OFL, 도트 한글 글꼴)
 
 
-def crisp_label(cv, cx, cy, label, size, fill=WHITE, line=LINE, shadow=None):
+def crisp_label(cv, cx, cy, label, size, fill=WHITE, line=LINE, shadow=None, bounds=None):
     """또렷한 도트 글씨: 도트 글꼴(갈무리)을 원래 픽셀 크기로 → 1px 테두리 + 아래 그림자.
     도트 글꼴이 없으면 보통 글꼴을 크게 그려서 줄여요."""
     from PIL import ImageFilter
@@ -206,13 +206,19 @@ def crisp_label(cv, cx, cy, label, size, fill=WHITE, line=LINE, shadow=None):
         small = big.resize((W_, H_), Image.BOX).point(lambda v: 255 if v >= 110 else 0)
     ring = small.filter(ImageFilter.MaxFilter(3))
     shadow_mask = ring.transform(ring.size, Image.AFFINE, (1, 0, 0, 0, 1, -1))   # 1px 아래로
-    ox = int(round(cx * S - W_ / 2))
-    oy = int(round(cv._y(cy) - H_ / 2))
     layer = Image.new("RGBA", (W_, H_), CLEAR)
     if shadow:
         layer.paste(Image.new("RGBA", (W_, H_), shadow), (0, 0), shadow_mask)
     layer.paste(Image.new("RGBA", (W_, H_), line), (0, 0), ring)
     layer.paste(Image.new("RGBA", (W_, H_), fill), (0, 0), small)
+    # Center the visible ink (including outline/shadow), not the font bearing.
+    layer = layer.crop(layer.getbbox())
+    ox = int(round(cx * S - layer.width / 2))
+    oy = int(round(cv._y(cy) - layer.height / 2))
+    if bounds:
+        x0,y0,x1,y1=bounds
+        assert ox >= (x0+1)*S and ox+layer.width <= (x1-1)*S, label
+        assert oy >= cv._y(y0+1) and oy+layer.height <= cv._y(y1-1), label
     cv.im.alpha_composite(layer, (ox, oy))
 
 
@@ -682,13 +688,13 @@ def draw_menu():
     # 큰 버튼: 칸 영역 안쪽 1px부터 그려서 밖으로 안 나가게 ---------
     for (c0, c1), (r0, r1), draw, label, band in MENU_TILES:
         x0, y0, x1, y1 = cell(c0, c1, r0, r1)
-        x0, y0, x1, y1 = x0 + 1, y0 + 1, x1 - 1, y1 - 1
+        x0, y0, x1, y1 = x0 + 1, y0 + 1, x1 - 1, y1 - 3
         # Recessed card shadow, warm metal edging and a shaded label rail.
         cv.rect(x0 + 1, y1, x1, y1 + 1, c("#cfa96e"))
         cv.rect(x0, y0, x1, y1, LINE)
         for (x, y) in [(x0, y0), (x1 - 1, y0), (x0, y1 - 1), (x1 - 1, y1 - 1)]:
             cv.px(x, y, c("#fdecc8"))
-        band_top = y1 - 11                           # 아래 이름 띠 (높이 10)
+        band_top = y1 - 12                           # 이름·외곽선·그림자 주위 1px 여백
         draw(cv, x0 + 1, y0 + 1, x1 - 1, band_top)
         cv.rect(x0 + 1, y0 + 1, x1 - 1, y0 + 2, c("#ffffff"))
         cv.rect(x0 + 1, band_top, x1 - 1, band_top + 1, LINE)
@@ -700,8 +706,9 @@ def draw_menu():
         for x in (x0 + 2, x1 - 4):
             cv.px(x, band_top + 4, c("#fff0b8"))
             cv.px(x + 1, band_top + 5, shade)
-        crisp_label(cv, (x0 + x1) / 2, band_top + 5.5, label, 6.5, WHITE, LINE,
-                    shadow=tuple(max(0, v - 60) for v in c(band)[:3]) + (255,))
+        crisp_label(cv, (x0 + x1) / 2, (band_top+y1)/2, label, 6.5, WHITE, LINE,
+                    shadow=tuple(max(0, v - 60) for v in c(band)[:3]) + (255,),
+                    bounds=(x0+1,band_top+1,x1-1,y1-1))
 
     cv.sprite(157, 112, ["..oooo..", ".ottTTo.", "ottttTTo", "otyyyyTo", "ottyyTTo", ".oooooo."],
               {"o": c("#a87942"), "t": c("#d9ac69"), "T": c("#ba8a4f"), "y": c("#ffe4a0")})

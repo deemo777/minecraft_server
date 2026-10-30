@@ -1,10 +1,10 @@
 import json,shutil
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
-from make_blacksmith_art import HERE
+from make_blacksmith_art import HERE, panel, display_slot, action_button, fitted_label, ACTION_BOX
 
 def generate_arms_art(folder):
-    """Matching iron, copper and embers; frames align with the five purchase slots."""
+    """Three named weapon displays with inset slots and a contained return button."""
     folder=Path(folder)
     # Preserve the forge's outer shell, inventory grid and hotbar coordinates.
     image=Image.open(folder/'blacksmith_bg.png').convert('RGBA')
@@ -13,16 +13,12 @@ def generate_arms_art(folder):
     def rect(box,fill,outline=None,width=1):
         x0,y0,x1,y1=box;d.rectangle((x0,y0+20,x1,y1+20),fill=fill,outline=outline,width=width)
     rect((5,-15,170,0),'#303747','#ad8657')
-    rect((6,7,169,72),'#1c2635','#536078')
-    # Five symmetric displays, matching purchase slots 9,11,13,15,17.
+    panel(d)
+    # Three symmetric displays, matching purchase slots 11,13,15.
     for col in (2,4,6):
         x=8+18*col
-        rect((x-2,33,x+17,54),'#101823','#a77950')
-        rect((x-1,35,x+16,52),'#293546','#e2be88')
-        rect((x,36,x+15,51),'#18222f')
-        rect((x,55,x+15,56),'#8f4f3e')
-    rect((69,57,106,73),'#100f18','#d8ad73')
-    rect((72,59,103,71),'#8f4f3e','#e3b77c')
+        display_slot(d,x)
+    action_button(d)
     image=image.resize((352,376),Image.Resampling.NEAREST)
     dd=ImageDraw.Draw(image)
     font_path=next(p for p in (HERE/'fonts/Galmuri11-Bold.ttf',Path('C:/Windows/Fonts/malgunbd.ttf')) if p.exists())
@@ -35,8 +31,9 @@ def generate_arms_art(folder):
         assert b[2]-b[0]<=(x1-x0)*2-4 and b[3]-b[1]<=(y1-y0)*2-2
         dd.text((round(x0+x1-(b[0]+b[2])/2),round(y0+y1+40-(b[1]+b[3])/2)),text,font=font,fill=color)
     label((12,-14,163,-1),'무기 상인','#f3d7a4',18)
-    label((12,12,163,28),'단검 · 태도 · 대검','#c0d7e3',15)
-    label((73,60,102,70),'돌아가기','#ffebc3',14)
+    for cx,name in ((52,'단검'),(88,'태도'),(124,'대검')):
+        fitted_label(image,(cx-15,18,cx+14,30),name,'#c0d7e3',16)
+    fitted_label(image,ACTION_BOX,'돌아가기','#ffebc3',14)
     target=folder/'arms_shop_bg.png';image.save(target)
     return target
 
@@ -64,4 +61,4 @@ def install_weapon_assets(pack):
     for i,p in enumerate(old):
         q=dict(p);q['chars']=[chr(0xE0A0+i)];q['file']=f'servercore:font/arms_shop_bg_{i}.png';data['providers'].append(q)
     font.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf8')
-    (sc/'items/arms_merchant.json').write_text(json.dumps({'model':{'type':'minecraft:model','model':'servercore:item/weapon_merchant'}}),encoding='utf8')
+    # install_clean_npc_skins owns arms_merchant; never alias it to the master.

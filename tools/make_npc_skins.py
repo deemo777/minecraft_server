@@ -15,6 +15,7 @@ BOUNDS={'head':([4,24,4],[12,32,12]),'body':([4,12,6],[12,24,10]),'ra':([0,12,6]
 # 머리·코트·안감·앞치마·바지·장식·참고 스킨.
 ROLES={
 'weapon_merchant':('#493a32','#315d60','#dbc9a4','#94694e','#353d40','#c9a166','purple_hair.png'),
+'arms_merchant':('#d3ae6d','#293e59','#a44b50',None,'#303644','#bccbd4','gray_hair.png'),
 'npc_mayor':('#c9c3b8','#535943','#8a4048',None,'#48454b','#d7bb7c','gray_hair.png'),
 'npc_blacksmith':('#302c2c','#4c4a49','#b7a696','#975b48','#434348','#bf9b70','purple_hair.png'),
 'npc_repairer':('#9a6143','#3b7375','#e7d5b5','#866449','#34444e','#c8ad6b','gray_hair.png'),
@@ -45,7 +46,7 @@ def skin(role,colors):
   fd.rectangle((1,3,6,7),fill=face_skin)
   fd.point((1,7),fill=shadow);fd.point((6,7),fill=shadow)
   fd.point((2,3),fill=tone(hair,-5));fd.point((5,3),fill=tone(hair,7))
-  iris={'weapon_merchant':'#68816c','npc_mayor':'#7d98a9','npc_blacksmith':'#a77c58','npc_repairer':'#559a9b','npc_fish':'#7196ad','npc_crops':'#74986f','npc_ores':'#8d8ca5'}[role]
+  iris={'weapon_merchant':'#68816c','arms_merchant':'#557e9a','npc_mayor':'#7d98a9','npc_blacksmith':'#a77c58','npc_repairer':'#559a9b','npc_fish':'#7196ad','npc_crops':'#74986f','npc_ores':'#8d8ca5'}[role]
   for x in [1,5]:
    fd.rectangle((x,4,x+1,5),fill='#fff7ee')
    fd.point((x+(1 if x==1 else 0),5),fill=iris)
@@ -67,7 +68,7 @@ def skin(role,colors):
     elif key in ['ra','la']:
      d.line((1,1,1,4),fill=tone(base,8));d.point((w-2,5),fill=tone(base,-12));d.line((0,7,w-1,7),fill=tone(inner,-8))
      hand='#655f5d' if role=='deemo_chef' else '#f1d5c5';d.rectangle((0,8,w-1,11),fill=hand);d.line((0,11,w-1,11),fill=tone(hand,-11))
-     if role in ['weapon_merchant','npc_blacksmith','npc_repairer','npc_ores']:d.rectangle((0,9,w-1,11),fill='#474044');d.line((0,9,w-1,9),fill=accent)
+     if role in ['weapon_merchant','arms_merchant','npc_blacksmith','npc_repairer','npc_ores']:d.rectangle((0,9,w-1,11),fill='#474044');d.line((0,9,w-1,9),fill=accent)
     elif key=='body':
      if face=='north':
       d.rectangle((2,0,5,10),fill=inner);d.polygon([(1,0),(3,0),(2,3)],fill=tone(coat,14));d.polygon([(6,0),(4,0),(5,3)],fill=tone(coat,14))
@@ -77,6 +78,11 @@ def skin(role,colors):
       else:
        for yy in [3,5,7,9]:d.point((4,yy),fill=accent)
       if role=='npc_mayor':d.line((0,1,0,9),fill=accent);d.line((7,1,7,9),fill=accent);d.rectangle((3,0,4,1),fill='#ede4d8')
+      if role=='arms_merchant':
+       # Crimson neck scarf, diagonal leather baldric, silver uniform buttons.
+       d.rectangle((1,0,6,1),fill=inner);d.line((5,2,5,4),fill=tone(inner,-14))
+       d.line((0,2,7,9),fill='#795338',width=2)
+       d.point((1,5),fill=accent);d.point((1,7),fill=accent)
       if role in ['npc_fish','npc_ores']:
        scarf='#6f9c9c' if role=='npc_fish' else inner;d.rectangle((1,0,6,1),fill=scarf);d.line((4,2,4,4),fill=tone(scarf,-12))
      elif face=='south':
@@ -90,6 +96,12 @@ def skin(role,colors):
    if key=='body' and face=='north':d.line((0,2,0,8),fill=(*tone(coat,10),255));d.line((7,2,7,8),fill=(*tone(coat,-8),255))
    if key in ['ra','la'] and face in ['north','east','west','south']:d.line((0,7,w-1,7),fill=(*tone(inner,5),255))
    im.paste(layer,box[:2])
+ if role=='arms_merchant':
+  # Short swept blond hair under a cap; no long bangs or master's goggles.
+  d=ImageDraw.Draw(im)
+  for box in outer('head'):d.rectangle((box[0],box[1],box[2]-1,box[3]-1),fill=(0,0,0,0))
+  d.rectangle((8,8,15,10),fill=hair);d.line((8,11,10,11),fill=tone(hair,-15))
+  d.point((8,12),fill=hair);d.point((15,11),fill=hair)
  return im
 COLORS=['#e9e4d9','#d0c9be','#c9a368','#87634b','#504744','#b6c3cb','#6a9ea7','#c28d91','#7c8f64','#c79f50','#3b4e64','#b16f52','#744b3e','#d8d3cb','#76906a','#b39bbd']
 def props():
@@ -109,6 +121,19 @@ def model(role):
  if role=='weapon_merchant':
   for x in [4.1,8.5]:prop([x,30.3,3.5],[x+3.4,32.3,3.9],2);prop([x+.5,30.7,3.4],[x+2.9,31.9,3.5],6)
   prop([9.4,10,10.2],[11.1,28,11.7],4);prop([8.4,25,10],[12.2,25.7,11.9],5);prop([10,25.7,10.6],[10.6,29,11.4],3);prop([-.1,22.6,5.8],[4.1,24.2,10.2],5);prop([12,10,6],[13.3,13,8.8],3)
+ elif role=='arms_merchant':
+  # Navy peaked cap, silver badge, one steel pauldron and a hip scabbard.
+  prop([3.5,31.3,3.5],[12.5,34.5,12.5],10)
+  prop([3.3,31.1,2.3],[12.7,31.8,5.3],10)
+  prop([3.4,31.8,3.3],[12.6,32.5,3.6],5)
+  prop([7,32.5,3.1],[9,33.8,3.5],2)
+  prop([-.5,22.3,5.5],[4.5,24.5,10.5],5)
+  prop([-.6,21.3,5.4],[4.6,22.1,10.6],10)
+  prop([12.2,2.3,7.8],[13.4,15,9.2],10)
+  prop([11.4,14.3,7.3],[14.3,15,9.7],5)
+  prop([12.5,15,8.1],[13.1,18.3,8.9],3)
+  prop([12.3,18.3,7.9],[13.3,19,9.1],2)
+  prop([-.5,10,5.3],[2,13,7],3)
  elif role=='npc_mayor':
   prop([11.7,9,5.7],[12.9,14,6.8],3)
   for x in [10.3,11.2,12.1]:prop([x,9,5.4],[x+.35,11.7,5.7],2)

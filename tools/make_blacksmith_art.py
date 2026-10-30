@@ -57,6 +57,44 @@ def gemstone_icon(color, cut):
     draw.line((hx,hy-1,hx,hy+2),fill='#fff5e2')
     return image
 
+
+# Inclusive GUI coordinates. Shared geometry keeps the four forge-style screens
+# clear of the native inventory label (x=8,y=74) and each other's outlines.
+CONTENT_BOX = (4, 7, 171, 71)
+ACTION_BOX = (70, 57, 105, 68)
+
+
+def panel(draw):
+    x0,y0,x1,y1=CONTENT_BOX
+    draw.rectangle((x0,y0+20,x1,y1+20),fill='#1c2635',outline='#536078')
+
+
+def display_slot(draw, x, y=36):
+    """16px item area plus an empty pixel before the decorative frame."""
+    draw.rectangle((x-3,y+17,x+18,y+38),fill='#101823',outline='#a77950')
+    draw.rectangle((x-1,y+19,x+16,y+36),fill='#293546',outline='#e2be88')
+    draw.rectangle((x,y+20,x+15,y+35),fill='#18222f')
+
+
+def action_button(draw):
+    x0,y0,x1,y1=ACTION_BOX
+    draw.rectangle((x0,y0+20,x1,y1+20),fill='#100f18',outline='#d8ad73')
+    draw.rectangle((x0+2,y0+22,x1-2,y1+18),fill='#8f4f3e')
+
+
+def fitted_label(image, box, text, color, size=16):
+    """Center actual ink bounds with at least one GUI pixel of clear space."""
+    draw=ImageDraw.Draw(image)
+    x0,y0,x1,y1=box
+    for pixels in range(size,7,-1):
+        font=ImageFont.truetype(str(HERE/'fonts/Galmuri11-Bold.ttf'),pixels)
+        bounds=draw.textbbox((0,0),text,font=font)
+        if bounds[2]-bounds[0]<=(x1-x0)*2-4 and bounds[3]-bounds[1]<=(y1-y0)*2-4:break
+    assert bounds[2]-bounds[0]<=(x1-x0)*2-4, text
+    assert bounds[3]-bounds[1]<=(y1-y0)*2-4, text
+    draw.text((round(x0+x1-(bounds[0]+bounds[2])/2),
+               round(y0+y1+40-(bounds[1]+bounds[3])/2)),text,font=font,fill=color)
+
 def generate_art(folder=None):
     folder=Path(folder or HERE/'art');folder.mkdir(parents=True,exist_ok=True)
     im=Image.new('RGBA',(176,188),'#141c2b');d=ImageDraw.Draw(im)
@@ -69,12 +107,12 @@ def generate_art(folder=None):
     for x in (8,167):
         for y in (-12,6,72,160):
             rect((x-1,y-1,x+1,y+1),'#d5b27e')
-    rect((8,7,167,72),'#1c2635','#536078')
+    panel(d)
     for cx in (52,124):
         # Slot center is (cx-.5, 43.5): outer frames share that exact center.
-        rect((cx-18,27,cx+17,60),'#101823','#886b53',2)
-        rect((cx-15,30,cx+14,57),'#293546','#486075')
-        rect((cx-9,35,cx+8,52),'#101823','#e2be88')
+        rect((cx-18,29,cx+17,54),'#101823','#886b53')
+        rect((cx-15,31,cx+14,52),'#293546')
+        rect((cx-10,34,cx+9,53),'#101823','#e2be88')
         rect((cx-8,36,cx+7,51),'#18222f')
         for x in (cx-15,cx+13): rect((x,31,x+1,32),'#a98762')
     # Inward arrows, center forging spark and the button beneath it.
@@ -82,10 +120,12 @@ def generate_art(folder=None):
         x=88+sign*9
         rect((min(x,88),40,max(x,88),41),'#bd9970')
     d.polygon([(88,54),(91,61),(88,64),(85,61)],fill='#f0c48b')
-    rect((72,53,104,71),'#100f18','#d8ad73',2)
-    rect((75,56,101,68),'#8f4f3e','#e3b77c')
+    action_button(d)
     # Inventory: draw the same coordinates as vanilla, without moving click targets.
-    rect((6,80,169,138),'#1a2331','#566070')
+    # Vanilla draws the inventory label at y=74..82. Keep that strip empty.
+    rect((6,73,169,139),'#1a2331')
+    # Native inventory text uses dark gray: a quiet light strip keeps it legible.
+    rect((6,73,169,82),'#b5c1cc')
     for row in range(3):
         for col in range(9):
             x,y=8+18*col,85+18*row
@@ -114,8 +154,7 @@ def generate_art(folder=None):
     label((12,-14,163,-1),'대장간','#f3d7a4',18)
     label((32,12,71,24),'장비','#c0d7e3')
     label((104,12,143,24),'전용 재료','#c0d7e3')
-    label((76,56,100,69),'강화','#ffebc3',14)
-    label((9,72,37,80),'가방','#b5c5d8',14)
+    fitted_label(im,ACTION_BOX,'강화','#ffebc3',14)
     im.save(folder/'blacksmith_bg.png')
     for tool,(_,color,cut) in GEMS.items():
         gemstone_icon(color,cut).save(folder/f'enhancement_{tool}.png')
@@ -168,17 +207,12 @@ def generate_repair_art(folder):
     def rect(box,fill,outline=None,width=1):
         x0,y0,x1,y1=box;d.rectangle((x0,y0+20,x1,y1+20),fill=fill,outline=outline,width=width)
     rect((5,-15,170,0),'#303747','#ad8657')
-    rect((8,7,167,72),'#1c2635','#536078')
-    rect((69,27,106,52),'#101823','#886b53',2)
-    rect((72,30,103,51),'#293546','#486075')
-    rect((79,35,96,52),'#101823','#e2be88')
-    rect((80,36,95,51),'#18222f')
-    for x in (72,101):rect((x,31,x+1,32),'#a98762')
+    panel(d)
+    display_slot(d,80)
     # Understated teal workbench rails beside the centered display.
     for x in (31,119):
         rect((x,39,x+25,40),'#426b70');rect((x+5,43,x+20,43),'#8e795a')
-    rect((72,53,104,71),'#100f18','#d8ad73',2)
-    rect((75,56,101,68),'#8f4f3e','#e3b77c')
+    action_button(d)
     image=image.resize((352,376),Image.Resampling.NEAREST);dd=ImageDraw.Draw(image)
     font_path=HERE/'fonts/Galmuri11-Bold.ttf'
     def label(box,text,color,size):
@@ -187,7 +221,7 @@ def generate_repair_art(folder):
         dd.text((round(x0+x1-(b[0]+b[2])/2),round(y0+y1+40-(b[1]+b[3])/2)),text,font=f,fill=color)
     label((12,-14,163,-1),'수리 공방','#f3d7a4',18)
     label((64,12,112,24),'장비','#c0d7e3',16)
-    label((76,56,100,69),'수리','#ffebc3',14)
+    fitted_label(image,ACTION_BOX,'수리','#ffebc3',14)
     image.save(folder/'repair_bg.png')
     return folder/'repair_bg.png'
 
@@ -201,16 +235,12 @@ def generate_merchant_art(folder):
     def rect(box,fill,outline=None,width=1):
         x0,y0,x1,y1=box;d.rectangle((x0,y0+20,x1,y1+20),fill=fill,outline=outline,width=width)
     rect((5,-15,170,0),'#303747','#ad8657')
-    rect((6,7,169,72),'#1c2635','#536078')
+    panel(d)
     # Five symmetric displays, matching purchase slots 9,11,13,15,17.
     for col in (0,2,4,6,8):
         x=8+18*col
-        rect((x-2,33,x+17,54),'#101823','#a77950')
-        rect((x-1,35,x+16,52),'#293546','#e2be88')
-        rect((x,36,x+15,51),'#18222f')
-        rect((x,55,x+15,56),'#8f4f3e')
-    rect((69,57,106,73),'#100f18','#d8ad73')
-    rect((72,59,103,71),'#8f4f3e','#e3b77c')
+        display_slot(d,x)
+    action_button(d)
     image=image.resize((352,376),Image.Resampling.NEAREST)
     dd=ImageDraw.Draw(image)
     font_path=next(p for p in (HERE/'fonts/Galmuri11-Bold.ttf',Path('C:/Windows/Fonts/malgunbd.ttf')) if p.exists())
@@ -224,7 +254,7 @@ def generate_merchant_art(folder):
         dd.text((round(x0+x1-(b[0]+b[2])/2),round(y0+y1+40-(b[1]+b[3])/2)),text,font=font,fill=color)
     label((12,-14,163,-1),'잊혀진 명장','#f3d7a4',18)
     label((12,12,163,28),'남겨 둔 장비 · 새로운 여정','#c0d7e3',15)
-    label((73,60,102,70),'돌아가기','#ffebc3',14)
+    fitted_label(image,ACTION_BOX,'돌아가기','#ffebc3',14)
     target=folder/'weapon_shop_bg.png';image.save(target)
     return target
 
