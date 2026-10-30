@@ -20,7 +20,7 @@ dagger:
   - vindicator
 tachi:
   default: uchigatana
-  damage: 7
+  damage: 9
   attack-speed: 2
   reach: 3
   skins:

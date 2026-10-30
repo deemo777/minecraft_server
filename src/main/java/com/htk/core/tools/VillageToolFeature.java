@@ -86,6 +86,7 @@ public final class VillageToolFeature implements Feature, Listener {
         loadConfig();accepting=true;
         plugin.getServer().getPluginManager().registerEvents(numericDrops=new NumericDrops(plugin,this), plugin);
         plugin.getServer().getPluginManager().registerEvents(numericFishing=new NumericFishing(plugin,this), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new WeaponSweepListener(this),plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for(Player p:Bukkit.getOnlinePlayers())refreshTools(p);
         PluginCommand cmd = plugin.getCommand("villagetool");
