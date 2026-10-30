@@ -13,10 +13,11 @@ import java.util.*;
 final class WeaponSweepListener implements Listener {
     private final ServerCore plugin;
     private final VillageToolFeature tools;
+    private final WeaponTraits traits;
     private final Map<UUID,Attack> attacks=new HashMap<>();
     private record Attack(ToolType type,int level,String instance,int tick,SweepTargets.Budget<UUID> budget,
-                          Set<EntityDamageByEntityEvent> admitted) {}
-    WeaponSweepListener(ServerCore plugin,VillageToolFeature tools){this.plugin=plugin;this.tools=tools;}
+                          Set<EntityDamageByEntityEvent> admitted,Set<LivingEntity> landed,Set<LivingEntity> slowed) {}
+    WeaponSweepListener(ServerCore plugin,VillageToolFeature tools,WeaponTraits traits){this.plugin=plugin;this.tools=tools;this.traits=traits;}
     void close(){attacks.clear();}
     @EventHandler(priority=EventPriority.MONITOR)
     public void direct(EntityDamageByEntityEvent event) {
@@ -40,7 +41,8 @@ final class WeaponSweepListener implements Listener {
         var budget=new SweepTargets.Budget<>(distance.keySet(),WeaponPerformance.maxTargets(type),
                 Comparator.<UUID>comparingDouble(distance::get).thenComparing(Comparator.naturalOrder()));
         var attack=new Attack(type,tools.levelOf(item),instance,Bukkit.getCurrentTick(),budget,
-                Collections.newSetFromMap(new IdentityHashMap<>()));
+                Collections.newSetFromMap(new IdentityHashMap<>()),new HashSet<>(),new HashSet<>());
+        if(primary instanceof LivingEntity living && event.getFinalDamage()>0)attack.landed().add(living);
         attacks.put(playerId,attack);
         Bukkit.getScheduler().runTask(plugin,()->attacks.remove(playerId,attack));
     }
@@ -73,6 +75,16 @@ final class WeaponSweepListener implements Listener {
         var attack=current(player);
         if(attack==null || !attack.admitted().contains(event))event.setCancelled(true);
         // Never un-cancel a selected target: land/PvP/other protection still takes priority.
+    }
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void completedSweep(EntityDamageByEntityEvent event) {
+        if(event.getCause()!=DamageCause.ENTITY_SWEEP_ATTACK || event.getFinalDamage()<=0
+                || !(event.getDamager() instanceof Player player) || !(event.getEntity() instanceof LivingEntity target))return;
+        var attack=current(player);
+        if(attack==null || attack.type()!=ToolType.GREATSWORD || attack.level()!=25 || !attack.admitted().contains(event))return;
+        if(!attack.landed().add(target))return;
+        if(!attack.slowed().isEmpty()) {traits.slow(target);attack.slowed().add(target);}
+        else if(attack.landed().size()>=3 && traits.pressure(player,attack.landed()))attack.slowed().addAll(attack.landed());
     }
     @EventHandler public void quit(PlayerQuitEvent event){attacks.remove(event.getPlayer().getUniqueId());}
 }

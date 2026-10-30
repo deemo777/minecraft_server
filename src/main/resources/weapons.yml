@@ -1,7 +1,7 @@
 dagger:
   default: iron_dagger
-  damage: 4.5
-  attack-speed: 3.6
+  damage: 4
+  attack-speed: 3
   reach: 2
   skins:
   - amethyst_greatblade_dagger
@@ -18,9 +18,10 @@ dagger:
   - spider_sword_dagger
   - talonbrand_dagger
   - vindicator
+  sweep-ratio: 0.1
 tachi:
   default: uchigatana
-  damage: 9
+  damage: 6
   attack-speed: 2
   reach: 3
   skins:
@@ -38,10 +39,11 @@ tachi:
   - vengeance_blade
   - void_oculus
   - zenith
+  sweep-ratio: 0.2
 greatsword:
   default: black_iron_greatsword
-  damage: 12
-  attack-speed: 1
+  damage: 9
+  attack-speed: 1.3
   reach: 3.5
   skins:
   - azure_greatsword
@@ -58,3 +60,4 @@ greatsword:
   - vaelith
   - vesper
   - winterthorn
+  sweep-ratio: 0.35

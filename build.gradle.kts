@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.8.3"
+version = "4.9.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -195,3 +195,10 @@ val verifyProgression by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.tools.ProgressionTest")
 }
 tasks.check { dependsOn(verifyProgression) }
+
+val verifyWeaponTraits by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.tools.WeaponTraitStateTest")
+}
+tasks.check { dependsOn(verifyWeaponTraits) }

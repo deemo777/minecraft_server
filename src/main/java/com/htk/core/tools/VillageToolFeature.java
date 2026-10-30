@@ -66,6 +66,7 @@ public final class VillageToolFeature implements Feature, Listener {
     private NumericDrops numericDrops;
     private NumericFishing numericFishing;
     private WeaponSweepListener weaponSweep;
+    private WeaponTraits weaponTraits;
     public boolean ownsNumericDrops(org.bukkit.event.block.BlockDropItemEvent event) {
         return numericDrops!=null && numericDrops.handles(event);
     }
@@ -87,7 +88,8 @@ public final class VillageToolFeature implements Feature, Listener {
         loadConfig();accepting=true;
         plugin.getServer().getPluginManager().registerEvents(numericDrops=new NumericDrops(plugin,this), plugin);
         plugin.getServer().getPluginManager().registerEvents(numericFishing=new NumericFishing(plugin,this), plugin);
-        plugin.getServer().getPluginManager().registerEvents(weaponSweep=new WeaponSweepListener(plugin,this),plugin);
+        plugin.getServer().getPluginManager().registerEvents(weaponTraits=new WeaponTraits(plugin,this),plugin);
+        plugin.getServer().getPluginManager().registerEvents(weaponSweep=new WeaponSweepListener(plugin,this,weaponTraits),plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for(Player p:Bukkit.getOnlinePlayers())refreshTools(p);
         PluginCommand cmd = plugin.getCommand("villagetool");
@@ -105,7 +107,7 @@ public final class VillageToolFeature implements Feature, Listener {
     }
 
     @Override
-    public void disable() { accepting=false;if(numericDrops!=null)numericDrops.close();if(numericFishing!=null)numericFishing.close();if(weaponSweep!=null)weaponSweep.close();pendingRefresh.clear();for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
+    public void disable() { accepting=false;if(numericDrops!=null)numericDrops.close();if(numericFishing!=null)numericFishing.close();if(weaponSweep!=null)weaponSweep.close();if(weaponTraits!=null)weaponTraits.close();pendingRefresh.clear();for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
 
     private void loadConfig() {
         cfg = plugin.loadYaml("tools.yml");

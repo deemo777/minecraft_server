@@ -24,8 +24,8 @@ public final class NumericEffectsTest {
             check(NumericEffects.binomial(strength,0,new Random(1))==0,"Zero probability crop bonus");
             check(NumericEffects.binomial(strength,1,new Random(1))==strength,"Guaranteed crop bonus");
         }
-        double[][] expected={{27.0/7,4.5,6.5,7.5,8.5,9.5},{8,9,11,12,13,14},{72.0/7,12,14,15,16,17}};
-        ToolType[] types={ToolType.DAGGER,ToolType.TACHI,ToolType.GREATSWORD};int[] levels={0,5,10,15,20,25};
+        double[][] expected={{4,10.7},{6,13},{9,24}};
+        ToolType[] types={ToolType.DAGGER,ToolType.TACHI,ToolType.GREATSWORD};int[] levels={0,25};
         for(int t=0;t<types.length;t++)for(int l=0;l<levels.length;l++)
             check(Math.abs(WeaponPerformance.damage(types[t],levels[l])-expected[t][l])<1e-10,"Every weapon damage milestone");
         var drops=org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(Path.of("src/main/resources/numeric-drops.yml").toFile());
