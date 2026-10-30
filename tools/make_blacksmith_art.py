@@ -1,4 +1,4 @@
-"""Pixel forge GUI + five dedicated enhancement materials. No external artwork.
+"""Pixel forge GUI + eight dedicated gemstone enhancement materials. No external artwork.
 Slots match EnhancementGui: tool=11, material=15, upgrade=22 (three rows).
 """
 from pathlib import Path
@@ -6,8 +6,56 @@ from PIL import Image,ImageDraw,ImageFont
 import json,shutil
 
 HERE=Path(__file__).resolve().parent
-TYPES=('pickaxe','axe','hoe','fishing_rod','watering_can')
-COLORS=('#7acbec','#70b88b','#c0dc83','#a0b5ef','#89e1db')
+TYPES=('pickaxe','axe','hoe','fishing_rod','watering_can','dagger','tachi','greatsword')
+# Each gem has its own cut as well as hue, so silhouettes remain recognizable.
+GEMS = {
+    'pickaxe': ('topaz', '#efa52d', 'brilliant'),
+    'axe': ('emerald', '#29bd78', 'emerald'),
+    'hoe': ('peridot', '#a6cc39', 'oval'),
+    'fishing_rod': ('sapphire', '#4679ed', 'cushion'),
+    'watering_can': ('aquamarine', '#40d4d8', 'pear'),
+    'dagger': ('ruby', '#ed4267', 'marquise'),
+    'tachi': ('amethyst', '#b778ec', 'hexagon'),
+    'greatsword': ('garnet', '#b92e43', 'shield'),
+}
+
+
+def gemstone_icon(color, cut):
+    """32px hand-faceted pixel jewel, transparent surround and crisp stepped edges."""
+    from PIL import ImageColor
+    cuts = {
+        'brilliant': [(9,4),(22,4),(28,11),(28,18),(16,29),(3,18),(3,11)],
+        'emerald': [(9,3),(22,3),(26,7),(26,24),(22,28),(9,28),(5,24),(5,7)],
+        'oval': [(12,3),(19,3),(25,9),(27,15),(25,23),(19,28),(12,28),(6,23),(4,15),(6,9)],
+        'cushion': [(9,4),(22,4),(27,9),(27,22),(22,27),(9,27),(4,22),(4,9)],
+        'pear': [(16,2),(22,10),(26,17),(26,23),(21,28),(10,28),(5,23),(5,17),(9,10)],
+        'marquise': [(16,2),(23,9),(26,16),(23,22),(16,29),(8,22),(5,16),(8,9)],
+        'hexagon': [(16,2),(26,9),(26,22),(16,29),(5,22),(5,9)],
+        'shield': [(8,3),(23,3),(28,9),(26,21),(16,29),(5,21),(3,9)],
+    }
+    rgb = ImageColor.getrgb(color)
+    def shade(factor):
+        return tuple(round(c*factor) if factor<=1 else round(c+(255-c)*(factor-1)) for c in rgb)
+    points = cuts[cut]
+    center = (15,15)
+    inner = [(round(center[0]+(x-center[0])*.57), round(center[1]+(y-center[1])*.57)) for x,y in points]
+    image = Image.new('RGBA',(32,32))
+    draw = ImageDraw.Draw(image)
+    draw.polygon(points,fill=shade(.25))
+    # Directional facets: light from upper left, rich dark pavilion below right.
+    facets = (1.45,1.12,.70,.48,.63,.90,1.22,1.32,1.15,1.05)
+    for i,a in enumerate(points):
+        j=(i+1)%len(points)
+        draw.polygon([a,points[j],inner[j],inner[i]],fill=shade(facets[i]))
+    draw.polygon(inner,fill=color,outline=shade(.72))
+    draw.polygon([inner[0],inner[1],center,inner[-1]],fill=shade(1.25))
+    draw.line(points+[points[0]],fill=shade(.25),width=1)
+    draw.line([points[-1],points[0],points[1]],fill=shade(1.65),width=1)
+    # Small white glint stays inside the jewel; no floating particles or backing.
+    hx,hy=inner[0]
+    draw.line((hx-1,hy,hx+2,hy),fill='#fff5e2')
+    draw.line((hx,hy-1,hx,hy+2),fill='#fff5e2')
+    return image
 
 def generate_art(folder=None):
     folder=Path(folder or HERE/'art');folder.mkdir(parents=True,exist_ok=True)
@@ -69,18 +117,8 @@ def generate_art(folder=None):
     label((76,56,100,69),'강화','#ffebc3',14)
     label((9,72,37,80),'가방','#b5c5d8',14)
     im.save(folder/'blacksmith_bg.png')
-    for tool,color in zip(TYPES,COLORS):
-        icon=Image.new('RGBA',(32,32));p=ImageDraw.Draw(icon)
-        if tool=='pickaxe': points=[(7,24),(5,13),(11,6),(14,12),(20,3),(26,17),(21,27),(13,29)]
-        elif tool=='axe': points=[(8,26),(5,16),(12,5),(18,10),(27,6),(24,20),(17,28)]
-        elif tool=='hoe': points=[(16,29),(6,22),(5,12),(14,4),(25,8),(27,19),(21,25)]
-        elif tool=='fishing_rod': points=[(5,24),(8,9),(19,4),(26,9),(23,19),(17,29),(10,27)]
-        else: points=[(16,3),(25,15),(27,22),(23,28),(15,30),(7,27),(4,21),(7,14)]
-        p.polygon(points,fill=color,outline='#16263a',width=2)
-        p.line([(10,22),(12,13),(17,8)],fill='#edfff5',width=2)
-        p.polygon([(15,13),(23,17),(18,26),(12,24)],fill='#3f687e')
-        p.line([(15,13),(18,26)],fill=color,width=2)
-        icon.save(folder/f'enhancement_{tool}.png')
+    for tool,(_,color,cut) in GEMS.items():
+        gemstone_icon(color,cut).save(folder/f'enhancement_{tool}.png')
     return folder
 
 def install_blacksmith_assets(pack):

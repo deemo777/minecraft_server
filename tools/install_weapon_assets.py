@@ -54,8 +54,7 @@ def install_weapon_assets(pack):
             else:
                 dst=sc/'textures/item/weapons'/category.name/path.name
                 dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(path,dst)
-    for kind in ('dagger','tachi','greatsword'):
-        (sc/'items'/f'enhancement_{kind}.json').write_text(json.dumps({'model':{'type':'minecraft:model','model':'minecraft:item/amethyst_shard'}}),encoding='utf8')
+    # Enhancement gems (including weapons) are installed by install_blacksmith_assets.
     # Separate merchant title glyphs, reusing the established forge visual language.
     font=sc/'font/forge.json';data=json.loads(font.read_text('utf8'))
     image=generate_arms_art(Path(__file__).parent/'art')

@@ -33,6 +33,31 @@ def verify(path):
                         for texture in item.values(): reference(texture,'textures','.png')
                     walk(item)
         for document in documents.values(): walk(document)
+        # Every runtime equipment type must resolve to its own transparent gem,
+        # including weapons (the weapon installer used to overwrite these IDs).
+        import re
+        source=(Path(__file__).resolve().parents[1]/'src/main/java/com/htk/core/tools/ToolType.java').read_text(encoding='utf-8')
+        kinds=re.findall(r'^    [A-Z_]+\("([a-z_]+)",',source,re.MULTILINE)
+        assert len(kinds)==8, kinds
+        gems=set(); silhouettes=set()
+        for kind in kinds:
+            stem='enhancement_'+kind
+            assert documents[f'assets/servercore/items/{stem}.json']['model']=={'type':'minecraft:model','model':'servercore:item/'+stem}
+            model=documents[f'assets/servercore/models/item/{stem}.json']
+            assert model['parent']=='minecraft:item/generated'
+            assert model['textures']=={'layer0':'servercore:item/'+stem}
+            raw=pack.read(f'assets/servercore/textures/item/{stem}.png')
+            assert raw==(Path(__file__).resolve().parent/'art'/f'{stem}.png').read_bytes()
+            with Image.open(io.BytesIO(raw)) as gem:
+                assert gem.size==(32,32) and gem.mode=='RGBA'
+                alpha=gem.getchannel('A')
+                assert set(alpha.getdata())=={0,255}, 'gem must have crisp transparent edges'
+                box=alpha.getbbox()
+                assert box and 0<box[0]<box[2]<32 and 0<box[1]<box[3]<32
+                assert len(gem.getcolors())>=7, 'missing gemstone facets'
+                silhouettes.add(alpha.tobytes())
+            gems.add(raw)
+        assert len(gems)==len(silhouettes)==len(kinds), 'gem designs and cuts must be distinct'
         font=documents['assets/servercore/font/forge.json']
         glyphs={provider['chars'][0]:provider for provider in font['providers'] if provider['type']=='bitmap'}
         for index in range(4):
@@ -74,7 +99,7 @@ def verify(path):
             assert provider['height']==121 and provider['ascent']==(33 if index<2 else -88)
             with Image.open(io.BytesIO(pack.read('assets/servercore/textures/font/honor_bg_'+str(index)+'.png'))) as tile:
                 assert tile.size==(176,242)
-        print(f'PASS: {len(documents)} JSON documents, {images} PNGs, {references} local references; forge, merchant and honor glyphs verified.')
+        print(f'PASS: {len(documents)} JSON documents, {images} PNGs, {references} local references; {len(kinds)} unique equipment gems; forge, merchant and honor glyphs verified.')
 
 
 if __name__=='__main__':
