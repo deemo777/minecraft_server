@@ -12,7 +12,7 @@ public final class EquipmentStatsReport {
         out.append('|');for(var ignored:columns)out.append("---|");out.append('\n');
     }
     public static void main(String[] args) throws Exception {
-        var out=new StringBuilder("# 장비 강화 단계별 실제 수치\n\n런타임 계산식으로 생성한 0~25강 전체 표입니다. 모든 성능 수치는 매 강화마다 개선됩니다. 소수 드롭 보정·작업 칸 수는 확률로 반영하므로 표의 범위는 평균 목표 칸 수입니다. 25강 무한 내구도·무한 물·불/용암 보호는 최종 보상으로 유지합니다. 재질과 외형 변화는 성능 수치의 구간 고정을 의미하지 않습니다.\n\n채굴/벌목 속도는 적합한 블록에서의 기본 수치이며 경도·수중·공중 상태에 따라 실제 시간은 달라집니다. 연결 작업은 최대 4,096개·32개/틱으로 제한합니다. 내구도 소모 확률은 소모 1점마다 독립 계산합니다.\n");
+        var out=new StringBuilder("# 장비 강화 단계별 실제 수치\n\n런타임 계산식으로 생성한 0~25강 전체 표입니다. 내구도 소모 확률을 제외한 성능 수치는 매 강화마다 개선됩니다. 소수 드롭 보정·작업 칸 수는 확률로 반영하므로 표의 범위는 평균 목표 칸 수입니다. 25강 무한 내구도·무한 물·불/용암 보호는 최종 보상으로 유지합니다. 재질과 외형 변화는 성능 수치의 구간 고정을 의미하지 않습니다.\n\n채굴/벌목 속도는 적합한 블록에서의 기본 수치이며 경도·수중·공중 상태에 따라 실제 시간은 달라집니다. 연결 작업은 최대 4,096개·32개/틱으로 제한합니다. 내구도 소모 확률은 모든 도구·무기에서 0~24강 100%, 25강 0%입니다.\n");
         header(out,"곡괭이","강화","채굴 속도","드롭 보정 강도","연결 광석 추가(평균)","최대 내구도","내구도 소모 확률");
         for(int l=0;l<=25;l++)row(out,l,n(ToolPerformance.miningSpeed(ToolType.PICKAXE,l)),n(ToolPerformance.fortuneStrength(l)),n(ToolPerformance.expectedExtraBlocks(l)),durability(ToolType.PICKAXE,l),n(ToolPerformance.wearChance(l)*100)+"%");
         header(out,"도끼","강화","벌목 속도","원형 회수 확률","연결 원목 추가(평균)","최대 내구도","내구도 소모 확률");
@@ -29,7 +29,7 @@ public final class EquipmentStatsReport {
             header(out,type.korean,"강화","순수 공격력","초당 공격","사거리","단일 이론 DPS","주변 피해 비율","최대 내구도");
             for(int l=0;l<=25;l++)row(out,l,n(WeaponPerformance.damage(type,l)),n(WeaponPerformance.speed(type,l)),n(WeaponPerformance.reach(type,l)),n(WeaponPerformance.damage(type,l)*WeaponPerformance.speed(type,l)),n(WeaponPerformance.sweepRatio(l)*100)+"%",durability(type,l));
         }
-        out.append("\n무기 DPS는 방어력·치명타·스킬·범위 피해를 제외한 값입니다. 휩쓸기 발동 시 주변 피해는 1+순수 공격력×주변 피해 비율입니다. 실제 인챈트와 임시 인챈트 도구는 사용하지 않습니다. 무기 내구도 소모 확률은 도구와 같은 곡선입니다.\n\n최대 내구도 변경·재질 전환·접속 갱신 시 기존 손상 비율을 보존합니다. 실제 강화 성공 시에는 기존 규칙대로 완전 회복하며 물 잔량을 무료로 채우지 않습니다.\n");
+        out.append("\n무기 DPS는 방어력·치명타·스킬·범위 피해를 제외한 값입니다. 휩쓸기 발동 시 주변 피해는 1+순수 공격력×주변 피해 비율입니다. 실제 인챈트와 임시 인챈트 도구는 사용하지 않습니다. 무기 내구도 소모 확률도 0~24강 100%, 25강 0%입니다.\n\n최대 내구도 변경·재질 전환·접속 갱신 시 기존 손상 비율을 보존합니다. 실제 강화 성공 시에는 기존 규칙대로 완전 회복하며 물 잔량을 무료로 채우지 않습니다.\n");
         Path target=Path.of("docs/기능/장비강화_단계별수치.md");Files.writeString(target,out);System.out.println("Exported "+target);
     }
 }

@@ -7,7 +7,7 @@ public final class ToolPerformance {
  public static double miningSpeed(ToolType type,int level) {
   return type==ToolType.AXE?Progression.value(level,6,12,25,34,46,59):Progression.value(level,6,12,18,34,46,59);
  }
- public static double wearChance(int level){return Progression.value(level,1,.75,.5,.25,.2,0);}
+ public static double wearChance(int level){return level>=25?0:1;}
  public static double fortuneStrength(int level){return Progression.value(level,0,.5,1.5,3,4,5);}
  public static double hoeFortuneStrength(int level){return Progression.value(level,0,.25,.5,1,2,3);}
  public static int rolledFortune(int level,double roll){return Progression.count(fortuneStrength(level),roll);}

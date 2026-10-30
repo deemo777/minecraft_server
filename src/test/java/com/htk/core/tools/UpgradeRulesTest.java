@@ -38,7 +38,7 @@ public final class UpgradeRulesTest {
             if(level>0) {
                 check(ToolPerformance.miningSpeed(ToolType.PICKAXE,level)>ToolPerformance.miningSpeed(ToolType.PICKAXE,level-1),"pickaxe improves each level");
                 check(ToolPerformance.miningSpeed(ToolType.AXE,level)>ToolPerformance.miningSpeed(ToolType.AXE,level-1),"axe improves each level");
-                check(ToolPerformance.wearChance(level)<ToolPerformance.wearChance(level-1),"durability improves each level");
+                check(ToolPerformance.wearChance(level)==(level==25?0:1),"wear is 100 percent until max level");
                 check(ToolPerformance.fortuneStrength(level)>ToolPerformance.fortuneStrength(level-1),"mining yield improves each level");
                 check(ToolPerformance.hoeFortuneStrength(level)>ToolPerformance.hoeFortuneStrength(level-1),"crop yield improves each level");
                 check(ToolPerformance.preserveChance(level)>ToolPerformance.preserveChance(level-1),"preservation improves each level");
@@ -102,7 +102,7 @@ public final class UpgradeRulesTest {
             check(ToolType.HOE.materialAt(lv)==(lv<5?org.bukkit.Material.IRON_HOE:lv<20?org.bukkit.Material.DIAMOND_HOE:org.bukkit.Material.NETHERITE_HOE),"hoe base material matches milestone");
             check(ToolType.FISHING_ROD.materialAt(lv)==org.bukkit.Material.FISHING_ROD,"fishing rod material preserved");
             check(ToolType.WATERING_CAN.materialAt(lv)==org.bukkit.Material.CARROT_ON_A_STICK,"watering can material preserved");
-            check(ToolPerformance.wearChance(lv)>=0 && ToolPerformance.wearChance(lv)<=1,"bounded numeric wear chance");
+            check(ToolPerformance.wearChance(lv)==(lv==25?0:1),"all equipment wears normally until +25");
             check(lv<25 || ToolPerformance.indestructible(lv),"last tier uses infinite durability instead of unbreaking");
         }
         check(ToolDurability.convertedDamage(125,250,1561)==780,"iron-to-diamond migration preserves half wear");
