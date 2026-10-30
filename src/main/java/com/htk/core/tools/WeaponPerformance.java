@@ -11,6 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 /** Weapon milestones share the existing enhancement, repair and durability transactions. */
 public final class WeaponPerformance {
     private WeaponPerformance() {}
+    public static int maxTargets(ToolType type){return switch(type){case DAGGER->2;case TACHI->3;case GREATSWORD->5;default->1;};}
     public static double damage(ToolType type,int level) {
         double base=type==ToolType.DAGGER?4.5:type==ToolType.TACHI?7:12;
         return Progression.value(level,base*6/7,base,base+2,base+3,base+4,base+5)+(type==ToolType.TACHI?2:0);
@@ -33,6 +34,7 @@ public final class WeaponPerformance {
         set(plugin,meta,Attribute.ATTACK_SPEED,"weapon_speed",speed(type,level)-4);
         set(plugin,meta,Attribute.ENTITY_INTERACTION_RANGE,"weapon_reach",reach(type,level)-3);
         var lore=new java.util.ArrayList<>(meta.lore());
+        lore.add(Text.mm("<gray>최대 타격: <white>"+maxTargets(type)+"마리 <dark_gray>(직접 대상 포함)"));
         lore.add(Text.mm("<gray>공격력: <white>"+Progression.label(damage(type,level))+" <gray>공격 속도: <white>"+Progression.label(speed(type,level))));
         lore.add(Text.mm("<gray>사거리: <white>"+Progression.label(reach(type,level))+" <gray>범위 피해 비율: <white>"+Math.round(sweepRatio(type,level)*100)+"%"));
         meta.lore(lore);

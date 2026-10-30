@@ -65,6 +65,7 @@ public final class VillageToolFeature implements Feature, Listener {
     private boolean accepting;
     private NumericDrops numericDrops;
     private NumericFishing numericFishing;
+    private WeaponSweepListener weaponSweep;
     public boolean ownsNumericDrops(org.bukkit.event.block.BlockDropItemEvent event) {
         return numericDrops!=null && numericDrops.handles(event);
     }
@@ -86,7 +87,7 @@ public final class VillageToolFeature implements Feature, Listener {
         loadConfig();accepting=true;
         plugin.getServer().getPluginManager().registerEvents(numericDrops=new NumericDrops(plugin,this), plugin);
         plugin.getServer().getPluginManager().registerEvents(numericFishing=new NumericFishing(plugin,this), plugin);
-        plugin.getServer().getPluginManager().registerEvents(new WeaponSweepListener(this),plugin);
+        plugin.getServer().getPluginManager().registerEvents(weaponSweep=new WeaponSweepListener(plugin,this),plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for(Player p:Bukkit.getOnlinePlayers())refreshTools(p);
         PluginCommand cmd = plugin.getCommand("villagetool");
@@ -104,7 +105,7 @@ public final class VillageToolFeature implements Feature, Listener {
     }
 
     @Override
-    public void disable() { accepting=false;if(numericDrops!=null)numericDrops.close();if(numericFishing!=null)numericFishing.close();pendingRefresh.clear();for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
+    public void disable() { accepting=false;if(numericDrops!=null)numericDrops.close();if(numericFishing!=null)numericFishing.close();if(weaponSweep!=null)weaponSweep.close();pendingRefresh.clear();for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
 
     private void loadConfig() {
         cfg = plugin.loadYaml("tools.yml");
@@ -420,7 +421,7 @@ public final class VillageToolFeature implements Feature, Listener {
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void clearPlacedLog(org.bukkit.event.block.BlockBreakEvent e) {placedLogs.unmark(e.getBlock());}
 
-    private String instance(ItemStack item){return isTool(item)?item.getItemMeta().getPersistentDataContainer().get(instanceKey,PersistentDataType.STRING):null;}
+    String instance(ItemStack item){return isTool(item)?item.getItemMeta().getPersistentDataContainer().get(instanceKey,PersistentDataType.STRING):null;}
     private static boolean ore(org.bukkit.Material material) {
         return material.name().endsWith("_ORE")||material==org.bukkit.Material.ANCIENT_DEBRIS;
     }
