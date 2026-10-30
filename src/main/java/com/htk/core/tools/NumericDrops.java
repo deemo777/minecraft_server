@@ -23,6 +23,7 @@ final class NumericDrops implements Listener {
     private final ServerCore plugin;
     private final VillageToolFeature tools;
     private final YamlConfiguration rules;
+    private final Map<Location,Boolean> preserves=new HashMap<>();
     private final Map<Location, ItemStack> breaking = new HashMap<>();
     private final Set<Runnable> pending=new LinkedHashSet<>();
     private void defer(Runnable task) {
@@ -31,7 +32,7 @@ final class NumericDrops implements Listener {
     }
     void close() {
         for(Runnable task:List.copyOf(pending))if(pending.remove(task))task.run();
-        breaking.clear();hives.clear();
+        breaking.clear();hives.clear();preserves.clear();
     }
     private final Map<Location,HiveHarvest> hives=new HashMap<>();
     private static final class HiveHarvest {
@@ -50,10 +51,18 @@ final class NumericDrops implements Listener {
             rules=YamlConfiguration.loadConfiguration(reader);
         } catch(java.io.IOException ex) {throw new IllegalStateException(ex);}
     }
+    @EventHandler(priority=EventPriority.LOWEST,ignoreCancelled=true)
+    public void choosePreservation(BlockBreakEvent event) {
+        var item=event.getPlayer().getInventory().getItemInMainHand();
+        if(tools.typeOf(item)!=ToolType.AXE)return;
+        var location=event.getBlock().getLocation();
+        preserves.put(location,ThreadLocalRandom.current().nextDouble()<ToolPerformance.preserveChance(tools.levelOf(item)));
+        defer(()->preserves.remove(location));
+    }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void preserveHive(BlockBreakEvent event) {
         var item=event.getPlayer().getInventory().getItemInMainHand();
-        if(tools.typeOf(item)!=ToolType.AXE || !ToolPerformance.silkTouch(tools.levelOf(item))
+        if(tools.typeOf(item)!=ToolType.AXE || !Boolean.TRUE.equals(preserves.get(event.getBlock().getLocation()))
                 || !event.isDropItems() || event.getPlayer().getGameMode()!=GameMode.SURVIVAL
                 || !(event.getBlock().getState() instanceof org.bukkit.block.Beehive hive))return;
         var harvest=new HiveHarvest(hive);var location=event.getBlock().getLocation();hives.put(location,harvest);
@@ -82,7 +91,7 @@ final class NumericDrops implements Listener {
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void preservedExperience(BlockBreakEvent event) {
         var item=event.getPlayer().getInventory().getItemInMainHand();
-        if(tools.typeOf(item)==ToolType.AXE && ToolPerformance.silkTouch(tools.levelOf(item))
+        if(tools.typeOf(item)==ToolType.AXE && Boolean.TRUE.equals(preserves.get(event.getBlock().getLocation()))
                 && rules.contains(event.getBlock().getType().name()+".preserve"))event.setExpToDrop(0);
     }
     boolean handles(BlockDropItemEvent event) {
@@ -90,10 +99,10 @@ final class NumericDrops implements Listener {
         ToolType type=tools.typeOf(item);if(type==null)return false;
         if(hives.containsKey(event.getBlock().getLocation()))return true;
         String path=event.getBlockState().getType().name();int level=tools.levelOf(item);
-        if(type==ToolType.AXE && ToolPerformance.silkTouch(level) && rules.contains(path+".preserve"))return true;
+        if(type==ToolType.AXE && Boolean.TRUE.equals(preserves.get(event.getBlock().getLocation())) && rules.contains(path+".preserve"))return true;
         if(!rules.contains(path+".bonuses"))return false;
-        if(type==ToolType.PICKAXE)return level>=10;
-        if(type!=ToolType.HOE || level<20)return false;
+        if(type==ToolType.PICKAXE)return level>0;
+        if(type!=ToolType.HOE || level<1)return false;
         return !(event.getBlockState().getBlockData() instanceof Ageable age)||age.getAge()==age.getMaximumAge();
     }
     @EventHandler(priority=EventPriority.LOWEST)
@@ -107,14 +116,14 @@ final class NumericDrops implements Listener {
         ItemStack item=breaking.remove(event.getBlock().getLocation());
         ToolType type=tools.typeOf(item);if(type==null)return;
         int level=tools.levelOf(item);
-        boolean preserve=type==ToolType.AXE && ToolPerformance.silkTouch(level);
+        boolean preserve=type==ToolType.AXE && Boolean.TRUE.equals(preserves.get(event.getBlock().getLocation()));
         int bonus=type==ToolType.PICKAXE?ToolPerformance.rolledFortune(level,ThreadLocalRandom.current().nextDouble())
-                :type==ToolType.HOE?ToolPerformance.hoeFortune(level):0;
+                :type==ToolType.HOE?ToolPerformance.rolledHoeFortune(level,ThreadLocalRandom.current().nextDouble()):0;
         BlockState state=event.getBlockState();String block=state.getType().name();
         HiveHarvest hive=hives.get(state.getLocation());
         if(hive!=null)hive.handled=true;
         var config=rules.getConfigurationSection(block);
-        if(hive==null && (config==null || !preserve && bonus==0))return;
+        if(hive==null && config==null)return;
         var random=ThreadLocalRandom.current();
         List<ItemStack> output=new ArrayList<>();
         for(Item drop:event.getItems())output.add(drop.getItemStack().clone());

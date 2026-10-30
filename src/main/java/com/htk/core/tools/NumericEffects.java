@@ -13,6 +13,9 @@ public final class NumericEffects {
         for (int i=0; i<incoming; i++) if (random.nextInt(conservation + 1) == 0) result++;
         return result;
     }
+    public static int wear(int incoming,double chance,RandomGenerator random) {
+        int result=0;for(int i=0;i<incoming;i++)if(random.nextDouble()<chance)result++;return result;
+    }
     public static int oreMultiplier(int strength, RandomGenerator random) {
         return Math.max(1, random.nextInt(strength + 2));
     }

@@ -1,16 +1,16 @@
 package com.htk.core.tools;
 public final class WeaponPerformanceTest {
  public static void main(String[] args) {
-  int[] levels={0,4,5,9,10,14,15,19,20,24,25};
-  int[] sharp={0,0,0,0,3,3,5,5,7,7,9},sweep={0,0,0,0,1,1,3,3,3,3,4};
-  for(int i=0;i<levels.length;i++){
-   if(WeaponPerformance.sharpness(levels[i])!=sharp[i] || WeaponPerformance.sweeping(levels[i])!=sweep[i])throw new AssertionError("Milestone "+levels[i]);
-   for(ToolType t:ToolType.values())if(t.weapon()){
-    double d=WeaponPerformance.damage(t,levels[i]);if(d<=0 || d>17)throw new AssertionError("Damage");
-    if((levels[i]<5)!=(t.materialAt(levels[i])==org.bukkit.Material.IRON_SWORD))throw new AssertionError("Material");
-   }
+  double[][] damage={{27.0/7,4.5,6.5,7.5,8.5,9.5},{6,7,9,10,11,12},{72.0/7,12,14,15,16,17}};
+  ToolType[] types={ToolType.DAGGER,ToolType.TACHI,ToolType.GREATSWORD};
+  for(int t=0;t<types.length;t++)for(int level=0;level<=25;level++){
+   var type=types[t];
+   if(level%5==0 && Math.abs(WeaponPerformance.damage(type,level)-damage[t][level/5])>1e-10)throw new AssertionError("Damage anchor");
+   if(level>0 && (WeaponPerformance.damage(type,level)<=WeaponPerformance.damage(type,level-1)
+    || WeaponPerformance.speed(type,level)<=WeaponPerformance.speed(type,level-1)
+    || WeaponPerformance.reach(type,level)<=WeaponPerformance.reach(type,level-1)
+    || WeaponPerformance.sweepRatio(level)<=WeaponPerformance.sweepRatio(level-1)))throw new AssertionError("Every stat must increase at every level: "+type+" "+level);
   }
-  if(WeaponPerformance.damage(ToolType.TACHI,0)!=6 || WeaponPerformance.damage(ToolType.TACHI,5)!=7)throw new AssertionError("Iron/diamond");
-  System.out.println("Weapon milestone and material boundary checks passed");
+  System.out.println("All 26 weapon levels: damage, speed, reach, sweep strictly increase; anchors preserved");
  }
 }

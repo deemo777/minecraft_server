@@ -64,6 +64,7 @@ public final class VillageToolFeature implements Feature, Listener {
     private int maxLevel = 25;
     private boolean accepting;
     private NumericDrops numericDrops;
+    private NumericFishing numericFishing;
     public boolean ownsNumericDrops(org.bukkit.event.block.BlockDropItemEvent event) {
         return numericDrops!=null && numericDrops.handles(event);
     }
@@ -84,6 +85,7 @@ public final class VillageToolFeature implements Feature, Listener {
     public void enable() {
         loadConfig();accepting=true;
         plugin.getServer().getPluginManager().registerEvents(numericDrops=new NumericDrops(plugin,this), plugin);
+        plugin.getServer().getPluginManager().registerEvents(numericFishing=new NumericFishing(plugin,this), plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for(Player p:Bukkit.getOnlinePlayers())refreshTools(p);
         PluginCommand cmd = plugin.getCommand("villagetool");
@@ -101,7 +103,7 @@ public final class VillageToolFeature implements Feature, Listener {
     }
 
     @Override
-    public void disable() { accepting=false;if(numericDrops!=null)numericDrops.close();pendingRefresh.clear();for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
+    public void disable() { accepting=false;if(numericDrops!=null)numericDrops.close();if(numericFishing!=null)numericFishing.close();pendingRefresh.clear();for(var task:List.copyOf(work.values()))task.cancel();work.clear();felling.clear();placedBreaks.clear(); }
 
     private void loadConfig() {
         cfg = plugin.loadYaml("tools.yml");
@@ -193,6 +195,9 @@ public final class VillageToolFeature implements Feature, Listener {
         // Read old capacity before changing level, so upgrades cannot refill the can.
         int waterUses = type == ToolType.WATERING_CAN
                 ? Math.min(waterUses(it), WateringCanRules.capacity(lv)) : 0;
+        ItemMeta oldMeta=it.getItemMeta();
+        int originalMax=oldMeta instanceof Damageable d && d.hasMaxDamage()?d.getMaxDamage():it.getType().getMaxDurability();
+        int originalWear=oldMeta instanceof Damageable d?d.getDamage():0;
         org.bukkit.Material material=type.materialAt(lv);
         if(it.getType()!=material) {
             ItemMeta previous = it.getItemMeta();
@@ -205,6 +210,10 @@ public final class VillageToolFeature implements Feature, Listener {
             }
         }
         ItemMeta meta = it.getItemMeta();
+        if(meta instanceof Damageable d){
+            int maximum=ToolPerformance.maxDurability(type,lv);d.setMaxDamage(maximum);
+            d.setDamage(ToolDurability.convertedDamage(originalWear,originalMax,maximum));
+        }
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         if(lv!=previousLevel)ArtisanProgressStore.clear(pdc);
         pdc.set(levelKey, PersistentDataType.INTEGER, lv);
@@ -231,10 +240,33 @@ public final class VillageToolFeature implements Feature, Listener {
         }
         // Explicit defaults preserve the material's ordinary combat stats when adding a modifier.
         meta.setAttributeModifiers(type.materialAt(lv).getDefaultAttributeModifiers(org.bukkit.inventory.EquipmentSlot.HAND));
-        int mining=type==ToolType.PICKAXE?ToolPerformance.efficiency(lv):type==ToolType.AXE?ToolPerformance.axeEfficiency(lv):0;
-        if(mining>0)meta.addAttributeModifier(org.bukkit.attribute.Attribute.MINING_EFFICIENCY,
-            new org.bukkit.attribute.AttributeModifier(new NamespacedKey(plugin,"numeric_mining"),NumericEffects.miningBonus(mining),
-                org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,org.bukkit.inventory.EquipmentSlotGroup.MAINHAND));
+        if(type==ToolType.PICKAXE || type==ToolType.AXE) {
+            double natural=material.name().startsWith("NETHERITE")?9:material.name().startsWith("DIAMOND")?8:6;
+            double mining=ToolPerformance.miningSpeed(type,lv)-natural;
+            meta.addAttributeModifier(org.bukkit.attribute.Attribute.MINING_EFFICIENCY,
+                new org.bukkit.attribute.AttributeModifier(new NamespacedKey(plugin,"numeric_mining"),mining,
+                    org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,org.bukkit.inventory.EquipmentSlotGroup.MAINHAND));
+        }
+        var details=new java.util.ArrayList<>(meta.lore());
+        details.add(Text.mm("<gray>최대 내구도: <white>"+(lv>=25?"무한":ToolPerformance.maxDurability(type,lv))));
+        details.add(Text.mm("<gray>내구도 소모 확률: <white>"+Progression.label(ToolPerformance.wearChance(lv)*100)+"%"));
+        if(type==ToolType.PICKAXE || type==ToolType.AXE)details.add(Text.mm("<gray>작업 속도: <white>"+Progression.label(ToolPerformance.miningSpeed(type,lv))));
+        if(type==ToolType.PICKAXE)details.add(Text.mm("<gray>드롭 보정 강도: <white>"+Progression.label(ToolPerformance.fortuneStrength(lv))));
+        if(type==ToolType.AXE)details.add(Text.mm("<gray>원형 회수 확률: <white>"+Progression.label(ToolPerformance.preserveChance(lv)*100)+"%"));
+        if(type==ToolType.PICKAXE || type==ToolType.AXE)details.add(Text.mm("<gray>연결 자원 추가(평균): <white>"+Progression.label(ToolPerformance.expectedExtraBlocks(lv))+"개"));
+        if(type==ToolType.HOE) {
+            details.add(Text.mm("<gray>수확 범위(평균): <white>"+Progression.label(HarvestRules.expectedCells(lv))+"칸"));
+            details.add(Text.mm("<gray>드롭 보정 강도: <white>"+Progression.label(ToolPerformance.hoeFortuneStrength(lv))));
+        }
+        if(type==ToolType.WATERING_CAN) {
+            details.add(Text.mm("<gray>물주기 범위(평균): <white>"+Progression.label(WateringCanRules.expectedCells(lv))+"칸"));
+            details.add(Text.mm("<gray>물 용량: <white>"+(lv>=25?"무한":WateringCanRules.capacity(lv)+"회")));
+        }
+        if(type==ToolType.FISHING_ROD) {
+            details.add(Text.mm("<gray>낚시 대기 단축: <white>"+Progression.label((1-ToolPerformance.fishingWaitFactor(lv))*100)+"%"));
+            details.add(Text.mm("<gray>물고기 추가 획득: <white>"+Progression.label(ToolPerformance.fishingExtraChance(lv)*100)+"%"));
+        }
+        meta.lore(details);
 
         // 모양: 아이템 모델 + 강화 단계 (리소스팩이 단계에 맞는 모델을 골라요)
         if (type.model != null && plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model(type.model));
@@ -336,7 +368,7 @@ public final class VillageToolFeature implements Feature, Listener {
             event.setCancelled(true);
             refreshNextTick(event.getPlayer());
         } else if(isTool(event.getItem())) {
-            int wear=NumericEffects.wear(event.getDamage(),ToolPerformance.unbreaking(levelOf(event.getItem())),java.util.concurrent.ThreadLocalRandom.current());
+            int wear=NumericEffects.wear(event.getDamage(),ToolPerformance.wearChance(levelOf(event.getItem())),java.util.concurrent.ThreadLocalRandom.current());
             if(wear==0)event.setCancelled(true);else event.setDamage(wear);
         }
     }
@@ -457,7 +489,7 @@ public final class VillageToolFeature implements Feature, Listener {
     public void harvest(org.bukkit.event.block.BlockBreakEvent event) {
         Player p=event.getPlayer();ItemStack tool=p.getInventory().getItemInMainHand();int level=levelOf(tool);
         var root=event.getBlock();
-        if(!accepting || typeOf(tool)!=ToolType.HOE || level<5 || felling.contains(p.getUniqueId())
+        if(!accepting || typeOf(tool)!=ToolType.HOE || level<1 || felling.contains(p.getUniqueId())
             ||!event.isDropItems()||p.getGameMode()!=org.bukkit.GameMode.SURVIVAL||!mature(root))return;
         int centerX=level>=25?p.getLocation().getBlockX():root.getX(),centerZ=level>=25?p.getLocation().getBlockZ():root.getZ();
         if(level>=25 && (Math.abs(root.getX()-centerX)>2||Math.abs(root.getZ()-centerZ)>2))return;

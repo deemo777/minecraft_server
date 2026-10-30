@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.7.1"
+version = "4.8.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -182,3 +182,16 @@ val verifyNumericEffects by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.tools.NumericEffectsTest")
 }
 tasks.check { dependsOn(verifyNumericEffects) }
+
+val exportEquipmentStats by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.tools.EquipmentStatsReport")
+}
+
+val verifyProgression by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.tools.ProgressionTest")
+}
+tasks.check { dependsOn(verifyProgression) }
