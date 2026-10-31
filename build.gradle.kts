@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.12.4"
+version = "4.13.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -230,3 +230,10 @@ val verifyToolDurability by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.tools.ToolDurabilityTest")
 }
 tasks.check { dependsOn(verifyToolDurability) }
+
+val verifySkillExperience by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.skill.SkillExperienceTest")
+}
+tasks.check { dependsOn(verifySkillExperience) }

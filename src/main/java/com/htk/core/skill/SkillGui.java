@@ -58,7 +58,7 @@ final class SkillGui extends Gui {
                 Key font = Key.key("servercore", "skill" + (r + 1));
                 SkillStore.Progress pr = feature.progress(id, s);
                 boolean max = pr.level >= feature.maxLevel();
-                long need = feature.need(pr.level);
+                long need = feature.need(s,pr.level);
                 cv.text(LV_X, "Lv." + pr.level, font, INK);
                 cv.textRight(XP_RIGHT, max ? "MAX" : fmt(pr.xp) + "/" + fmt(need), font, INK_SOFT);
                 cv.bar((char) (BAR_FIRST + r), BAR_X, BAR_PIECES, max ? 1 : pr.xp, max ? 1 : need);
@@ -74,7 +74,7 @@ final class SkillGui extends Gui {
             boolean max = pr.level >= feature.maxLevel();
             String name = "<#7acb52><bold>" + s.korean + "</bold> <white>Lv." + pr.level;
             List<String> lore = new java.util.ArrayList<>();
-            if (!pack) lore.add(max ? "<gray>최고 레벨" : "<gray>경험치 <white>" + fmt(pr.xp) + "/" + fmt(feature.need(pr.level)));
+            if (!pack) lore.add(max ? "<gray>최고 레벨" : "<gray>경험치 <white>" + fmt(pr.xp) + "/" + fmt(feature.need(s,pr.level)));
             String cur = feature.currentTitleText(id, s);
             lore.add("<gray>칭호: " + (cur == null ? "<dark_gray>없음" : "<white>" + cur));
             var next = feature.nextTitle(id, s);

@@ -75,6 +75,7 @@ public final class SkillFeature implements Feature, Listener {
     // 설정
     private int maxLevel;
     private double curveA, curveB, curveC;
+    private double miningMultiplierAtTen,miningMultiplierPerLevel;
     private long defaultFish, defaultMonster;
     private String levelUpTitle, levelUpSubtitle;
     private double doubleDropPerLevel, combatDamagePerLevel, sellBonusPerLevel;
@@ -132,6 +133,8 @@ public final class SkillFeature implements Feature, Listener {
         curveA = yml.getDouble("curve.a", 50);
         curveB = yml.getDouble("curve.b", 40);
         curveC = yml.getDouble("curve.c", 3);
+        miningMultiplierAtTen=yml.getDouble("curve.mining.multiplier-at-10",1.5);
+        miningMultiplierPerLevel=yml.getDouble("curve.mining.multiplier-per-level",.05);
         defaultFish = yml.getLong("default-fish-xp", 3);
         defaultMonster = yml.getLong("default-monster-xp", 3);
         levelUpTitle = yml.getString("level-up.title", "<#ffd34d><bold>%skill% 레벨 UP!");
@@ -169,8 +172,8 @@ public final class SkillFeature implements Feature, Listener {
     // ---------------- 레벨 계산 ----------------
 
     /** level → level+1 에 필요한 경험치 */
-    public long need(int level) {
-        return Math.max(1, Math.round(curveA + curveB * level + curveC * level * (double) level));
+    public long need(Skill skill,int level) {
+        return SkillExperience.required(skill,level,curveA,curveB,curveC,miningMultiplierAtTen,miningMultiplierPerLevel);
     }
 
     public int maxLevel() { return maxLevel; }
@@ -192,8 +195,8 @@ public final class SkillFeature implements Feature, Listener {
         if (pr.level >= maxLevel) return;
         pr.xp += amount;
         int before = pr.level;
-        while (pr.level < maxLevel && pr.xp >= need(pr.level)) {
-            pr.xp -= need(pr.level);
+        while (pr.level < maxLevel && pr.xp >= need(skill,pr.level)) {
+            pr.xp -= need(skill,pr.level);
             pr.level++;
         }
         if (pr.level >= maxLevel) pr.xp = 0;

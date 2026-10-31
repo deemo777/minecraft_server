@@ -44,6 +44,7 @@ public final class WeaponPerformance {
         set(plugin,meta,Attribute.ATTACK_SPEED,"weapon_speed",speed(type,level)-4);
         set(plugin,meta,Attribute.ENTITY_INTERACTION_RANGE,"weapon_reach",reach(type,level)-3);
         var lore=new java.util.ArrayList<>(meta.lore());
+        lore.add(Text.mm("<gray>공격력 <white>"+Progression.label(damage(type,level))));
         if(level>=25) {
             String trait=switch(type){case DAGGER->"추격 · 이동 속도 +20% · 2초";case TACHI->"공방일체 · 받는 피해 -10% · 2초";case GREATSWORD->"압도 · 대상 이동 속도 -30% · 1초";default->"";};
             lore.add(Text.mm("<gold>"+trait));

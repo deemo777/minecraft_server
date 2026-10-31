@@ -252,7 +252,7 @@ public final class HudFeature implements Feature, Listener {
         if (active != null) {
             SkillStore.Progress pr = skills.progress(id, active);
             progress = pr.level >= skills.maxLevel() ? 1f
-                    : Math.max(0f, Math.min(1f, pr.xp / (float) skills.need(pr.level)));
+                    : Math.max(0f, Math.min(1f, pr.xp / (float) skills.need(active,pr.level)));
         }
         BossBar.Color color = active != null ? BossBar.Color.GREEN : BossBar.Color.WHITE;
         if (bar == null) {
@@ -274,7 +274,7 @@ public final class HudFeature implements Feature, Listener {
         // 1) 가운데: 경험치 표시 "농사 레벨 33 [962/4,375]"
         if (active != null) {
             SkillStore.Progress pr = skills.progress(id, active);
-            String nums = " " + pr.level + " [" + fmt(pr.xp) + "/" + fmt(skills.need(pr.level)) + "]";
+            String nums = " " + pr.level + " [" + fmt(pr.xp) + "/" + fmt(skills.need(active,pr.level)) + "]";
             if (pr.level >= skills.maxLevel()) nums = " " + pr.level + " [MAX]";
             int w = LABEL_ADV + width(nums);
             pen.moveTo(-w / 2);

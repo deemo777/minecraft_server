@@ -41,7 +41,7 @@ final class SkillCommand implements TabExecutor {
             for (Skill s : Skill.values()) {
                 var pr = f.progress(p.getUniqueId(), s);
                 sb.append(s.korean).append(" <white>Lv.").append(pr.level).append("</white> <dark_gray>(")
-                        .append(pr.xp).append("/").append(f.need(pr.level)).append(")</dark_gray>  ");
+                        .append(pr.xp).append("/").append(f.need(s,pr.level)).append(")</dark_gray>  ");
             }
             Messages.send(p,Text.mm(sb.toString().trim()));
             net.kyori.adventure.text.Component prefix = f.prefix(p.getUniqueId());

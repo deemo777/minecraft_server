@@ -11,7 +11,7 @@
 
 # Item tooltip policy
 
-- Do not add descriptive, instructional, drop-chance, attack-speed, or base-stat lore to physical items. Keep names, enhancement stars, and concise additional options only. GUI items may show necessary transaction values and ownership/status, without explanatory sentences. Keep detailed mechanics in documentation, not item hover text.
+- Do not add descriptive, instructional, drop-chance, attack-speed, or base-stat lore to physical items. Keep names, enhancement stars, and concise additional options only. The user explicitly allows a single concise attack-damage value on weapons; do not add attack speed or other base-stat explanations. GUI items may show necessary transaction values and ownership/status, without explanatory sentences. Keep detailed mechanics in documentation, not item hover text.
 
 # Resource-pack release updates
 
