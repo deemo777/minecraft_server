@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.12.1"
+version = "4.12.2"
 
 val paperVersion: String by project
 val javaVersion: String by project

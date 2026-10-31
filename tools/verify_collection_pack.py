@@ -63,6 +63,25 @@ def verify(pack_path, client_path):
                 value.pop("textures",None);value.pop("parent",None)
             assert actual==original,("Geometry/display changed",name)
             model_count+=1
+        # File existence alone is insufficient: each disabled sprite must be stitched.
+        atlas_sources={}
+        for atlas in ("blocks","items"):
+            path=f"assets/minecraft/atlases/{atlas}.json"
+            atlas_sources[atlas]=json.loads(client.z.read(path))["sources"]
+            if path in names:
+                atlas_sources[atlas]+=json.loads(pack.read(path))["sources"]
+        def stitched(texture,atlas):
+            namespace,sprite=texture.split(":",1)
+            for source in atlas_sources[atlas]:
+                if source["type"]=="minecraft:directory":
+                    prefix=source.get("prefix","")
+                    if sprite.startswith(prefix):
+                        file=f"assets/{namespace}/textures/{source['source']}/{sprite[len(prefix):]}.png"
+                        if file in names or file in client.names:return True
+                elif source["type"]=="minecraft:single":
+                    if source.get("sprite",source["resource"])==texture:return True
+            return False
+        atlas_checks=0
         texture_count=0
         for name in names:
             prefix="assets/servercore/textures/disabled/minecraft/"
@@ -74,6 +93,10 @@ def verify(pack_path, client_path):
             expected=ImageEnhance.Brightness(ImageEnhance.Color(original).enhance(.15)).enhance(.30)
             expected.putalpha(original.getchannel("A"))
             assert dark.tobytes()==expected.tobytes(),name
+            sprite="servercore:disabled/minecraft/"+name[len(prefix):-4]
+            for atlas in ("blocks","items"):
+                assert stitched(sprite,atlas),("Texture exists but is absent from atlas",sprite,atlas)
+                atlas_checks+=1
             texture_count+=1
         # Preview inventory-size icons at integer scaling, using their actual pack textures.
         image=Image.new("RGB",(600,268),(43,38,35));draw=ImageDraw.Draw(image)
@@ -92,7 +115,7 @@ def verify(pack_path, client_path):
                     overlay=check.resize((64,64),Image.Resampling.NEAREST);image.paste(overlay,(x,y),overlay)
                 else:draw.text((x+42,y+43),"10" if col==0 else "7",font=font,fill="white",stroke_width=1,stroke_fill="black")
         image.save(Path(pack_path).parent/"collection_preview.png")
-        print(f"Full pack: {json_count} JSON/metadata, {png_count} PNG, {references} references; {len(materials)} inactive/completed pairs, {texture_count} dark texture/alpha checks, {model_count} preserved geometries")
+        print(f"Full pack: {json_count} JSON/metadata, {png_count} PNG, {references} references; {len(materials)} inactive/completed pairs, {texture_count} dark texture/alpha checks, {model_count} preserved geometries, {atlas_checks} atlas checks")
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser();parser.add_argument("--jar",required=True);args=parser.parse_args()

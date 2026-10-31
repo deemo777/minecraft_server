@@ -379,6 +379,7 @@ def main():
         }))
 
     disabled = DisabledModels(jar, sc)
+    disabled.install_atlases()
     ok, missing = 0, []
     for m in mats:
         vanilla = jar.json(f"assets/minecraft/items/{m}.json")

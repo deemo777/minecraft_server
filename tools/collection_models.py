@@ -21,6 +21,16 @@ class DisabledModels:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(value, ensure_ascii=True, indent=1), encoding="utf-8")
 
+    def install_atlases(self):
+        # 26.3 stitches block and item sprites into separate atlases. Existing atlas
+        # source lists are stacked with this pack's entries, preserving vanilla sources.
+        folder=self.root.parent / "minecraft" / "atlases"
+        folder.mkdir(parents=True,exist_ok=True)
+        for atlas in ("blocks","items"):
+            (folder / f"{atlas}.json").write_text(json.dumps({"sources":[{
+                "type":"minecraft:directory","source":"disabled","prefix":"disabled/"
+            }]},indent=1),encoding="utf-8")
+
     def texture(self, reference, destination=None):
         namespace, path = reference.split(":", 1) if ":" in reference else ("minecraft", reference)
         destination = destination or f"disabled/{namespace}/{path}"
