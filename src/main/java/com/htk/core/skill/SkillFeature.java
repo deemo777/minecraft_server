@@ -109,18 +109,19 @@ public final class SkillFeature implements Feature, Listener {
             honor.setTabCompleter(c);
         }
         autosave = plugin.getServer().getScheduler().runTaskTimer(plugin, store::saveAll, 1200L, 1200L);
-        for (Player p : Bukkit.getOnlinePlayers()) updateListName(p);
+        for (Player p : Bukkit.getOnlinePlayers()) { updateListName(p); refreshCombatHealth(p); }
     }
 
     @Override
     public void reload() {
         loadConfig();
-        for (Player p : Bukkit.getOnlinePlayers()) updateListName(p);
+        for (Player p : Bukkit.getOnlinePlayers()) { updateListName(p); refreshCombatHealth(p); }
     }
 
     @Override
     public void disable() {
         if (autosave != null) autosave.cancel();
+        for(Player p:Bukkit.getOnlinePlayers())removeCombatHealth(p);
         store.saveAll();
     }
 
@@ -200,6 +201,7 @@ public final class SkillFeature implements Feature, Listener {
         if (pr.level >= maxLevel) pr.xp = 0;
         store.markDirty(p.getUniqueId());
         if (pr.level > before) {
+            if(skill==Skill.COMBAT)refreshCombatHealth(p);
             levelUp(p, skill, pr.level);
             for (int lv = before + 1; lv <= pr.level; lv++) unlockTitle(p, skill, lv);
         }
@@ -223,7 +225,7 @@ public final class SkillFeature implements Feature, Listener {
         store.markDirty(target.getUniqueId());
         store.save(target.getUniqueId());
         Player online = target.getPlayer();
-        if (online != null) updateListName(online);
+        if (online != null) { updateListName(online); refreshCombatHealth(online); }
     }
 
     void reset(OfflinePlayer target) {
@@ -326,6 +328,24 @@ public final class SkillFeature implements Feature, Listener {
     /** 캔 것이 2배로 나올 확률 (0~1) */
     public double doubleDropChance(UUID id, Skill s) {
         return Math.min(1.0, doubleDropPerLevel * SkillScale.rewardLevel(progress(id, s).level));
+    }
+
+    private void removeCombatHealth(Player player) {
+        var attribute=player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+        if(attribute==null)return;
+        attribute.removeModifier(new NamespacedKey(plugin,"combat_health"));
+        if(player.getHealth()>attribute.getValue())player.setHealth(attribute.getValue());
+    }
+
+    private void refreshCombatHealth(Player player) {
+        var attribute=player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+        if(attribute==null)return;
+        var key=new NamespacedKey(plugin,"combat_health");
+        attribute.removeModifier(key);
+        double bonus=CombatHealth.bonus(progress(player.getUniqueId(),Skill.COMBAT).level);
+        if(bonus>0)attribute.addTransientModifier(new org.bukkit.attribute.AttributeModifier(key,bonus,
+                org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER));
+        if(player.getHealth()>attribute.getValue())player.setHealth(attribute.getValue());
     }
 
     /** 전투: 몹에게 주는 피해 추가 비율 */
@@ -470,6 +490,12 @@ public final class SkillFeature implements Feature, Listener {
     public void onJoin(PlayerJoinEvent e) {
         store.get(e.getPlayer().getUniqueId());
         updateListName(e.getPlayer());
+        refreshCombatHealth(e.getPlayer());
+    }
+
+    @EventHandler
+    public void onRespawn(org.bukkit.event.player.PlayerRespawnEvent e) {
+        Bukkit.getScheduler().runTask(plugin,()->{if(e.getPlayer().isOnline())refreshCombatHealth(e.getPlayer());});
     }
 
     @EventHandler

@@ -80,7 +80,10 @@ final class SkillGui extends Gui {
             var next = feature.nextTitle(id, s);
             if (next != null) lore.add("<dark_gray>다음 칭호: Lv." + next.getKey() + " " + Text.plain(next.getValue()));
             lore.add("");
-            if (s == Skill.COMBAT) lore.add("<gray>몹에게 주는 피해 <#7acb52>+" + pct(feature.combatBonus(id)));
+            if (s == Skill.COMBAT) {
+                lore.add("<gray>몹에게 주는 피해 <#7acb52>+" + pct(feature.combatBonus(id)));
+                lore.add("<gray>최대 체력 <#7acb52>+" + (int)(CombatHealth.bonus(pr.level)/2) + "칸");
+            }
             else lore.add("<gray>" + (s == Skill.FISHING ? "한 마리 더 낚을" : "2배로 얻을") + " 확률 <#7acb52>"
                     + pct(feature.doubleDropChance(id, s)));
             String shopName = s == Skill.FARMING ? "농작물" : s == Skill.MINING ? "광물" : s == Skill.FISHING ? "생선" : null;

@@ -56,7 +56,7 @@ final class NumericDrops implements Listener {
         var item=event.getPlayer().getInventory().getItemInMainHand();
         if(tools.typeOf(item)!=ToolType.AXE)return;
         var location=event.getBlock().getLocation();
-        preserves.put(location,ThreadLocalRandom.current().nextDouble()<ToolPerformance.preserveChance(tools.levelOf(item)));
+        preserves.put(location,ToolPerformance.preserveChance(tools.levelOf(item))==1);
         defer(()->preserves.remove(location));
     }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
@@ -100,9 +100,8 @@ final class NumericDrops implements Listener {
         if(hives.containsKey(event.getBlock().getLocation()))return true;
         String path=event.getBlockState().getType().name();int level=tools.levelOf(item);
         if(type==ToolType.AXE && Boolean.TRUE.equals(preserves.get(event.getBlock().getLocation())) && rules.contains(path+".preserve"))return true;
-        if(!rules.contains(path+".bonuses"))return false;
-        if(type==ToolType.PICKAXE)return ToolPerformance.fortuneStrength(level)>0;
-        if(type!=ToolType.HOE || level<1)return false;
+        if(type==ToolType.PICKAXE)return rules.contains(path+".bonuses") && ToolPerformance.fortuneStrength(level)>0;
+        if(type!=ToolType.HOE || level<5 || !crop(event.getBlockState().getType()))return false;
         return !(event.getBlockState().getBlockData() instanceof Ageable age)||age.getAge()==age.getMaximumAge();
     }
     @EventHandler(priority=EventPriority.LOWEST)
@@ -117,13 +116,12 @@ final class NumericDrops implements Listener {
         ToolType type=tools.typeOf(item);if(type==null)return;
         int level=tools.levelOf(item);
         boolean preserve=type==ToolType.AXE && Boolean.TRUE.equals(preserves.get(event.getBlock().getLocation()));
-        int bonus=type==ToolType.PICKAXE?ToolPerformance.rolledFortune(level,ThreadLocalRandom.current().nextDouble())
-                :type==ToolType.HOE?ToolPerformance.rolledHoeFortune(level,ThreadLocalRandom.current().nextDouble()):0;
+        int bonus=type==ToolType.PICKAXE?ToolPerformance.rolledFortune(level,ThreadLocalRandom.current().nextDouble()):0;
         BlockState state=event.getBlockState();String block=state.getType().name();
         HiveHarvest hive=hives.get(state.getLocation());
         if(hive!=null)hive.handled=true;
         var config=rules.getConfigurationSection(block);
-        if(hive==null && config==null)return;
+        if(hive==null && config==null && type!=ToolType.HOE)return;
         var random=ThreadLocalRandom.current();
         List<ItemStack> output=new ArrayList<>();
         for(Item drop:event.getItems())output.add(drop.getItemStack().clone());
@@ -139,6 +137,11 @@ final class NumericDrops implements Listener {
                 meta.setBlockState(state);result.setItemMeta(meta);
             }
             output.clear();output.add(result);
+        } else if(type==ToolType.HOE) {
+            if(state.getBlockData() instanceof Ageable age && age.getAge()<age.getMaximumAge())return;
+            int multiplier=ToolPerformance.cropMultiplier(level,random.nextDouble());
+            var originals=List.copyOf(output);output.clear();
+            for(ItemStack stack:originals)add(output,stack.getType(),stack.getAmount()*multiplier);
         } else {
             var bonuses=config.getConfigurationSection("bonuses");if(bonuses==null)return;
             boolean crop=Set.of("WHEAT","CARROTS","POTATOES","BEETROOTS","NETHER_WART").contains(block);
@@ -190,6 +193,12 @@ final class NumericDrops implements Listener {
                 if(doubled)at.getWorld().dropItemNaturally(at,stack.clone());
             }
         });
+    }
+    static boolean crop(Material material) {
+        return switch(material) {
+            case WHEAT,CARROTS,POTATOES,BEETROOTS,NETHER_WART,MELON,PUMPKIN,SUGAR_CANE,COCOA -> true;
+            default -> false;
+        };
     }
     private static void add(List<ItemStack> result,Material material,int amount) {
         while(amount>0) {int n=Math.min(amount,material.getMaxStackSize());result.add(new ItemStack(material,n));amount-=n;}

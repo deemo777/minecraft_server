@@ -250,7 +250,7 @@ public final class VillageToolFeature implements Feature, Listener {
         }
         // Explicit defaults preserve the material's ordinary combat stats when adding a modifier.
         meta.setAttributeModifiers(type.materialAt(lv).getDefaultAttributeModifiers(org.bukkit.inventory.EquipmentSlot.HAND));
-        if(type==ToolType.PICKAXE || type==ToolType.AXE) {
+        if(type==ToolType.PICKAXE || type==ToolType.AXE || type==ToolType.HOE) {
             double natural=material.name().startsWith("NETHERITE")?9:material.name().startsWith("DIAMOND")?8:6;
             double mining=ToolPerformance.miningSpeed(type,lv)-natural;
             meta.addAttributeModifier(org.bukkit.attribute.Attribute.MINING_EFFICIENCY,
@@ -366,9 +366,6 @@ public final class VillageToolFeature implements Feature, Listener {
         if (typeOf(event.getItem()) != null && ToolPerformance.indestructible(levelOf(event.getItem()))) {
             event.setCancelled(true);
             refreshNextTick(event.getPlayer());
-        } else if(isTool(event.getItem())) {
-            int wear=NumericEffects.wear(event.getDamage(),ToolPerformance.wearChance(typeOf(event.getItem()),levelOf(event.getItem())),java.util.concurrent.ThreadLocalRandom.current());
-            if(wear==0)event.setCancelled(true);else event.setDamage(wear);
         }
     }
 
@@ -487,8 +484,7 @@ public final class VillageToolFeature implements Feature, Listener {
         var root=event.getBlock();
         if(!accepting || typeOf(tool)!=ToolType.HOE || level<1 || felling.contains(p.getUniqueId())
             ||!event.isDropItems()||p.getGameMode()!=org.bukkit.GameMode.SURVIVAL||!mature(root))return;
-        int centerX=level>=25?p.getLocation().getBlockX():root.getX(),centerZ=level>=25?p.getLocation().getBlockZ():root.getZ();
-        if(level>=25 && (Math.abs(root.getX()-centerX)>2||Math.abs(root.getZ()-centerZ)>2))return;
+        int centerX=root.getX(),centerZ=root.getZ();
         var targets=new java.util.ArrayList<org.bukkit.block.Block>();
         for(var offset:HarvestRules.offsets(level,p.getLocation().getYaw())){
             int x=centerX+offset.x(),z=centerZ+offset.z();

@@ -27,10 +27,11 @@ public final class WateringCanRules {
 
     public record Offset(int x, int z) {}
 
-    public static double expectedCells(int level){return Progression.value(level,1,3,9,16,20,25);}
-    public static String areaLabel(int level){return "평균 "+Progression.label(expectedCells(level))+"칸";}
-    public static List<Offset> offsets(int level,float yaw){return offsets(level,yaw,java.util.concurrent.ThreadLocalRandom.current().nextDouble());}
+    public static int cells(int level){return (int)Math.round(1+9*Math.clamp(level,0,25)/25.0);}
+ public static double expectedCells(int level){return cells(level);}
+    public static String areaLabel(int level){return cells(level)+"칸";}
+    public static List<Offset> offsets(int level,float yaw){return offsets(level,yaw,0);}
     public static List<Offset> offsets(int level,float yaw,double roll){
-        return WorkFootprint.offsets(true,Progression.count(expectedCells(level),roll),yaw).stream().map(p->new Offset(p[0],p[1])).toList();
+        return WorkFootprint.offsets(true,cells(level),yaw).stream().map(p->new Offset(p[0],p[1])).toList();
     }
 }

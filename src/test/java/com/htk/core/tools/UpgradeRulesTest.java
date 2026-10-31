@@ -28,8 +28,8 @@ public final class UpgradeRulesTest {
             for(float yaw:new float[]{0,90,180,270,-90,360,44.9f,45})for(double roll:new double[]{0,.5,.999999}) {
                 var water=WateringCanRules.offsets(level,yaw,roll);
                 var harvest=HarvestRules.offsets(level,yaw,roll);
-                check(water.size()==Progression.count(WateringCanRules.expectedCells(level),roll),"fractional water footprint");
-                check(harvest.size()==Progression.count(HarvestRules.expectedCells(level),roll),"fractional harvest footprint");
+                check(water.size()==Progression.count(WateringCanRules.expectedCells(level),roll),"fixed integer water footprint");
+                check(harvest.size()==Progression.count(HarvestRules.expectedCells(level),roll),"fixed integer harvest footprint");
                 check(new java.util.HashSet<>(water).size()==water.size(),"water unique cells");
                 check(new java.util.HashSet<>(harvest).size()==harvest.size(),"harvest unique cells");
                 check(water.contains(new WateringCanRules.Offset(0,0)),"water contains root");
@@ -38,22 +38,22 @@ public final class UpgradeRulesTest {
             if(level>0) {
                 check(ToolPerformance.miningSpeed(ToolType.PICKAXE,level)>ToolPerformance.miningSpeed(ToolType.PICKAXE,level-1),"pickaxe improves each level");
                 check(ToolPerformance.miningSpeed(ToolType.AXE,level)>ToolPerformance.miningSpeed(ToolType.AXE,level-1),"axe improves each level");
-                check(ToolPerformance.wearChance(ToolType.PICKAXE,level)==(level==25?0:1/(1+ToolPerformance.conservationStrength(level))),"tool wear follows conservation milestones");
-                check((level<10?ToolPerformance.fortuneStrength(level)==0:level>20?ToolPerformance.fortuneStrength(level)==4:ToolPerformance.fortuneStrength(level)>ToolPerformance.fortuneStrength(level-1)),"mining yield improves each level");
-                check(ToolPerformance.hoeFortuneStrength(level)>ToolPerformance.hoeFortuneStrength(level-1),"crop yield improves each level");
-                check(ToolPerformance.preserveChance(level)>ToolPerformance.preserveChance(level-1),"preservation improves each level");
+                check(ToolPerformance.wearChance(ToolType.PICKAXE,level)==(level==25?0:1),"tool wear follows conservation milestones");
+                check((level<=5?ToolPerformance.fortuneStrength(level)==0:ToolPerformance.fortuneStrength(level)>ToolPerformance.fortuneStrength(level-1)),"mining yield improves each level");
+                check(ToolPerformance.hoeFortuneStrength(level)>=ToolPerformance.hoeFortuneStrength(level-1),"crop yield improves each level");
+                check(ToolPerformance.preserveChance(level)==(level>=15?1:0),"preservation improves each level");
                 check(ToolPerformance.expectedExtraBlocks(level)==Math.max(0,level-20),"connected quota improves each level");
-                check(HarvestRules.expectedCells(level)>HarvestRules.expectedCells(level-1),"harvest area improves each level");
-                check(WateringCanRules.expectedCells(level)>WateringCanRules.expectedCells(level-1),"water area improves each level");
+                check(HarvestRules.expectedCells(level)>=HarvestRules.expectedCells(level-1),"harvest area improves each level");
+                check(WateringCanRules.expectedCells(level)>=WateringCanRules.expectedCells(level-1),"water area improves each level");
                 check(ToolPerformance.fishingWaitFactor(level)<ToolPerformance.fishingWaitFactor(level-1),"fishing faster each level");
                 check(ToolPerformance.fishingExtraChance(level)>ToolPerformance.fishingExtraChance(level-1),"extra fish improves each level");
                 for(ToolType type:ToolType.values())check(ToolPerformance.maxDurability(type,level)>=ToolPerformance.maxDurability(type,level-1),"maximum durability never decreases");
             }
         }
         check(ToolPerformance.miningSpeed(ToolType.PICKAXE,0)==6 && ToolPerformance.miningSpeed(ToolType.PICKAXE,5)==8 && ToolPerformance.miningSpeed(ToolType.PICKAXE,10)==18,"requested pickaxe anchors");
-        check(ToolPerformance.expectedWoodExtraBlocks(25)==4095,"connected safety cap retained");
+        check(ToolPerformance.expectedWoodExtraBlocks(25)==7,"seven additional logs at +25");
         check(WateringCanRules.capacity(-1)==20 && WateringCanRules.capacity(999)==45,"bounded water capacity");
-        check(WateringCanRules.offsets(25,0,0).size()==25 && HarvestRules.offsets(25,0,0).size()==25,"full 5x5 maximum footprint");
+        check(WateringCanRules.offsets(25,0,0).size()==10 && HarvestRules.offsets(25,0,0).size()==10,"fixed ten-cell maximum footprint");
         check(WateringCanRules.offsets(5,0,0).equals(WateringCanRules.offsets(5,360,0)),"water orientation wraps");
         check(HarvestRules.offsets(5,-90,0).equals(HarvestRules.offsets(5,270,0)),"harvest orientation wraps");
 
@@ -102,7 +102,7 @@ public final class UpgradeRulesTest {
             check(ToolType.HOE.materialAt(lv)==(lv<5?org.bukkit.Material.IRON_HOE:lv<20?org.bukkit.Material.DIAMOND_HOE:org.bukkit.Material.NETHERITE_HOE),"hoe base material matches milestone");
             check(ToolType.FISHING_ROD.materialAt(lv)==org.bukkit.Material.FISHING_ROD,"fishing rod material preserved");
             check(ToolType.WATERING_CAN.materialAt(lv)==org.bukkit.Material.CARROT_ON_A_STICK,"watering can material preserved");
-            check(ToolPerformance.wearChance(ToolType.PICKAXE,lv)==(lv==25?0:1/(1+ToolPerformance.conservationStrength(lv))),"tools follow numeric unbreaking until +25");
+            check(ToolPerformance.wearChance(ToolType.PICKAXE,lv)==(lv==25?0:1),"tools follow numeric unbreaking until +25");
             check(lv<25 || ToolPerformance.indestructible(lv),"last tier uses infinite durability instead of unbreaking");
         }
         check(ToolDurability.convertedDamage(125,250,1561)==780,"iron-to-diamond migration preserves half wear");
