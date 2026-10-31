@@ -30,3 +30,9 @@
 - Keep custom tool identity/model/PDC. Match diamond tool stats instead of replacing the item with a plain vanilla tool.
 - Pickaxe/axe/hoe: +5 must match diamond durability 1561 and work speed 8. Keep maximum durability 1561 through +19; retain the existing netherite 2031 baseline from +20.
 - Work tools: +5 no Unbreaking, +10 Unbreaking I equivalent, +15 Unbreaking III equivalent, +20 IV equivalent, +25 infinite. Implement per-point numeric wear probability rather than increasing the displayed durability or attaching enchantments/lore. Fishing rods/cans retain their own baseline maximum (64/25). Weapon durability is a separate existing rule.
+
+# Life-skill level scale
+
+- All life skills cap at 100. Preserve existing player levels and stored XP; never double, rescale, or reset them during this expansion.
+- Keep the original shared XP curve through level 100; do not restore the cancelled mining-only multiplier.
+- Move old level-25 rewards to 50 and old level-50 rewards to 100. Use displayed level / 2 for continuous rewards and crystal skill bonuses, and double legacy title thresholds exactly once. Gear upgrade levels and the fixed mining rules are separate.

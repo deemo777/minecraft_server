@@ -1,16 +1,18 @@
 package com.htk.core.tools;
 
-/** Crystal chance follows the player's related life skill, never the tool's upgrade level. */
+/** Crystal curves accept the legacy 0..50 reward scale, including fractional levels.
+ * BlacksmithFeature converts displayed 0..100 skill levels via SkillScale.rewardLevel.
+ * Never use the tool upgrade level here. */
 public final class CrystalDropRules {
     private CrystalDropRules() {}
-    public static double chance(double base,double perLevel,double maximum,int skillLevel) {
+    public static double chance(double base,double perLevel,double maximum,double skillLevel) {
         double start=Double.isFinite(base)?Math.clamp(base,0,1):.02;
         double gain=Double.isFinite(perLevel)?Math.clamp(perLevel,0,1):.002;
         double cap=Double.isFinite(maximum)?Math.clamp(maximum,0,1):.12;
         return Math.min(Math.max(start,cap),start+Math.max(0,skillLevel)*gain);
     }
     /** Fishing has an independent ten-to-forty-percent curve through skill level 50. */
-    public static double fishingChance(int skillLevel) {
+    public static double fishingChance(double skillLevel) {
         return .10 + .30 * (Math.clamp(skillLevel, 0, 50) / 50.0);
     }
     /** Ordinary stone is a fixed exception; only actual ores receive skill growth. */
@@ -27,7 +29,7 @@ public final class CrystalDropRules {
             default -> 0;
         };
     }
-    public static double miningChance(String material,double base,double perLevel,double maximum,int level) {
+    public static double miningChance(String material,double base,double perLevel,double maximum,double level) {
         double ore=miningBase(material);
         if(ore==0)return 0;
         if(material.equals("STONE") || material.equals("DEEPSLATE"))return .02;

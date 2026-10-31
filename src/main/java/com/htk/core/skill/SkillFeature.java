@@ -57,7 +57,7 @@ import java.util.function.BiConsumer;
  * 레벨 효과 (아주 작게 시작, skills.yml → perks 에서 조절)
  *   농사·채광·벌목: 캔 것이 2배로 나올 확률    낚시: 두 마리 낚을 확률
  *   전투: 몹에게 주는 피해 +%                   상점: 그 분야 상점의 판매가 +%
- * 칭호: 10레벨마다 (skills.yml → titles). /honor 로 고르면 채팅·탭 목록 이름 앞에 붙어요
+ * 칭호: 기본 20레벨마다 (skills.yml → titles). /honor 로 고르면 채팅·탭 목록 이름 앞에 붙어요
  */
 public final class SkillFeature implements Feature, Listener {
 
@@ -75,7 +75,6 @@ public final class SkillFeature implements Feature, Listener {
     // 설정
     private int maxLevel;
     private double curveA, curveB, curveC;
-    private double miningMultiplierAtTen,miningMultiplierPerLevel;
     private long defaultFish, defaultMonster;
     private String levelUpTitle, levelUpSubtitle;
     private double doubleDropPerLevel, combatDamagePerLevel, sellBonusPerLevel;
@@ -127,14 +126,13 @@ public final class SkillFeature implements Feature, Listener {
 
     private void loadConfig() {
         YamlConfiguration yml = plugin.loadYaml("skills.yml");
+        SkillScale.prepareConfig(yml);
         // 서버의 skills.yml 이 예전 것이라 칭호·효과 항목이 없으면 jar 안의 기본값을 써요
         yml.setDefaults(plugin.loadDefaultYaml("skills.yml"));
-        maxLevel = Math.max(1, yml.getInt("max-level", 50));
+        maxLevel = Math.max(1, yml.getInt("max-level", 100));
         curveA = yml.getDouble("curve.a", 50);
         curveB = yml.getDouble("curve.b", 40);
         curveC = yml.getDouble("curve.c", 3);
-        miningMultiplierAtTen=yml.getDouble("curve.mining.multiplier-at-10",1.5);
-        miningMultiplierPerLevel=yml.getDouble("curve.mining.multiplier-per-level",.05);
         defaultFish = yml.getLong("default-fish-xp", 3);
         defaultMonster = yml.getLong("default-monster-xp", 3);
         levelUpTitle = yml.getString("level-up.title", "<#ffd34d><bold>%skill% 레벨 UP!");
@@ -173,7 +171,7 @@ public final class SkillFeature implements Feature, Listener {
 
     /** level → level+1 에 필요한 경험치 */
     public long need(Skill skill,int level) {
-        return SkillExperience.required(skill,level,curveA,curveB,curveC,miningMultiplierAtTen,miningMultiplierPerLevel);
+        return SkillExperience.required(skill,level,curveA,curveB,curveC);
     }
 
     public int maxLevel() { return maxLevel; }
@@ -327,22 +325,22 @@ public final class SkillFeature implements Feature, Listener {
 
     /** 캔 것이 2배로 나올 확률 (0~1) */
     public double doubleDropChance(UUID id, Skill s) {
-        return Math.min(1.0, doubleDropPerLevel * progress(id, s).level);
+        return Math.min(1.0, doubleDropPerLevel * SkillScale.rewardLevel(progress(id, s).level));
     }
 
     /** 전투: 몹에게 주는 피해 추가 비율 */
     public double combatBonus(UUID id) {
-        return combatDamagePerLevel * progress(id, Skill.COMBAT).level;
+        return combatDamagePerLevel * SkillScale.rewardLevel(progress(id, Skill.COMBAT).level);
     }
 
     /** 상점 판매가 추가 비율 (skillKey: shops.yml 의 skill, 비어 있으면 0) */
     public double sellBonus(Player p, String skillKey) {
         Skill s = Skill.fromConfig(skillKey);
-        return s == null ? 0 : sellBonusPerLevel * progress(p.getUniqueId(), s).level;
+        return s == null ? 0 : sellBonusPerLevel * SkillScale.rewardLevel(progress(p.getUniqueId(), s).level);
     }
 
     double sellBonusOf(UUID id, Skill s) {
-        return sellBonusPerLevel * progress(id, s).level;
+        return sellBonusPerLevel * SkillScale.rewardLevel(progress(id, s).level);
     }
 
     private boolean roll(double chance) {
