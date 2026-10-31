@@ -97,6 +97,8 @@ public final class ServerCore extends JavaPlugin {
         if(economy!=null && villageTools!=null) {
             var arms=new com.htk.core.merchant.ArmsMerchantFeature(this,economy.economy(),villageTools);
             features.add(arms); arms.enable();
+            var skins=new com.htk.core.skins.SkinMerchantFeature(this,economy.economy(),villageTools);
+            features.add(skins);skins.enable();
         }
         // HUD는 레벨과 골드가 있어야 해요
         if (skills != null && economy != null && getConfig().getBoolean("features.hud", true)) {

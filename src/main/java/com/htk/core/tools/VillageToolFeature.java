@@ -273,7 +273,11 @@ public final class VillageToolFeature implements Feature, Listener {
         meta.lore(details);
 
         // 모양: 아이템 모델 + 강화 단계 (리소스팩이 단계에 맞는 모델을 골라요)
-        if (type.model != null && plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model(type.model));
+        if (type.model != null && plugin.resourcePackEnabled()) {
+            String skin=pdc.get(new NamespacedKey(plugin,"weapon_skin"),PersistentDataType.STRING);
+            String model=type.weapon()?com.htk.core.skins.WeaponSkinCatalog.model(type.id,skin,type.model):type.model;
+            meta.setItemModel(Glyphs.model(model));
+        }
         CustomModelDataComponent cmd = meta.getCustomModelDataComponent();
         cmd.setFloats(List.of((float) lv));
         if (type == ToolType.WATERING_CAN) cmd.setFlags(List.of(WateringCanRules.canWater(waterUses, lv)));

@@ -28,16 +28,18 @@ def rotation(axis, angle):
     return np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]])
 
 
-def prepare(pack, category, name):
-    model = json.loads(pack.read(f'assets/servercore/models/item/weapons/{category}/{name}.json'))
+def prepare(pack, category=None, name=None, model_path=None, angle=-23):
+    model = json.loads(pack.read(model_path or f'assets/servercore/models/item/weapons/{category}/{name}.json'))
     textures = {}; meta = {}
     for slot, ref in model['textures'].items():
         if slot == 'particle': continue
         path = 'assets/servercore/textures/' + ref.split(':')[1] + '.png'
         textures[slot] = np.array(Image.open(io.BytesIO(pack.read(path))).convert('RGBA'))
-        meta[slot] = json.loads(pack.read(path + '.mcmeta'))['animation']
+        meta[slot] = json.loads(pack.read(path + '.mcmeta'))['animation'] if path+'.mcmeta' in pack.namelist() else {}
+        meta[slot].setdefault('width',textures[slot].shape[1])
+        meta[slot].setdefault('height',min(textures[slot].shape[:2]))
     faces = []
-    camera = rotation('x', -8) @ rotation('y', -23)
+    camera = rotation('x', -8) @ rotation('y', angle)
     for element in model['elements']:
         x0, y0, z0 = element['from']; x1, y1, z1 = element['to']
         quads = {
@@ -95,7 +97,8 @@ def prepare(pack, category, name):
         output = np.zeros((SIZE,SIZE,4),dtype=np.uint8)
         for slot, texture in textures.items():
             mask = selected==slot; u,v = mappings[slot]
-            output[mask] = texture[v[mask]+index*meta[slot]['height'],u[mask]]
+            frame=index%(texture.shape[0]//meta[slot]['height'])
+            output[mask] = texture[v[mask]+frame*meta[slot]['height'],u[mask]]
         return Image.fromarray(output)
     return render
 

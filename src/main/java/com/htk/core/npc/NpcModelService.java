@@ -57,6 +57,7 @@ public final class NpcModelService implements Listener {
         setVisibleName(root, switch (role) {
             case "blacksmith" -> "대장장이";
             case "repairer" -> "수리 기사";
+            case "skinmerchant" -> "스킨 상인";
             case "crops" -> "농부";
             case "farmplots" -> "상인";
             case "fish" -> "어부";

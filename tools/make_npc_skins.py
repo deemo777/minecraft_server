@@ -16,6 +16,7 @@ BOUNDS={'head':([4,24,4],[12,32,12]),'body':([4,12,6],[12,24,10]),'ra':([0,12,6]
 ROLES={
 'weapon_merchant':('#493a32','#315d60','#dbc9a4','#94694e','#353d40','#c9a166','purple_hair.png'),
 'arms_merchant':('#d3ae6d','#293e59','#a44b50',None,'#303644','#bccbd4','gray_hair.png'),
+'npc_skinmerchant':('#d1bde2','#473650','#e8dcc6',None,'#302f40','#d9bb79','purple_hair.png'),
 'npc_mayor':('#c9c3b8','#535943','#8a4048',None,'#48454b','#d7bb7c','gray_hair.png'),
 'npc_blacksmith':('#302c2c','#4c4a49','#b7a696','#975b48','#434348','#bf9b70','purple_hair.png'),
 'npc_repairer':('#9a6143','#3b7375','#e7d5b5','#866449','#34444e','#c8ad6b','gray_hair.png'),
@@ -46,7 +47,7 @@ def skin(role,colors):
   fd.rectangle((1,3,6,7),fill=face_skin)
   fd.point((1,7),fill=shadow);fd.point((6,7),fill=shadow)
   fd.point((2,3),fill=tone(hair,-5));fd.point((5,3),fill=tone(hair,7))
-  iris={'weapon_merchant':'#68816c','arms_merchant':'#557e9a','npc_mayor':'#7d98a9','npc_blacksmith':'#a77c58','npc_repairer':'#559a9b','npc_fish':'#7196ad','npc_crops':'#74986f','npc_ores':'#8d8ca5'}[role]
+  iris={'weapon_merchant':'#68816c','arms_merchant':'#557e9a','npc_skinmerchant':'#9b7fbd','npc_mayor':'#7d98a9','npc_blacksmith':'#a77c58','npc_repairer':'#559a9b','npc_fish':'#7196ad','npc_crops':'#74986f','npc_ores':'#8d8ca5'}[role]
   for x in [1,5]:
    fd.rectangle((x,4,x+1,5),fill='#fff7ee')
    fd.point((x+(1 if x==1 else 0),5),fill=iris)
@@ -134,6 +135,18 @@ def model(role):
   prop([12.5,15,8.1],[13.1,18.3,8.9],3)
   prop([12.3,18.3,7.9],[13.3,19,9.1],2)
   prop([-.5,10,5.3],[2,13,7],3)
+ elif role=='npc_skinmerchant':
+  # Atelier beret, gold clasp, short shoulder cape and a rolled pattern scroll.
+  prop([3.3,31.4,3.3],[12.8,33,12.8],15)
+  prop([4.5,32.9,4.1],[13.2,34.2,11.8],15)
+  prop([7,31.9,3],[9,33,3.4],2)
+  prop([-.4,22.2,5.4],[4.4,24.2,10.6],15)
+  prop([11.6,22.2,5.4],[16.4,24.2,10.6],15)
+  prop([4.2,21.4,5.5],[11.8,23.9,6],2)
+  prop([7,20,5.1],[9,22,5.6],6)
+  prop([12.1,8,5.7],[13.3,16.6,7.2],0)
+  prop([11.7,7.7,5.3],[13.7,8.5,7.6],2)
+  prop([11.7,16.3,5.3],[13.7,17.1,7.6],2)
  elif role=='npc_mayor':
   prop([11.7,9,5.7],[12.9,14,6.8],3)
   for x in [10.3,11.2,12.1]:prop([x,9,5.4],[x+.35,11.7,5.7],2)

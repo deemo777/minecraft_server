@@ -21,6 +21,7 @@ public final class Economy {
     private final File file;
     private final Map<UUID, Long> balances = new ConcurrentHashMap<>();
     private final java.util.Set<String> rewardReceipts=new java.util.HashSet<>();
+    private final Map<UUID,java.util.Set<String>> accountUnlocks=new java.util.HashMap<>();
     // Read-only compatibility with already-deducted balances from the removed feature.
     private record LegacyStake(UUID player, long amount) {}
     private final Map<String, LegacyStake> legacyStakes = new java.util.HashMap<>();
@@ -42,6 +43,16 @@ public final class Economy {
             throw new IllegalStateException("money.yml을 읽지 못해 잔액·보상 영수증 초기화를 중지합니다",failure);
         }
         rewardReceipts.addAll(yml.getStringList("reward-receipts"));
+        var unlocks=yml.getConfigurationSection("account-unlocks");
+        if(yml.contains("account-unlocks") && unlocks==null)
+            throw new IllegalStateException("계정 해금 기록의 형식이 잘못되었습니다");
+        if(unlocks!=null)for(String id:unlocks.getKeys(false)) {
+            try {
+                if(!unlocks.isList(id) || unlocks.getList(id).stream().anyMatch(v->!(v instanceof String)))
+                    throw new IllegalArgumentException("Invalid unlock list");
+                accountUnlocks.put(UUID.fromString(id),new java.util.HashSet<>(unlocks.getStringList(id)));
+            } catch(IllegalArgumentException failure){throw new IllegalStateException("계정 해금 기록을 읽지 못했습니다",failure);}
+        }
         var pending = yml.getConfigurationSection("wagers");
         if (yml.contains("wagers") && pending == null)
             throw new IllegalStateException("참가금 보관 기록의 형식이 잘못되어 경제 데이터 초기화를 중지합니다");
@@ -74,6 +85,8 @@ public final class Economy {
         YamlConfiguration yml = new YamlConfiguration();
         balances.forEach((id, v) -> yml.set("balances." + id, v));
         yml.set("reward-receipts",new java.util.ArrayList<>(rewardReceipts));
+        accountUnlocks.forEach((id,values)->yml.set("account-unlocks."+id,
+            values.stream().sorted().toList()));
         legacyStakes.forEach((key, stake) -> {
             yml.set("wagers." + key + ".player", stake.player().toString());
             yml.set("wagers." + key + ".amount", stake.amount());
@@ -92,6 +105,24 @@ public final class Economy {
         }
     }
     public synchronized boolean hasRewardReceipt(String receipt){return rewardReceipts.contains(receipt);}
+    public enum UnlockPurchase { SUCCESS, OWNED, INSUFFICIENT, SAVE_FAILED }
+    public synchronized java.util.Set<String> unlocks(UUID id){
+        return java.util.Set.copyOf(accountUnlocks.getOrDefault(id,java.util.Set.of()));
+    }
+    /** Balance and permanent ownership commit together in one atomic money.yml save. */
+    public synchronized UnlockPurchase purchaseUnlock(UUID id,long price,String key) {
+        if(price<=0 || key==null || key.isBlank())throw new IllegalArgumentException("Invalid unlock purchase");
+        if(unlocks(id).contains(key))return UnlockPurchase.OWNED;
+        if(balance(id)<price)return UnlockPurchase.INSUFFICIENT;
+        long previous=balance(id);
+        balances.put(id,previous-price);
+        accountUnlocks.computeIfAbsent(id,ignored->new java.util.HashSet<>()).add(key);
+        dirty=true;
+        if(persist())return UnlockPurchase.SUCCESS;
+        balances.put(id,previous);accountUnlocks.get(id).remove(key);
+        if(accountUnlocks.get(id).isEmpty())accountUnlocks.remove(id);
+        dirty=true;return UnlockPurchase.SAVE_FAILED;
+    }
     /** Settle a physical slot coin immediately, including a losing (zero payout) draw.
      * No saturation: callers reserve room for the largest prize before consuming a coin. */
     public synchronized boolean settleSlotCoin(UUID id, long payout) {

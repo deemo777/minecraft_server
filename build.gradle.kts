@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.10.2"
+version = "4.11.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -209,3 +209,10 @@ val verifyWarpRules by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.menu.WarpRulesTest")
 }
 tasks.check { dependsOn(verifyWarpRules) }
+
+val verifySkinPurchases by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.economy.SkinPurchaseTest")
+}
+tasks.check { dependsOn(verifySkinPurchases) }

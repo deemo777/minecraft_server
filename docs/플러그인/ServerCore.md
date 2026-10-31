@@ -38,6 +38,8 @@
 | `/villagetool` | 마을 도구 주기 / 강화 단계 바꾸기 (관리자, 모양 확인용) | 관리자 | — |
 | `/servercore` | ServerCore 관리 명령어 | 관리자 | — |
 
+스킨 상점: `/skinmerchantnpc create|remove|face`로 전용 NPC를 관리하고, `/skinshop [player]`로 상점 창을 엽니다. 일반 플레이어는 NPC 우클릭으로 이용합니다. 종류 선택 후 100,000G를 결제하며 미보유 스킨을 계정 도감에 영구 등록합니다.
+
 ## 자주 쓰는 관리자 명령
 
 | 명령어 | 용도 |
@@ -47,6 +49,8 @@
 | `/servercore setpoint <name>` | 현재 자리를 메뉴 이동 지점으로 저장 |
 | `/servercore delpoint <name>` · `/servercore points` | 이동 지점 삭제·목록 |
 | `/npc create mayor` | 이장 생성 |
+| `/npc create skinmerchant` · `/npc remove skinmerchant` · `/npc face skinmerchant` | 스킨 상인 관리 |
+| `/skinshop [player]` | 스킨 종류 선택·뽑기·영구 도감 열기 |
 | `/npc reset mayor <player>` | 이장 첫 대화 초기화 |
 | `/npc create <shop>` · `/npc remove <shop>` · `/npc face <shop>` | 상점 NPC 생성·제거·방향 변경 (기본: fish, crops, farmplots, ores) |
 | `/shop <shop> [player]` | 상점 창 열기 |
