@@ -11,14 +11,9 @@ public final class EquipmentStatsReport {
         out.append("\n## ").append(title).append("\n\n");row(out,(Object[])columns);
         out.append('|');for(var ignored:columns)out.append("---|");out.append('\n');
     }
-    /** Pad by display width so Korean headings and ASCII numbers share column boundaries. */
+    /** Keep source tables compact: count Korean headings as characters, without double-width padding. */
     private static int width(String text) {
-        return text.codePoints().map(c -> {
-            var script=Character.UnicodeScript.of(c);
-            return script==Character.UnicodeScript.HANGUL || script==Character.UnicodeScript.HAN
-                    || script==Character.UnicodeScript.HIRAGANA || script==Character.UnicodeScript.KATAKANA
-                    || c>=0xff01 && c<=0xff60?2:1;
-        }).sum();
+        return text.codePointCount(0,text.length());
     }
     private static String alignTables(String markdown) {
         String[] lines=markdown.split("\n",-1);var result=new StringBuilder();
