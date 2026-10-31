@@ -23,7 +23,6 @@ public final class ToolPerformance {
   if(level<5)return 1;
   return level<15?(roll<cropBonusChance(level)?2:1):(roll<cropBonusChance(level)?3:2);
  }
- public static int rolledFortune(int level,double roll){return Progression.count(fortuneStrength(level),roll);}
  public static double preserveChance(int level){return level>=15?1:0;}
  public static double expectedWoodExtraBlocks(int level){
   int bounded=Math.clamp(level,0,25);

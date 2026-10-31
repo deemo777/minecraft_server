@@ -116,7 +116,7 @@ final class NumericDrops implements Listener {
         ToolType type=tools.typeOf(item);if(type==null)return;
         int level=tools.levelOf(item);
         boolean preserve=type==ToolType.AXE && Boolean.TRUE.equals(preserves.get(event.getBlock().getLocation()));
-        int bonus=type==ToolType.PICKAXE?ToolPerformance.rolledFortune(level,ThreadLocalRandom.current().nextDouble()):0;
+        double fortune=type==ToolType.PICKAXE?ToolPerformance.fortuneStrength(level):0;
         BlockState state=event.getBlockState();String block=state.getType().name();
         HiveHarvest hive=hives.get(state.getLocation());
         if(hive!=null)hive.handled=true;
@@ -154,7 +154,7 @@ final class NumericDrops implements Listener {
                 String formula=spec.getString("formula","");
                 if(formula.equals("chance")) {
                     var chances=spec.getDoubleList("chances");
-                    double chance=chances.get(Math.min(bonus,chances.size()-1));
+                    double chance=FortuneDrops.tableChance(fortune,chances);
                     boolean success=random.nextDouble()<chance;
                     int next=success?random.nextInt(spec.getInt("min",1),spec.getInt("max",1)+1):0;
                     output.removeIf(i->i.getType()==material);
@@ -169,9 +169,9 @@ final class NumericDrops implements Listener {
                     add(output,material,next);continue;
                 }
                 int next=switch(formula) {
-                    case "ore_drops" -> count*NumericEffects.oreMultiplier(bonus,random);
-                    case "uniform_bonus_count" -> count==0?0:count+random.nextInt(bonus*spec.getInt("bonusMultiplier",1)+1);
-                    case "binomial_with_bonus_count" -> count+NumericEffects.binomial(bonus,spec.getDouble("probability"),random);
+                    case "ore_drops" -> count*FortuneDrops.oreMultiplier(fortune,random.nextDouble());
+                    case "uniform_bonus_count" -> count==0?0:count+FortuneDrops.uniformBonus(fortune,spec.getInt("bonusMultiplier",1),random.nextDouble());
+                    case "binomial_with_bonus_count" -> count+FortuneDrops.binomialBonus(fortune,spec.getDouble("probability"),random.nextDouble());
                     default -> count;
                 };
                 next=Math.min(next,spec.getInt("cap",Integer.MAX_VALUE));

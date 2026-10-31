@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.15.0"
+version = "4.15.1"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -237,3 +237,10 @@ val verifySkillExperience by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.skill.SkillExperienceTest")
 }
 tasks.check { dependsOn(verifySkillExperience) }
+
+val verifyFortuneDrops by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.tools.FortuneDropsTest")
+}
+tasks.check { dependsOn(verifyFortuneDrops) }
