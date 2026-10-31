@@ -101,7 +101,7 @@ final class NumericDrops implements Listener {
         String path=event.getBlockState().getType().name();int level=tools.levelOf(item);
         if(type==ToolType.AXE && Boolean.TRUE.equals(preserves.get(event.getBlock().getLocation())) && rules.contains(path+".preserve"))return true;
         if(!rules.contains(path+".bonuses"))return false;
-        if(type==ToolType.PICKAXE)return level>0;
+        if(type==ToolType.PICKAXE)return ToolPerformance.fortuneStrength(level)>0;
         if(type!=ToolType.HOE || level<1)return false;
         return !(event.getBlockState().getBlockData() instanceof Ageable age)||age.getAge()==age.getMaximumAge();
     }

@@ -13,24 +13,20 @@ public final class ProgressionTest {
                 check(Math.abs(sum/10_000-expected)<.00011,"Fractional count mean is unbiased at every level");
             }
         }
-        check(ToolPerformance.expectedExtraBlocks(5)==1,"+5 pickaxe mines one additional connected ore, independently of mining skill");
-        int singles=0,doubles=0;
-        // Exhaust all equally likely fortune-strength (0/1) and ore-roll outcomes.
-        for(double fortuneRoll:new double[]{.25,.75})for(int oreRoll=0;oreRoll<6;oreRoll++) {
-            int fortune=ToolPerformance.rolledFortune(5,fortuneRoll);
-            final int draw=oreRoll;
-            int count=NumericEffects.oreMultiplier(fortune,new java.util.Random(){
-                @Override public int nextInt(int bound){return draw%bound;}
-            });
-            if(count==1)singles++;else if(count==2)doubles++;else throw new AssertionError("Unexpected +5 ore multiplier");
+        for(int level=0;level<=25;level++) {
+            check(ToolPerformance.extraBlocks(ToolType.PICKAXE,level)==Math.max(0,level-20),"Exact connected ore quota; +21..25 totals 2..6 blocks");
+            check(level<20 || ToolPerformance.fortuneStrength(level)==4,"Fortune IV stays fixed from +20");
+            check(level>=10 || ToolPerformance.fortuneStrength(level)==0,"No fortune before +10");
         }
-        check(singles==10 && doubles==2,"+5 single-drop ores: one item 5/6, two items 1/6; never guaranteed double");
+        check(ToolPerformance.fortuneStrength(10)==1 && ToolPerformance.fortuneStrength(15)==3
+                && ToolPerformance.fortuneStrength(20)==4 && ToolPerformance.fortuneStrength(25)==4,"Fortune milestones");
+        check(Math.abs(ToolPerformance.fortuneStrength(11)-1.4)<1e-10,"Intermediate fortune interpolation");
         check(ToolPerformance.fishingWaitFactor(0)==1 && ToolPerformance.fishingWaitFactor(25)==.5,"Fishing speed endpoints");
         check(ToolPerformance.fishingExtraChance(0)==0 && ToolPerformance.fishingExtraChance(25)==.25,"Extra fish endpoints");
         check(ToolPerformance.fishingWaitFactor(-1)==1 && ToolPerformance.fishingExtraChance(999)==.25,"Fishing levels clamp");
         for(var fish:new org.bukkit.Material[]{org.bukkit.Material.COD,org.bukkit.Material.SALMON,org.bukkit.Material.PUFFERFISH,org.bukkit.Material.TROPICAL_FISH})check(NumericFishing.eligible(fish),"Ordinary fish receive bonus");
         for(var treasure:new org.bukkit.Material[]{org.bukkit.Material.ENCHANTED_BOOK,org.bukkit.Material.BOW,org.bukkit.Material.FISHING_ROD,org.bukkit.Material.NAME_TAG,org.bukkit.Material.LEATHER_BOOTS})check(!NumericFishing.eligible(treasure),"Treasure and junk never receive rod duplication");
-        check(ToolPerformance.expectedExtraBlocks(24)<4095 && ToolPerformance.expectedExtraBlocks(25)==4095,"Connected maximum remains bounded");
+        check(ToolPerformance.expectedWoodExtraBlocks(24)<4095 && ToolPerformance.expectedWoodExtraBlocks(25)==4095,"Connected maximum remains bounded");
         check(ToolPerformance.maxDurability(ToolType.PICKAXE,0)==250 && ToolPerformance.maxDurability(ToolType.PICKAXE,25)==2031,"Tool durability endpoints");
         check(ToolDurability.convertedDamage(500,1000,1200)==600,"Maximum durability changes preserve wear ratio");
         System.out.println("Per-level progression and fishing balance checks passed: "+checks);

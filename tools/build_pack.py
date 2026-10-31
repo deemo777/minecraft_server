@@ -20,6 +20,7 @@ import os
 import shutil
 import sys
 import zipfile
+from collection_models import DisabledModels
 
 try:
     import yaml
@@ -377,12 +378,14 @@ def main():
             "models": [vhead["model"], {"type": "minecraft:model", "model": "servercore:item/check"}],
         }))
 
+    disabled = DisabledModels(jar, sc)
     ok, missing = 0, []
     for m in mats:
         vanilla = jar.json(f"assets/minecraft/items/{m}.json")
         if not vanilla or "model" not in vanilla:
             missing.append(m)
             continue
+        write_json(os.path.join(sc, "items", "disabled", m + ".json"), item_def(disabled.item(vanilla["model"])))
         write_json(os.path.join(sc, "items", "checked", m + ".json"), item_def({
             "type": "minecraft:composite",
             "models": [vanilla["model"], {"type": "minecraft:model", "model": "servercore:item/check"}],

@@ -425,14 +425,14 @@ public final class VillageToolFeature implements Feature, Listener {
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void connectedBreak(org.bukkit.event.block.BlockBreakEvent event) {
         Player p=event.getPlayer();ItemStack tool=p.getInventory().getItemInMainHand();ToolType type=typeOf(tool);
-        int level=levelOf(tool),limit=ToolPerformance.extraBlocks(level);
+        int level=levelOf(tool),limit=ToolPerformance.extraBlocks(type,level);
         var root=event.getBlock();boolean wood=type==ToolType.AXE && org.bukkit.Tag.LOGS.isTagged(root.getType());
         if(!accepting || limit==0 || felling.contains(p.getUniqueId()) || !event.isDropItems()
             || p.getGameMode()!=org.bukkit.GameMode.SURVIVAL || placedBreaks.contains(root.getLocation())
             || playerPlaced(root) || !(wood || type==ToolType.PICKAXE && ore(root.getType())))return;
         org.bukkit.Material kind=root.getType();String oreFamily=family(kind);
         boolean[] leaves={false};
-        var blocks=ConnectedBlocks.collect(root,4096,b->{
+        var blocks=ConnectedBlocks.collect(root,wood?4096:limit+1,b->{
             var neighbors=new java.util.ArrayList<org.bukkit.block.Block>();
             for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++){
                 if(!wood && Math.abs(x)+Math.abs(y)+Math.abs(z)!=1)continue;

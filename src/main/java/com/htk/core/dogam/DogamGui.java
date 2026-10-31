@@ -67,7 +67,7 @@ public final class DogamGui extends Gui {
         int start = page * ENTRY_SLOTS.length;
         for (int i = 0; i < ENTRY_SLOTS.length && start + i < all.size(); i++) {
             CollectionRegistry.Entry e = all.get(start + i);
-            inventory.setItem(ENTRY_SLOTS[i], entryItem(player, e, data.has(e.id()), pack));
+            inventory.setItem(ENTRY_SLOTS[i], entryItem(e, data.has(e.id()), data.deposited(e.id()), pack));
             bySlot.put(ENTRY_SLOTS[i], e);
         }
 
@@ -76,13 +76,12 @@ public final class DogamGui extends Gui {
         inventory.setItem(NEXT_SLOT, arrow(true, page < pages - 1, pack));
     }
 
-    private ItemStack entryItem(Player player, CollectionRegistry.Entry e, boolean done, boolean pack) {
-        // 마우스를 올리면 아이템 이름만 보여요 (설명·개수 안내 없음). 칸의 숫자 = 등록에 필요한 개수
-        Material mat = e.material().isItem() ? e.material() : Material.BARRIER;
-        // 등록한 항목: 리소스팩의 "원래 아이템 + 체크" 모델 / 리소스팩 없으면 반짝임
-        var model = done && pack ? Glyphs.model("checked/" + mat.getKey().getKey()) : null;
-        ItemStack item = Items.of(mat, e.required(), e.name(), List.of(), model);
-        if (done && !pack) Items.glint(item);
+    private ItemStack entryItem(CollectionRegistry.Entry e,boolean done,int registered,boolean pack) {
+        Material mat=e.material().isItem()?e.material():Material.BARRIER;
+        var model=pack?Glyphs.model((done?"checked/":"disabled/")+mat.getKey().getKey()):null;
+        var name=pack?e.name():(done?"<green>✔ ":"<dark_gray>")+Text.plain(e.name());
+        ItemStack item=Items.of(mat,CollectionProgress.iconAmount(e.required(),registered,done),name,List.of(),model);
+        if(done && !pack)Items.glint(item);
         return item;
     }
 

@@ -39,10 +39,10 @@ public final class UpgradeRulesTest {
                 check(ToolPerformance.miningSpeed(ToolType.PICKAXE,level)>ToolPerformance.miningSpeed(ToolType.PICKAXE,level-1),"pickaxe improves each level");
                 check(ToolPerformance.miningSpeed(ToolType.AXE,level)>ToolPerformance.miningSpeed(ToolType.AXE,level-1),"axe improves each level");
                 check(ToolPerformance.wearChance(level)==(level==25?0:1),"wear is 100 percent until max level");
-                check(ToolPerformance.fortuneStrength(level)>ToolPerformance.fortuneStrength(level-1),"mining yield improves each level");
+                check((level<10?ToolPerformance.fortuneStrength(level)==0:level>20?ToolPerformance.fortuneStrength(level)==4:ToolPerformance.fortuneStrength(level)>ToolPerformance.fortuneStrength(level-1)),"mining yield improves each level");
                 check(ToolPerformance.hoeFortuneStrength(level)>ToolPerformance.hoeFortuneStrength(level-1),"crop yield improves each level");
                 check(ToolPerformance.preserveChance(level)>ToolPerformance.preserveChance(level-1),"preservation improves each level");
-                check(ToolPerformance.expectedExtraBlocks(level)>ToolPerformance.expectedExtraBlocks(level-1),"connected quota improves each level");
+                check(ToolPerformance.expectedExtraBlocks(level)==Math.max(0,level-20),"connected quota improves each level");
                 check(HarvestRules.expectedCells(level)>HarvestRules.expectedCells(level-1),"harvest area improves each level");
                 check(WateringCanRules.expectedCells(level)>WateringCanRules.expectedCells(level-1),"water area improves each level");
                 check(ToolPerformance.fishingWaitFactor(level)<ToolPerformance.fishingWaitFactor(level-1),"fishing faster each level");
@@ -51,7 +51,7 @@ public final class UpgradeRulesTest {
             }
         }
         check(ToolPerformance.miningSpeed(ToolType.PICKAXE,0)==6 && ToolPerformance.miningSpeed(ToolType.PICKAXE,5)==12 && ToolPerformance.miningSpeed(ToolType.PICKAXE,10)==18,"requested pickaxe anchors");
-        check(ToolPerformance.expectedExtraBlocks(25)==4095,"connected safety cap retained");
+        check(ToolPerformance.expectedWoodExtraBlocks(25)==4095,"connected safety cap retained");
         check(WateringCanRules.capacity(-1)==20 && WateringCanRules.capacity(999)==45,"bounded water capacity");
         check(WateringCanRules.offsets(25,0,0).size()==25 && HarvestRules.offsets(25,0,0).size()==25,"full 5x5 maximum footprint");
         check(WateringCanRules.offsets(5,0,0).equals(WateringCanRules.offsets(5,360,0)),"water orientation wraps");

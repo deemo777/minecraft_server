@@ -14,17 +14,24 @@ public final class PlayerDataStore {
 
     public static final class PlayerData {
         private final Set<String> found = ConcurrentHashMap.newKeySet();
+        private final Map<String,Integer> deposits=new HashMap<>();
         private volatile boolean dirty;
 
         /** 처음 발견했으면 true */
         public boolean add(String entryId) {
             boolean added = found.add(entryId);
-            if (added) dirty = true;
+            if (added) { deposits.remove(entryId);dirty = true; }
             return added;
         }
         public boolean has(String entryId) { return found.contains(entryId); }
         public Set<String> found() { return Collections.unmodifiableSet(found); }
-        public void clear() { found.clear(); dirty = true; }
+        public int deposited(String entryId){return deposits.getOrDefault(entryId,0);}
+        public void setDeposited(String entryId,int amount) {
+            found.remove(entryId);
+            if(amount<=0)deposits.remove(entryId);else deposits.put(entryId,amount);
+            dirty=true;
+        }
+        public void clear() { found.clear();deposits.clear();dirty = true; }
     }
 
     private final ServerCore plugin;
@@ -60,26 +67,42 @@ public final class PlayerDataStore {
         PlayerData data = new PlayerData();
         File file = new File(folder, uuid + ".yml");
         if (file.exists()) {
-            YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-            for (String id : yml.getStringList("found")) {
-                // 예전 형식 "묶음:항목" → "항목" (묶음을 옮겨도 기록이 유지되게 바뀜)
-                int colon = id.indexOf(':');
-                data.found.add(colon >= 0 ? id.substring(colon + 1) : id);
-            }
+            data=decode(YamlConfiguration.loadConfiguration(file));
         }
         return data;
     }
 
-    private void save(UUID uuid, PlayerData data) {
-        YamlConfiguration yml = new YamlConfiguration();
-        List<String> list = new ArrayList<>(data.found);
-        Collections.sort(list);
-        yml.set("found", list);
-        try {
-            yml.save(new File(folder, uuid + ".yml"));
-            data.dirty = false;
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, uuid + " 도감 저장 실패", e);
+    static PlayerData decode(YamlConfiguration yml) {
+        PlayerData data=new PlayerData();
+        for(String id:yml.getStringList("found")) {
+            int colon=id.indexOf(':');data.found.add(colon>=0?id.substring(colon+1):id);
         }
+        var section=yml.getConfigurationSection("deposits");
+        if(section!=null)for(String id:section.getKeys(false)) {
+            int amount=section.getInt(id);
+            if(amount>0 && !data.has(id))data.deposits.put(id,amount);
+        }
+        return data;
+    }
+    static YamlConfiguration encode(PlayerData data) {
+        var yml=new YamlConfiguration();var list=new ArrayList<>(data.found);Collections.sort(list);
+        yml.set("found",list);
+        new TreeMap<>(data.deposits).forEach((id,amount)->yml.set("deposits."+id,amount));
+        return yml;
+    }
+    public boolean saveNow(UUID uuid){return save(uuid,get(uuid));}
+    private boolean save(UUID uuid, PlayerData data) {
+        try {
+            write(new File(folder,uuid+".yml"),data);
+            data.dirty=false;return true;
+        } catch(IOException e) {
+            plugin.getLogger().log(Level.WARNING,uuid+" 도감 저장 실패",e);return false;
+        }
+    }
+    static void write(File file,PlayerData data) throws IOException {
+        var target=file.toPath();var temp=target.resolveSibling(target.getFileName()+".tmp");
+        encode(data).save(temp.toFile());
+        try {java.nio.file.Files.move(temp,target,java.nio.file.StandardCopyOption.ATOMIC_MOVE,java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
+        catch(java.nio.file.AtomicMoveNotSupportedException ex){java.nio.file.Files.move(temp,target,java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
     }
 }

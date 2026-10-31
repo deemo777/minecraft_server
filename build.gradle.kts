@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.11.1"
+version = "4.12.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -216,3 +216,10 @@ val verifySkinPurchases by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.economy.SkinPurchaseTest")
 }
 tasks.check { dependsOn(verifySkinPurchases) }
+
+val verifyCollection by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.dogam.CollectionProgressTest")
+}
+tasks.check { dependsOn(verifyCollection) }

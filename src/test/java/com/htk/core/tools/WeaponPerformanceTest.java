@@ -10,6 +10,7 @@ public final class WeaponPerformanceTest {
    if(WeaponPerformance.animationType(type)!=expectedAnimation)throw new AssertionError("Dagger stabs, other weapons swing");
    if(WeaponPerformance.animationTicks(type,0)!=startAnimation[t] || WeaponPerformance.animationTicks(type,25)!=endAnimation[t])throw new AssertionError("Animation duration endpoints");
    for(int level=0;level<=25;level++) {
+    if(type.materialAt(level).name().endsWith("_SWORD"))throw new AssertionError("Custom weapons must never qualify for native sword sweeping");
     int ticks=WeaponPerformance.animationTicks(type,level);
     if(ticks<1 || Math.abs(ticks-20.0/WeaponPerformance.speed(type,level))>.500000001)throw new AssertionError("Animation matches attack charge within half a tick");
     if(level>0 && (type==ToolType.GREATSWORD?ticks<WeaponPerformance.animationTicks(type,level-1):ticks>WeaponPerformance.animationTicks(type,level-1)))throw new AssertionError("Animation follows specialized speed growth");

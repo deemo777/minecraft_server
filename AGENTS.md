@@ -18,3 +18,9 @@
 - The user explicitly authorized ongoing updates of `servercore_pack.zip` on GitHub release tag `servercore` in `deemo777/minecraft_server`. After resource-pack changes, build and validate the full pack, replace that release asset, verify the downloadable ZIP against the local build, and report the current SHA-1 for server.properties. Do not ask for ordinary replacement approval again.
 - This authorization covers the full resource-pack ZIP only; other release assets and live OCI settings still require task-specific authorization. Keep unrelated release files and release notes intact.
 - Prefer uploading a temporary asset and verifying it before replacing the existing asset, to preserve the working download if upload fails. Never claim a release is updated if authentication or upload fails.
+
+# Fixed mining rules
+
+- Pickaxe fortune: none at +0..9, I at +10, III at +15, IV at +20..25; interpolate only +10..20. Never increase fortune beyond IV after +20.
+- Connected ore mining is an absolute fixed limit: +0..20 mine only the direct block; +21/+22/+23/+24/+25 mine 2/3/4/5/6 blocks total, including the direct block. Do not smooth, randomize, or expand these quotas. Woodcutting has its own existing rules.
+- Enhanced weapons must not qualify for native sword sweeping. Use only the plugin player-centred area attack and preserve the native sweep event cancellation as a fallback.

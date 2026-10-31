@@ -29,6 +29,11 @@ public final class WeaponPerformance {
     static SwingAnimation.Animation animationType(ToolType type){return type==ToolType.DAGGER?SwingAnimation.Animation.STAB:SwingAnimation.Animation.WHACK;}
     static void applyAnimation(ItemStack item,ToolType type,int level) {
         // Apply after ItemMeta: setting a previously captured meta would overwrite component changes.
+        // Non-sword backing removes native sweep eligibility, including its sound and particles.
+        // Remove inherited axe mining/shield behaviour; retain one durability point per attack.
+        item.unsetData(DataComponentTypes.TOOL);
+        item.setData(DataComponentTypes.WEAPON,io.papermc.paper.datacomponent.item.Weapon.weapon()
+                .itemDamagePerAttack(1).disableBlockingForSeconds(0).build());
         item.setData(DataComponentTypes.ATTACK_ANIMATION,SwingAnimation.swingAnimation()
                 .type(animationType(type)).duration(animationTicks(type,level)).build());
     }

@@ -114,22 +114,24 @@ public final class DogamFeature implements Feature, Listener {
             Messages.send(player,Text.mm(msg("already-registered").replace("%entry%", entry.name())));
             return;
         }
-        int have = count(player, entry.material());
-        if (have < entry.required()) {
-            Messages.send(player,Text.mm(msg("not-enough")
-                    .replace("%entry%", entry.name())
-                    .replace("%required%", String.valueOf(entry.required()))
-                    .replace("%have%", String.valueOf(have))));
-            return;
+        int previous=data.deposited(entry.id());
+        var deposit=CollectionProgress.deposit(entry.required(),previous,count(player,entry.material()));
+        if(deposit.taken()==0 && !deposit.complete())return;
+        var inventory=player.getInventory();
+        ItemStack[] before=java.util.Arrays.stream(inventory.getStorageContents()).map(i->i==null?null:i.clone()).toArray(ItemStack[]::new);
+        take(player,entry.material(),deposit.taken());
+        data.setDeposited(entry.id(),deposit.total());
+        if(deposit.complete())data.add(entry.id());
+        if(!store.saveNow(player.getUniqueId())) {
+            data.setDeposited(entry.id(),previous);inventory.setStorageContents(before);
+            Messages.send(player,"도감을 저장하지 못했습니다. 아이템은 차감되지 않았습니다.");return;
         }
-        take(player, entry.material(), entry.required());
-        register(player, entry);
+        if(deposit.complete())register(player,entry);
         openLater(player, page); // 진행도·체크가 바뀌었으니 같은 페이지 새로 그리기
     }
 
     private void register(Player player, CollectionRegistry.Entry entry) {
         PlayerDataStore.PlayerData data = store.get(player.getUniqueId());
-        if (!data.add(entry.id())) return;
 
         int found = foundTotal(player), total = registry.all().size();
         Messages.send(player,Text.mm(msg("registered")
