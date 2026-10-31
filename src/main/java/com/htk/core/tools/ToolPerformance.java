@@ -1,13 +1,17 @@
 package com.htk.core.tools;
 
-/** Every enhancement level improves numeric performance, including fractional effects. */
+/** Numeric equipment performance with explicit milestone and durability rules. */
 public final class ToolPerformance {
  private ToolPerformance() {}
  public static boolean indestructible(int level){return level>=25;}
  public static double miningSpeed(ToolType type,int level) {
-  return type==ToolType.AXE?Progression.value(level,6,12,25,34,46,59):Progression.value(level,6,12,18,34,46,59);
+  return type==ToolType.AXE?Progression.value(level,6,8,25,34,46,59):Progression.value(level,6,8,18,34,46,59);
  }
- public static double wearChance(int level){return level>=25?0:1;}
+ public static double conservationStrength(int level){return Progression.value(level,0,0,1,3,4,4);}
+ public static double wearChance(ToolType type,int level){
+  if(indestructible(level))return 0;
+  return type.weapon()?1:1/(1+conservationStrength(level));
+ }
  public static double fortuneStrength(int level){return level<10?0:Progression.value(level,0,0,1,3,4,4);}
  public static double hoeFortuneStrength(int level){return Progression.value(level,0,.25,.5,1,2,3);}
  public static int rolledFortune(int level,double roll){return Progression.count(fortuneStrength(level),roll);}
@@ -22,9 +26,13 @@ public final class ToolPerformance {
   return type==ToolType.PICKAXE?(int)expectedExtraBlocks(level):Progression.count(expectedWoodExtraBlocks(level),java.util.concurrent.ThreadLocalRandom.current().nextDouble());
  }
  public static int maxDurability(ToolType type,int level){
-  int start=type==ToolType.FISHING_ROD?64:type==ToolType.WATERING_CAN?25:250;
-  int end=type==ToolType.FISHING_ROD?128:type==ToolType.WATERING_CAN?100:type.weapon()?1561:2031;
-  return (int)Math.round(start+(end-start)*Math.clamp(level,0,25)/25.0);
+  int bounded=Math.clamp(level,0,25);
+  if(type.weapon())return (int)Math.round(250+(1561-250)*bounded/25.0);
+  if(type==ToolType.FISHING_ROD)return 64;
+  if(type==ToolType.WATERING_CAN)return 25;
+  if(bounded>=20)return 2031;
+  if(bounded>=5)return 1561;
+  return (int)Math.round(250+(1561-250)*bounded/5.0);
  }
  public static double fishingWaitFactor(int level){return 1-.02*Math.clamp(level,0,25);}
  public static double fishingExtraChance(int level){return .01*Math.clamp(level,0,25);}

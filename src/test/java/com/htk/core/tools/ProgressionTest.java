@@ -4,7 +4,7 @@ public final class ProgressionTest {
     private static int checks;
     private static void check(boolean ok,String message){checks++;if(!ok)throw new AssertionError(message);}
     public static void main(String[] args) {
-        double[] first={6,7.2,8.4,9.6,10.8,12,13.2,14.4,15.6,16.8,18};
+        double[] first={6,6.4,6.8,7.2,7.6,8,10,12,14,16,18};
         for(int l=0;l<first.length;l++)check(Math.abs(ToolPerformance.miningSpeed(ToolType.PICKAXE,l)-first[l])<1e-10,"Exact requested early pickaxe curve");
         for(int l=0;l<=25;l++) {
             for(double expected:new double[]{HarvestRules.expectedCells(l),WateringCanRules.expectedCells(l),ToolPerformance.fortuneStrength(l),ToolPerformance.hoeFortuneStrength(l)}) {

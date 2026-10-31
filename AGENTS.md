@@ -24,3 +24,9 @@
 - Pickaxe fortune: none at +0..9, I at +10, III at +15, IV at +20..25; interpolate only +10..20. Never increase fortune beyond IV after +20.
 - Connected ore mining is an absolute fixed limit: +0..20 mine only the direct block; +21/+22/+23/+24/+25 mine 2/3/4/5/6 blocks total, including the direct block. Do not smooth, randomize, or expand these quotas. Woodcutting has its own existing rules.
 - Enhanced weapons must not qualify for native sword sweeping. Use only the plugin player-centred area attack and preserve the native sweep event cancellation as a fallback.
+
+# Tool durability milestones
+
+- Keep custom tool identity/model/PDC. Match diamond tool stats instead of replacing the item with a plain vanilla tool.
+- Pickaxe/axe/hoe: +5 must match diamond durability 1561 and work speed 8. Keep maximum durability 1561 through +19; retain the existing netherite 2031 baseline from +20.
+- Work tools: +5 no Unbreaking, +10 Unbreaking I equivalent, +15 Unbreaking III equivalent, +20 IV equivalent, +25 infinite. Implement per-point numeric wear probability rather than increasing the displayed durability or attaching enchantments/lore. Fishing rods/cans retain their own baseline maximum (64/25). Weapon durability is a separate existing rule.

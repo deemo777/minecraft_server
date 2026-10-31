@@ -367,7 +367,7 @@ public final class VillageToolFeature implements Feature, Listener {
             event.setCancelled(true);
             refreshNextTick(event.getPlayer());
         } else if(isTool(event.getItem())) {
-            int wear=NumericEffects.wear(event.getDamage(),ToolPerformance.wearChance(levelOf(event.getItem())),java.util.concurrent.ThreadLocalRandom.current());
+            int wear=NumericEffects.wear(event.getDamage(),ToolPerformance.wearChance(typeOf(event.getItem()),levelOf(event.getItem())),java.util.concurrent.ThreadLocalRandom.current());
             if(wear==0)event.setCancelled(true);else event.setDamage(wear);
         }
     }
