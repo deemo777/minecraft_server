@@ -48,7 +48,7 @@ public final class CookieFeature implements Feature, Listener, TabExecutor {
         ItemStack item = new ItemStack(Material.COOKIE);
         var meta = item.getItemMeta();
         meta.displayName(Text.mm("<#eac18b><bold>광쿠키"));
-        meta.lore(List.of(Text.mm("<gray>바삭하게 구운 광태의 얼굴")));
+        meta.lore(null);
         meta.getPersistentDataContainer().set(cookieKey, PersistentDataType.BYTE, (byte) 1);
         if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("deemo_cookie"));
         var food = meta.getFood();

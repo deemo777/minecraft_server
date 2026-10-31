@@ -77,7 +77,7 @@ final class LandGui extends Gui {
                                 : next ? "<yellow>다음 해방 청크 <gray>· 현재 빚부터 갚아 주세요"
                                 : "<gray>잠긴 내 부지 <dark_gray>· 앞 청크부터 순서대로 해방해요";
                         item = Items.of(ready ? Material.LIME_STAINED_GLASS_PANE : Material.YELLOW_STAINED_GLASS_PANE,
-                                1, name, List.of("<gray>2×2 부지로 미리 확보되어 있어요.", "<gray>해방 전에는 주인과 이웃도 건축할 수 없어요."),
+                                1, name, List.of(),
                                 pack ? Glyphs.model(ready ? "land_plus" : "land_plus_off") : null);
                         if (ready) cells.put(slot, new long[]{cx, cz});
                     } else {

@@ -89,10 +89,8 @@ public final class SkinMerchantFeature implements Feature,Listener,TabExecutor {
             for(int index=0;index<KINDS.size();index++){
                 ToolType type=KINDS.get(index);
                 inventory.setItem(DRAW_SLOTS.get(index),icon(type.model,"<#eed8a3>"+type.korean+" 스킨 뽑기",List.of(
-                    "<#ffd477>비용: "+Economy.format(WeaponSkinCatalog.PRICE),
-                    "<gray>기본 외형을 제외한 13종", "<gray>미보유 스킨 중 동일 확률 · 중복 없음",
-                    "<yellow>클릭하면 즉시 결제하고 뽑습니다")));
-                inventory.setItem(BOOK_SLOTS.get(index),button("<#c9b8ef>"+type.korean+" 스킨 도감",List.of("<gray>보유 스킨 확인 · 무료 적용")));
+                    "<#ffd477>비용: "+Economy.format(WeaponSkinCatalog.PRICE))));
+                inventory.setItem(BOOK_SLOTS.get(index),button("<#c9b8ef>"+type.korean+" 스킨 도감",List.of()));
             }
             inventory.setItem(35,button("<gray>닫기",List.of()));
         }
@@ -128,9 +126,9 @@ public final class SkinMerchantFeature implements Feature,Listener,TabExecutor {
         private final ToolType type;
         ResultGui(ToolType type,WeaponSkinCatalog.Skin skin){
             super(3,0xE0B4,"스킨 획득 · "+skin.name());this.type=type;
-            inventory.setItem(13,icon(skin.model(),"<#f4df9d>"+skin.name(),List.of("<gray>"+type.korean+" 스킨", "<#b5d6b3>계정 도감에 영구 등록되었습니다", "<gray>도감에서 같은 종류의 주손 무기에 무료 적용")));
-            inventory.setItem(20,button("<#d9c2ef>도감 열기",List.of("<gray>방금 획득한 스킨을 적용합니다")));
-            inventory.setItem(24,button("<#e8c57f>상점으로",List.of("<gray>다른 무기 종류를 선택합니다")));
+            inventory.setItem(13,icon(skin.model(),"<#f4df9d>"+skin.name(),List.of("<#b5d6b3>보유 중")));
+            inventory.setItem(20,button("<#d9c2ef>도감 열기",List.of()));
+            inventory.setItem(24,button("<#e8c57f>상점으로",List.of()));
         }
         @Override public void onClick(Player player,int slot,InventoryClickEvent event){
             if(!accepts(event))return;
@@ -144,15 +142,15 @@ public final class SkinMerchantFeature implements Feature,Listener,TabExecutor {
         CollectionGui(Player player,ToolType type){
             super(5,0xE0B8,type.korean+" 스킨 도감");this.type=type;
             var owned=economy.unlocks(player.getUniqueId());
-            inventory.setItem(10,icon(type.model,"<#ded8c8>기본 외형",List.of("<gray>클릭: 주손 "+type.korean+"을 기본 외형으로", "<gray>비용 없음 · 보유 스킨 유지")));
+            inventory.setItem(10,icon(type.model,"<#ded8c8>기본 외형",List.of()));
             var skins=WeaponSkinCatalog.pool(type.id);
             for(int index=0;index<skins.size();index++){
                 int position=index+1,slot=position<7?10+position:19+(position-7);
                 var skin=skins.get(index);choices.put(slot,skin);
                 boolean unlocked=owned.contains(skin.key());
                 inventory.setItem(slot,icon(skin.model(),(unlocked?"<#e5d3a1>":"<#8c8498>")+skin.name(),
-                    unlocked?List.of("<#b4d2ab>보유 중 · "+type.korean,"<gray>클릭: 같은 종류의 주손 무기에 무료 적용")
-                    :List.of("<#b98292>미보유 · "+type.korean,"<gray>상점에서 미보유 스킨을 뽑아주세요")));
+                    unlocked?List.of("<#b4d2ab>보유 중 · "+type.korean)
+                    :List.of("<#b98292>미보유 · "+type.korean)));
             }
             inventory.setItem(40,button("<gray>상점으로",List.of("<gray>현재 "+(13-WeaponSkinCatalog.remaining(type.id,owned).size())+" / 13종 보유")));
         }

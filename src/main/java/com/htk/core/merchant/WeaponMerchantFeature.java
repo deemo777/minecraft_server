@@ -123,10 +123,10 @@ public final class WeaponMerchantFeature implements Feature,Listener,TabExecutor
                 ItemStack icon=tools.createTool(entry.getValue(),0);var meta=icon.getItemMeta();
                 var lore=new ArrayList<net.kyori.adventure.text.Component>();if(meta.lore()!=null)lore.addAll(meta.lore());
                 long price=shown.get(entry.getValue());lore.add(Text.mm(price>0?"<#ffd577>가격: "+Economy.format(price):"<red>판매 중지"));
-                if(price>0)lore.add(Text.mm("<gray>클릭하면 1개 구매"));meta.lore(lore);icon.setItemMeta(meta);inventory.setItem(entry.getKey(),icon);
+                meta.lore(lore);icon.setItemMeta(meta);inventory.setItem(entry.getKey(),icon);
             }
             inventory.setItem(22,Items.of(pack?Material.PAPER:Material.BARRIER,1,"<#e2bc85>돌아가기",
-                List.of("<gray>필요한 것이 생기면 다시 오게."),pack?Glyphs.model("forge_button"):null));
+                List.of(),pack?Glyphs.model("forge_button"):null));
         }
         @Override public void onClick(Player p,int slot,InventoryClickEvent event){
             if(!active || (event.getClick()!=ClickType.LEFT && event.getClick()!=ClickType.RIGHT))return;

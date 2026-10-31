@@ -119,8 +119,7 @@ public final class SlotMachineFeature implements Feature, Listener, TabExecutor 
         ItemStack item = new ItemStack(BASE, count);
         var meta = item.getItemMeta();
         meta.displayName(Text.mm("<gold><bold>슬롯 머신").decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
-        meta.lore(List.of(Text.mm("<gray>설치하면 위에 큰 슬롯 화면이 떠요"),
-                Text.mm("<gray>코인을 주손에 들고 블록 우클릭 · 한 판에 한 개")));
+        meta.lore(null);
         meta.getPersistentDataContainer().set(itemKey, PersistentDataType.BYTE, (byte) 1);
         if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("slot_machine"));
         item.setItemMeta(meta); return item;

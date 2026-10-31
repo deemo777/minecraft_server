@@ -67,6 +67,12 @@ public final class VillageToolFeature implements Feature, Listener {
     private NumericFishing numericFishing;
     private WeaponSweepListener weaponSweep;
     private WeaponTraits weaponTraits;
+    float weaponAttackCharge(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        return weaponSweep==null?0:weaponSweep.charge(event);
+    }
+    boolean secondaryWeaponHit(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        return weaponSweep!=null && weaponSweep.secondary(event);
+    }
     public boolean ownsNumericDrops(org.bukkit.event.block.BlockDropItemEvent event) {
         return numericDrops!=null && numericDrops.handles(event);
     }
@@ -251,27 +257,6 @@ public final class VillageToolFeature implements Feature, Listener {
                 new org.bukkit.attribute.AttributeModifier(new NamespacedKey(plugin,"numeric_mining"),mining,
                     org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,org.bukkit.inventory.EquipmentSlotGroup.MAINHAND));
         }
-        var details=new java.util.ArrayList<>(meta.lore());
-        details.add(Text.mm("<gray>최대 내구도: <white>"+(lv>=25?"무한":ToolPerformance.maxDurability(type,lv))));
-        details.add(Text.mm("<gray>내구도 소모 확률: <white>"+Progression.label(ToolPerformance.wearChance(lv)*100)+"%"));
-        if(type==ToolType.PICKAXE || type==ToolType.AXE)details.add(Text.mm("<gray>작업 속도: <white>"+Progression.label(ToolPerformance.miningSpeed(type,lv))));
-        if(type==ToolType.PICKAXE)details.add(Text.mm("<gray>드롭 보정 강도: <white>"+Progression.label(ToolPerformance.fortuneStrength(lv))));
-        if(type==ToolType.AXE)details.add(Text.mm("<gray>원형 회수 확률: <white>"+Progression.label(ToolPerformance.preserveChance(lv)*100)+"%"));
-        if(type==ToolType.PICKAXE || type==ToolType.AXE)details.add(Text.mm("<gray>연결 자원 추가(평균): <white>"+Progression.label(ToolPerformance.expectedExtraBlocks(lv))+"개"));
-        if(type==ToolType.HOE) {
-            details.add(Text.mm("<gray>수확 범위(평균): <white>"+Progression.label(HarvestRules.expectedCells(lv))+"칸"));
-            details.add(Text.mm("<gray>드롭 보정 강도: <white>"+Progression.label(ToolPerformance.hoeFortuneStrength(lv))));
-        }
-        if(type==ToolType.WATERING_CAN) {
-            details.add(Text.mm("<gray>물주기 범위(평균): <white>"+Progression.label(WateringCanRules.expectedCells(lv))+"칸"));
-            details.add(Text.mm("<gray>물 용량: <white>"+(lv>=25?"무한":WateringCanRules.capacity(lv)+"회")));
-        }
-        if(type==ToolType.FISHING_ROD) {
-            details.add(Text.mm("<gray>낚시 대기 단축: <white>"+Progression.label((1-ToolPerformance.fishingWaitFactor(lv))*100)+"%"));
-            details.add(Text.mm("<gray>물고기 추가 획득: <white>"+Progression.label(ToolPerformance.fishingExtraChance(lv)*100)+"%"));
-        }
-        meta.lore(details);
-
         // 모양: 아이템 모델 + 강화 단계 (리소스팩이 단계에 맞는 모델을 골라요)
         if (type.model != null && plugin.resourcePackEnabled()) {
             String skin=pdc.get(new NamespacedKey(plugin,"weapon_skin"),PersistentDataType.STRING);
@@ -330,7 +315,12 @@ public final class VillageToolFeature implements Feature, Listener {
         if (typeOf(item) != null) setLevel(updated, levelOf(item));
         else {
             var smith = plugin.feature(BlacksmithFeature.class);
-            if (smith == null || !smith.refreshMaterial(updated)) return null;
+            if (smith == null || !smith.refreshMaterial(updated)) {
+                var meta=updated.getItemMeta();
+                if(meta==null || meta.lore()==null || meta.getPersistentDataContainer().getKeys().stream()
+                        .noneMatch(key->key.getNamespace().equals("servercore")))return null;
+                meta.lore(null);updated.setItemMeta(meta);
+            }
         }
         return updated;
     }
@@ -385,11 +375,8 @@ public final class VillageToolFeature implements Feature, Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onToolSpawn(org.bukkit.event.entity.ItemSpawnEvent event) {
         ItemStack item = event.getEntity().getItemStack();
-        if (typeOf(item) != null) {
-            ItemStack updated = item.clone();
-            setLevel(updated, levelOf(item));
-            event.getEntity().setItemStack(updated);
-        }
+        ItemStack updated=refreshed(item);
+        if(updated!=null && !updated.equals(item))event.getEntity().setItemStack(updated);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

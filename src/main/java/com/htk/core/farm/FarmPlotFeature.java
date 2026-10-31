@@ -70,7 +70,7 @@ public final class FarmPlotFeature implements Feature, Listener {
     public ItemStack createItem(int amount) {
         ItemStack item = Items.of(Material.MOSS_BLOCK, amount,
                 "<#91d46b><bold>비옥한 농지",
-                java.util.List.of("<gray>내 집 부지에 설치", "<gray>물 공급 유지 · 일반 밭 속도 · 밟힘 방지"),
+                java.util.List.of(),
                 plugin.resourcePackEnabled() ? Glyphs.model("farm_plot") : null);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {

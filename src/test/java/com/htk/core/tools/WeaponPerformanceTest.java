@@ -25,8 +25,17 @@ public final class WeaponPerformanceTest {
    }
   }
   if(WeaponPerformance.growth(5)>=.2 || WeaponPerformance.growth(20)>=.8)throw new AssertionError("Identity develops gradually, later in progression");
-  if(Math.abs(WeaponPerformance.extendedSweepDamage(25,1.8)-44.2)>1e-10)throw new AssertionError("180% sweep exceeds native cap");
-  if(WeaponPerformance.extendedSweepDamage(8,.77)!=8 || WeaponPerformance.extendedSweepDamage(25,1)!=25)throw new AssertionError("No rescaling below native cap");
+  if(!SweepTargets.ready(.9f,true,false,0) || SweepTargets.ready(.899f,true,false,0))throw new AssertionError("Sweep charge threshold");
+  if(SweepTargets.ready(1,false,false,0) || SweepTargets.ready(1,true,true,0) || SweepTargets.ready(1,true,false,1))throw new AssertionError("Airborne, sprinting and falling attacks do not sweep");
+  // Player at (0,0), primary at (3,0): a nearby player-side mob must qualify even
+  // though it is outside the old primary bounding box; a mob beyond reach must not.
+  if(!SweepTargets.inRange(1,3))throw new AssertionError("Player-side mob qualifies independently of primary proximity");
+  if(SweepTargets.inRange(3.6*3.6,3))throw new AssertionError("Mob next to primary but beyond player reach is excluded");
+  if(!SweepTargets.inRange(9,3) || SweepTargets.inRange(9.0001,3))throw new AssertionError("Exact player range boundary");
+  if(!SweepTargets.inRange(2.25*2.25,WeaponPerformance.reach(ToolType.DAGGER,25)))throw new AssertionError("Dagger custom range");
+  if(SweepTargets.inRange(2.6*2.6,WeaponPerformance.reach(ToolType.DAGGER,25)))throw new AssertionError("Dagger does not inherit native three block sweep");
+  if(!SweepTargets.inRange(3.8*3.8,WeaponPerformance.reach(ToolType.GREATSWORD,25)))throw new AssertionError("Greatsword may exceed native three block sweep");
+  if(SweepTargets.inRange(Double.NaN,3))throw new AssertionError("Invalid distances never qualify");
   int[] caps={2,3,5};
   for(int t=0;t<types.length;t++)if(WeaponPerformance.maxTargets(types[t])!=caps[t])throw new AssertionError("Total target cap includes primary");
   ToolType[] best={ToolType.DAGGER,ToolType.GREATSWORD,ToolType.GREATSWORD,ToolType.GREATSWORD,ToolType.GREATSWORD};
@@ -55,6 +64,6 @@ public final class WeaponPerformanceTest {
   }
   if(new SweepTargets.Budget<>(java.util.List.of(1),1,java.util.Comparator.naturalOrder()).claim(1))throw new AssertionError("Primary-only budget has no secondary slots");
   if(new SweepTargets.Budget<Integer>(java.util.List.of(),5,java.util.Comparator.naturalOrder()).claim(1))throw new AssertionError("No targets outside the candidate set");
-  System.out.println("All 26 weapon levels: attack animation type/timing, specialized growth, target budgets, native-cap compensation passed");
+  System.out.println("All 26 weapon levels: attack animation type/timing, specialized growth, target budgets, player-centred range boundaries passed");
  }
 }

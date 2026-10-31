@@ -453,14 +453,7 @@ public final class LandFeature implements Feature, Listener {
         ItemMeta meta = it.getItemMeta();
         if (meta != null) {
             meta.displayName(Text.mm(msg("core-name", "<#f3c060><bold>🏠 집터")).decoration(TextDecoration.ITALIC, false));
-            List<Component> lore = new ArrayList<>();
-            for (String l : plugin.getConfig().isList("land.messages.core-lore")
-                    ? plugin.getConfig().getStringList("land.messages.core-lore")
-                    : List.of("<gray>설치한 곳의 청크가 내 집이 돼요.", "<gray>설치한 뒤 우클릭하면 집 지도가 열려요.",
-                            "<#f3c060>마을에서만 설치할 수 있어요.")) {
-                lore.add(Text.mm(l).decoration(TextDecoration.ITALIC, false));
-            }
-            meta.lore(lore);
+            meta.lore(null);
             if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("house_core"));
             else meta.setEnchantmentGlintOverride(true);
             meta.getPersistentDataContainer().set(coreKey, PersistentDataType.BYTE, (byte) 1);

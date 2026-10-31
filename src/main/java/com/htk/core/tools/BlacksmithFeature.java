@@ -94,9 +94,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(materialKey, PersistentDataType.STRING, type.id);
         meta.displayName(Text.mm("<#a9dce7><bold>" + type.korean + " 강화 결정"));
-        meta.lore(List.of(Text.mm("<gray>대장간에서 같은 종류 장비를 강화해요"),
-                Text.mm("<dark_gray>+1~5: 0개 · +6~10: 1개 · +11~15: 2개 · +16~20: 4개 · +21~25: 8개"),
-                Text.mm("<gray>강화 시 결정과 별도로 골드를 소비해요")));
+        meta.lore(null);
         if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("enhancement_" + type.id));
         item.setItemMeta(meta); return item;
     }

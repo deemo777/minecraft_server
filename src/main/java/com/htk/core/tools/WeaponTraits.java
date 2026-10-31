@@ -44,13 +44,14 @@ final class WeaponTraits implements Listener {
     private void scrub(LivingEntity entity){remove(entity,pursuitKey);remove(entity,slowKey);}
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void hit(EntityDamageByEntityEvent event) {
+        if(tools.secondaryWeaponHit(event))return;
         if(event.getCause()!=EntityDamageEvent.DamageCause.ENTITY_ATTACK || event.getFinalDamage()<=0
                 || !(event.getDamager() instanceof Player player) || !(event.getEntity() instanceof LivingEntity)
                 || player.isDead())return;
         var item=player.getInventory().getItemInMainHand();var type=tools.typeOf(item);
         if(type==null||!type.weapon()||tools.levelOf(item)!=25)return;
-        // Charge is evaluated with the same half-tick offset as the native attack.
-        if(player.getCooledAttackStrength(.5f)<.85f)return;
+        // Use the pre-attack snapshot; the engine can reset cooldown before damage events.
+        if(tools.weaponAttackCharge(event)<.85f)return;
         var state=state(player);String instance=tools.instance(item);if(instance==null)return;
         synchronizeHand(player,instance);
         if(type==ToolType.DAGGER) {

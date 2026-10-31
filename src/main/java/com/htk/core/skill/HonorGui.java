@@ -58,8 +58,7 @@ final class HonorGui extends Gui {
         }
         String current = entries.stream().filter(Entry::selected).map(Entry::name).findFirst().orElse("<gray>없음");
         inventory.setItem(4, Items.of(Material.NAME_TAG, 1, "<#f7d36b><bold>현재 칭호</bold>",
-                List.of("<white>" + current, "", "<gray>보유 칭호 <white>" + entries.size() + "개",
-                        "<gray>아래 칭호를 눌러 무료로 바꿔 보세요."), null));
+                List.of("<white>" + current, "<gray>보유 칭호 <white>" + entries.size() + "개"), null));
         for (int index = 0; index < PAGE_SIZE; index++) {
             int slot = 10 + (index / 7) * 9 + index % 7;
             inventory.setItem(slot, null);
@@ -67,26 +66,24 @@ final class HonorGui extends Gui {
             var entry = entries.get(page * PAGE_SIZE + index);
             var item = Items.of(entry.selected() ? Material.NAME_TAG : entry.icon(), 1,
                     (entry.selected() ? "<green>✔ " : "<white>") + entry.name(),
-                    List.of("<dark_gray>" + entry.detail(), "",
-                            entry.selected() ? "<green>현재 장착 중인 칭호예요." : "<yellow>클릭해서 이 칭호로 변경",
-                            "<gray>변경 비용 <white>무료"), null);
+                    List.of("<dark_gray>" + entry.detail()), null);
             if (entry.selected()) Items.glint(item);
             inventory.setItem(slot, item);
             commands.put(slot, entry.command());
         }
         if (entries.isEmpty()) inventory.setItem(22, Items.of(Material.BOOK, 1, "<gray>보유한 칭호가 없어요",
-                List.of("<gray>직업 레벨을 올리거나 업적을 달성해 보세요."), null));
-        button(45, Material.ARROW, "<#b5df8b>메뉴로", "마을 메뉴로 돌아갑니다.", pack ? "arrow_left" : null);
+                List.of(), null));
+        button(45, Material.ARROW, "<#b5df8b>메뉴로", List.of(), pack ? "arrow_left" : null);
         button(48, Material.ARROW, page > 0 ? "<white>이전 페이지" : "<gray>첫 페이지예요",
-                (page + 1) + " / " + pages + " 페이지", pack ? (page > 0 ? "arrow_left" : "arrow_left_off") : null);
-        button(49, Material.BARRIER, "<#efb1a8>칭호 해제", "장착한 칭호를 해제합니다.", null);
+                List.of("<gray>" + (page + 1) + " / " + pages + " 페이지"), pack ? (page > 0 ? "arrow_left" : "arrow_left_off") : null);
+        button(49, Material.BARRIER, "<#efb1a8>칭호 해제", List.of(), null);
         button(50, Material.ARROW, page + 1 < pages ? "<white>다음 페이지" : "<gray>마지막 페이지예요",
-                (page + 1) + " / " + pages + " 페이지", pack ? (page + 1 < pages ? "arrow_right" : "arrow_right_off") : null);
-        button(53, Material.EXPERIENCE_BOTTLE, "<#b5df8b>직업 경험치", "직업 레벨과 다음 칭호를 확인합니다.", null);
+                List.of("<gray>" + (page + 1) + " / " + pages + " 페이지"), pack ? (page + 1 < pages ? "arrow_right" : "arrow_right_off") : null);
+        button(53, Material.EXPERIENCE_BOTTLE, "<#b5df8b>직업 경험치", List.of(), null);
     }
 
-    private void button(int slot, Material material, String name, String detail, String model) {
-        inventory.setItem(slot, Items.of(material, 1, name, List.of("<gray>" + detail), model == null ? null : Glyphs.model(model)));
+    private void button(int slot, Material material, String name, List<String> lore, String model) {
+        inventory.setItem(slot, Items.of(material, 1, name, lore, model == null ? null : Glyphs.model(model)));
     }
 
     @Override public void onClick(Player player, int slot, InventoryClickEvent event) {

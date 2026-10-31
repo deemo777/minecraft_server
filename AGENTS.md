@@ -9,6 +9,10 @@
 - Update the relevant docs and changelog with behavior changes. Report the pushed branch and commit, check results, and whether deployment/live-game validation remains outstanding.
 - A push authorizes source publication only. Do not change the running OCI server, worlds, credentials, GitHub release assets or hosting without task-specific authorization.
 
+# Item tooltip policy
+
+- Do not add descriptive, instructional, drop-chance, attack-speed, or base-stat lore to physical items. Keep names, enhancement stars, and concise additional options only. GUI items may show necessary transaction values and ownership/status, without explanatory sentences. Keep detailed mechanics in documentation, not item hover text.
+
 # Resource-pack release updates
 
 - The user explicitly authorized ongoing updates of `servercore_pack.zip` on GitHub release tag `servercore` in `deemo777/minecraft_server`. After resource-pack changes, build and validate the full pack, replace that release asset, verify the downloadable ZIP against the local build, and report the current SHA-1 for server.properties. Do not ask for ordinary replacement approval again.

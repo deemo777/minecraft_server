@@ -98,11 +98,7 @@ public final class EconomyFeature implements Feature, Listener, TabExecutor {
             String name = plugin.getConfig().getString("economy.item-name", "<#ffd34d><bold>%amount%");
             meta.displayName(Text.mm(name.replace("%amount%", Economy.format(amount)))
                     .decoration(TextDecoration.ITALIC, false));
-            List<String> loreText = plugin.getConfig().getStringList("economy.item-lore");
-            if (loreText.isEmpty()) loreText = List.of("<gray>우클릭하면 내 골드에 넣어요");
-            var lore = new ArrayList<net.kyori.adventure.text.Component>();
-            for (String l : loreText) lore.add(Text.mm(l).decoration(TextDecoration.ITALIC, false));
-            meta.lore(lore);
+            meta.lore(null);
             meta.getPersistentDataContainer().set(goldKey, PersistentDataType.LONG, amount);
             // 리소스팩의 G 금화 그림 (리소스팩이 없으면 원래 아이템 모양)
             if (plugin.resourcePackEnabled()) meta.setItemModel(com.htk.core.common.Glyphs.model("gold_coin"));

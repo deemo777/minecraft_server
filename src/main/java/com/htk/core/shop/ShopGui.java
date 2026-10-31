@@ -85,8 +85,7 @@ public final class ShopGui extends Gui {
         if (meta == null) return item;
         List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
         if (it.buy() > 0) {
-            lore.add(line(feature.msg("lore-buy", "<gray>클릭: <#ffd34d>%price%</#ffd34d>로 1개 사기 <dark_gray>(Shift: 한 묶음)")
-                    .replace("%price%", Economy.format(it.buy()))));
+            lore.add(line("<gray>가격: <#ffd34d>" + Economy.format(it.buy())));
         }
         meta.lore(lore);
         meta.addItemFlags(ItemFlag.values());
@@ -100,9 +99,8 @@ public final class ShopGui extends Gui {
         List<String> lore = new ArrayList<>();
         if (it.sell() > 0) {
             int have = feature.count(player, it.material());
-            lore.add(feature.msg("lore-sell", "<gray>클릭: 1개 팔기 <dark_gray>(Shift: 전부 %have%개 → %total%)")
-                    .replace("%have%", String.valueOf(have))
-                    .replace("%total%", Economy.format(feature.sellPrice(player, shop, it, have))));
+            lore.add("<gray>보유: <white>" + have + "개");
+            lore.add("<gray>전체 판매가: <gold>" + Economy.format(feature.sellPrice(player, shop, it, have)));
         }
         ItemStack gold = Items.of(Material.GOLD_NUGGET, 1,
                 feature.msg("gold-name", "<#ffd34d><bold>%price%").replace("%price%", Economy.format(price)), lore,
