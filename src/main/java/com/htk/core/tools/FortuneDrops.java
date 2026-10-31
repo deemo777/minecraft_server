@@ -23,6 +23,18 @@ public final class FortuneDrops {
         return sample(1,5,m -> oreProbability(strength,m),roll);
     }
 
+    /** +20 and above exclude the base-only outcome; preserve relative bonus weights. */
+    public static double oreProbabilityAtLevel(int upgrade,int multiplier) {
+        double strength=ToolPerformance.fortuneStrength(upgrade);
+        if(upgrade<20)return oreProbability(strength,multiplier);
+        if(multiplier==1)return 0;
+        return oreProbability(strength,multiplier)/(1-oreProbability(strength,1));
+    }
+
+    public static int oreMultiplierAtLevel(int upgrade,double roll) {
+        return sample(upgrade>=20?2:1,5,m -> oreProbabilityAtLevel(upgrade,m),roll);
+    }
+
     public static double uniformProbability(double strength,int bonusMultiplier,int extra) {
         return interpolate(strength,level -> extra>=0 && extra<=level*bonusMultiplier
                 ?1.0/(level*bonusMultiplier+1):0);

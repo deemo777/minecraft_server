@@ -9,7 +9,7 @@ public final class EquipmentStatsReport {
     private static String oreChances(int level) {
         var parts=new java.util.ArrayList<String>();
         for(int multiplier=1;multiplier<=5;multiplier++) {
-            double probability=FortuneDrops.oreProbability(ToolPerformance.fortuneStrength(level),multiplier);
+            double probability=FortuneDrops.oreProbabilityAtLevel(level,multiplier);
             if(probability>0)parts.add(multiplier+"배 "+n(probability*100)+"%");
         }
         return String.join(" / ",parts);
@@ -58,7 +58,7 @@ public final class EquipmentStatsReport {
         var out=new StringBuilder("# 장비 강화 단계별 실제 수치\n\n런타임 계산식으로 생성한 0~25강 전체 표입니다. 0강 철·5강 순수 다이아·10강 효율 III/행운 I/내구성 I·15강 효율 V/행운 III/내구성 III·20강 네더라이트 효율 VI/행운 3.5/내구성 IV·25강 효율 VII/행운 IV/무한 내구도를 기준으로 보간합니다. 속도는 완성된 기준점 사이를 선형 보간합니다. 효율의 소수 단계는 최종 작업 속도로 반영합니다.\n\n0~24강은 바닐라와 같은 양의 내구도를 매번 소모합니다. 내구성 상당 효과는 총 내구도에 반영하여 I=2배, III=4배, IV=5배입니다. 재질의 기본 내구도도 0~5강 철→다이아, 15~20강 다이아→네더라이트로 보간합니다. 낚싯대/물뿌리개 바탕 내구도는 64/25입니다. 25강만 무한 내구도입니다. 기존 장비 갱신 시 손상 비율을 보존합니다.\n\n원목 추가 수와 작업 칸 수는 고정 정수입니다. 곡괭이 연결 광석은 20강까지 직접 블록만, 21~25강 총 2/3/4/5/6개를 유지합니다. 채굴/벌목 속도는 적합한 블록에서의 기본 수치이며 경도·수중·공중 상태에 따라 실제 시간은 달라집니다.\n");
         header(out,"곡괭이","강화","채굴 속도","광물 드롭 배율별 확률","연결 광석 추가","최대 내구도","내구도 소모율");
         for(int l=0;l<=25;l++)row(out,l,n(ToolPerformance.miningSpeed(ToolType.PICKAXE,l)),oreChances(l),n(ToolPerformance.expectedExtraBlocks(l)),durability(ToolType.PICKAXE,l),n(ToolPerformance.wearChance(ToolType.PICKAXE,l)*100)+"%");
-        out.append("\n곡괭이 확률은 다이아·석탄·철·구리·청금석 등의 기본 드롭량에 곱하는 배율입니다. 다이아 기본 1개에서는 배율이 개수와 같습니다. 정수 행운 단계의 바닐라 분포를 기준으로 각 결과 확률을 보간한 뒤 최종 결과를 한 번 추첨하며, 중간에 행운 단계를 추첨하지 않습니다. 9강은 2배 26.67%, 10강은 2배 33.33%입니다. 레드스톤은 배율 대신 추가 개수 0~행운 단계의 분포를 같은 방식으로 계산하고, 자갈은 부싯돌 확률표를 보간합니다.\n");
+        out.append("\n곡괭이 확률은 다이아·석탄·철·구리·청금석 등의 기본 드롭량에 곱하는 배율입니다. 다이아 기본 1개에서는 배율이 개수와 같습니다. 정수 행운 단계의 바닐라 분포를 기준으로 각 결과 확률을 보간한 뒤 최종 결과를 한 번 추첨하며, 중간에 행운 단계를 추첨하지 않습니다. 9강은 2배 26.67%, 10강은 2배 33.33%입니다. 20~25강은 1배를 제거하고 나머지 배율 확률을 비례 재분배하여 최소 2배입니다. 레드스톤은 배율 대신 추가 개수 0~행운 단계의 분포를 같은 방식으로 계산하고, 자갈은 부싯돌 확률표를 보간합니다.\n");
         header(out,"도끼","강화","벌목 속도","원형 회수","연결 원목 추가","최대 내구도","내구도 소모율");
         for(int l=0;l<=25;l++)row(out,l,n(ToolPerformance.miningSpeed(ToolType.AXE,l)),l>=15?"확정":"없음",n(ToolPerformance.expectedWoodExtraBlocks(l)),durability(ToolType.AXE,l),n(ToolPerformance.wearChance(ToolType.AXE,l)*100)+"%");
         header(out,"괭이","강화","수확 칸 수","드롭 배율","최대 내구도","내구도 소모율");

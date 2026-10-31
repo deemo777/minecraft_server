@@ -18,14 +18,14 @@ public final class FortuneDropsTest {
         for(int upgrade=0;upgrade<=25;upgrade++) {
             double strength=ToolPerformance.fortuneStrength(upgrade),sum=0,mean=0;
             int[] observed=new int[6];
-            for(int draw=0;draw<12000;draw++)observed[FortuneDrops.oreMultiplier(strength,(draw+.5)/12000)]++;
+            for(int draw=0;draw<12000;draw++)observed[FortuneDrops.oreMultiplierAtLevel(upgrade,(draw+.5)/12000)]++;
             for(int m=1;m<=5;m++) {
-                double probability=FortuneDrops.oreProbability(strength,m);
+                double probability=FortuneDrops.oreProbabilityAtLevel(upgrade,m);
                 check(probability>=0,"Nonnegative probability");sum+=probability;mean+=m*probability;
                 check(Math.abs(observed[m]/12000.0-probability)<=1.0/12000,"Sampler matches final outcome probabilities");
             }
             near(sum,1,"Ore probabilities total one");
-            double bonus=1-FortuneDrops.oreProbability(strength,1);
+            double bonus=1-FortuneDrops.oreProbabilityAtLevel(upgrade,1);
             check(mean+1e-12>=previousMean && bonus+1e-12>=previousBonus,"Expected drops and bonus chance never regress");
             previousMean=mean;previousBonus=bonus;
             for(int multiplier:new int[]{1,2}) {
@@ -47,6 +47,23 @@ public final class FortuneDropsTest {
                 }
             }
         }
+        for(int upgrade=0;upgrade<=25;upgrade++) {
+            if(upgrade<20) {
+                for(int m=1;m<=5;m++)near(FortuneDrops.oreProbabilityAtLevel(upgrade,m),
+                        FortuneDrops.oreProbability(ToolPerformance.fortuneStrength(upgrade),m),"Below +20 unchanged");
+            } else {
+                near(FortuneDrops.oreProbabilityAtLevel(upgrade,1),0,"No base-only drop from +20");
+                for(double roll:new double[]{0,.25,.5,.75,.999999,Math.nextDown(1.0)})
+                    check(FortuneDrops.oreMultiplierAtLevel(upgrade,roll)>=2,"Always at least double, including sampler boundaries");
+                double strength=ToolPerformance.fortuneStrength(upgrade);
+                for(int m=2;m<=5;m++)near(FortuneDrops.oreProbabilityAtLevel(upgrade,m),
+                        FortuneDrops.oreProbability(strength,m)/(1-FortuneDrops.oreProbability(strength,1)),"Bonus probabilities redistributed proportionally");
+            }
+        }
+        for(int m=2;m<=4;m++)near(FortuneDrops.oreProbabilityAtLevel(20,m),11.0/38,"+20 double/triple/quadruple chance");
+        near(FortuneDrops.oreProbabilityAtLevel(20,5),5.0/38,"+20 quintuple chance");
+        for(int m=2;m<=5;m++)near(FortuneDrops.oreProbabilityAtLevel(25,m),.25,"+25 equal bonus outcomes");
+        check(FortuneDrops.oreProbabilityAtLevel(19,1)>0,"Bonus threshold starts exactly at +20");
         near(FortuneDrops.uniformProbability(1,1,0),.5,"Redstone Fortune I zero bonus");
         near(FortuneDrops.uniformProbability(1,1,1),.5,"Redstone Fortune I one bonus");
         near(FortuneDrops.uniformProbability(.8,1,1),.4,"Redstone fractional bonus");

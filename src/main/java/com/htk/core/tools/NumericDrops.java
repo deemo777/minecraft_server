@@ -169,7 +169,7 @@ final class NumericDrops implements Listener {
                     add(output,material,next);continue;
                 }
                 int next=switch(formula) {
-                    case "ore_drops" -> count*FortuneDrops.oreMultiplier(fortune,random.nextDouble());
+                    case "ore_drops" -> count*FortuneDrops.oreMultiplierAtLevel(level,random.nextDouble());
                     case "uniform_bonus_count" -> count==0?0:count+FortuneDrops.uniformBonus(fortune,spec.getInt("bonusMultiplier",1),random.nextDouble());
                     case "binomial_with_bonus_count" -> count+FortuneDrops.binomialBonus(fortune,spec.getDouble("probability"),random.nextDouble());
                     default -> count;
