@@ -90,9 +90,9 @@ public final class ArtisanRulesTest {
             check(CrystalDropRules.miningChance(name,.02,.002,.12,100)==0,"ineligible material never drops mining crystals: "+name);
         for(String ore:new String[]{"COAL_ORE","COPPER_ORE","IRON_ORE","GOLD_ORE","REDSTONE_ORE","LAPIS_ORE","DIAMOND_ORE"}) {
             check(CrystalDropRules.miningBase(ore)==CrystalDropRules.miningBase("DEEPSLATE_"+ore),"deepslate variant has identical ore probability");
-            double initial=CrystalDropRules.miningBase(ore);
-            check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,10)-initial-.02)<1e-9,"ore gains two percentage points by skill level ten");
-            check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,100)-initial-.10)<1e-9,"ore skill bonus caps at ten percentage points");
+            double initial=CrystalDropRules.miningBase(ore),scale=ore.equals("DIAMOND_ORE")?1:.5;
+            check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,10)-initial-.02*scale)<1e-9,"ore skill growth uses its own reduction factor");
+            check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,100)-initial-.10*scale)<1e-9,"ore bonus cap uses its own reduction factor");
         }
         check(CrystalDropRules.miningBase("ANCIENT_DEBRIS")==.50,"ancient debris starts at fifty percent");
         for(int level=0;level<=100;level++) {
@@ -102,10 +102,21 @@ public final class ArtisanRulesTest {
             check(CrystalDropRules.miningChance("COPPER_ORE",.02,.002,.12,level)<coal,"copper stays below coal at every level");
             check(CrystalDropRules.miningChance("REDSTONE_ORE",.02,.002,.12,level)==CrystalDropRules.miningChance("IRON_ORE",.02,.002,.12,level),"redstone matches iron at every level");
         }
-        check(CrystalDropRules.miningBase("COPPER_ORE")==.05,"copper starts at five percent");
-        check(CrystalDropRules.miningBase("COAL_ORE")==.08,"coal group starts at eight percent");
-        check(CrystalDropRules.miningBase("IRON_ORE")==.10,"iron group starts at ten percent");
-        check(CrystalDropRules.miningBase("GOLD_ORE")==.08 && CrystalDropRules.miningBase("DIAMOND_ORE")==.15,"gold and diamond base rates unchanged");
+        check(CrystalDropRules.miningBase("COPPER_ORE")==.025,"copper starts at two point five percent");
+        check(CrystalDropRules.miningBase("COAL_ORE")==.04,"coal group starts at four percent");
+        check(CrystalDropRules.miningBase("IRON_ORE")==.05,"iron group starts at five percent");
+        check(CrystalDropRules.miningBase("GOLD_ORE")==.04 && CrystalDropRules.miningBase("DIAMOND_ORE")==.15,"gold is reduced, diamond remains unchanged");
+        String[] reduced={"COPPER_ORE","COAL_ORE","IRON_ORE","GOLD_ORE","REDSTONE_ORE","LAPIS_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE"};
+        double[] previousBases={.05,.08,.10,.08,.10,.08,.08,.08};
+        for(int index=0;index<reduced.length;index++)for(int level=0;level<=100;level++) {
+            double before=CrystalDropRules.chance(previousBases[index],.002,previousBases[index]+.10,level);
+            check(Math.abs(CrystalDropRules.miningChance(reduced[index],.02,.002,.12,level)-before/2)<1e-12,"Common ore rates are halved at every skill level");
+            if(!reduced[index].startsWith("NETHER_"))check(Math.abs(CrystalDropRules.miningChance("DEEPSLATE_"+reduced[index],.02,.002,.12,level)-before/2)<1e-12,"Deep ore reduction is identical");
+            check(CrystalDropRules.miningChance("STONE",.02,.002,.12,level)==.02,"Stone curve unchanged");
+            check(CrystalDropRules.miningChance("DEEPSLATE",.02,.002,.12,level)==.02,"Deepslate curve unchanged");
+            check(Math.abs(CrystalDropRules.miningChance("DIAMOND_ORE",.02,.002,.12,level)-CrystalDropRules.chance(.15,.002,.25,level))<1e-12,"Diamond curve unchanged at every level");
+            check(Math.abs(CrystalDropRules.miningChance("DEEPSLATE_DIAMOND_ORE",.02,.002,.12,level)-CrystalDropRules.chance(.15,.002,.25,level))<1e-12,"Deep diamond curve unchanged");
+        }
         for(String rare:new String[]{"EMERALD_ORE","DEEPSLATE_EMERALD_ORE","ANCIENT_DEBRIS"}) {
             double base=CrystalDropRules.miningBase(rare), last=base;
             check(base==.50,"both rare ores share the requested fifty-percent base");

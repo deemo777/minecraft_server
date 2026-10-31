@@ -18,10 +18,10 @@ public final class CrystalDropRules {
         String name=material.startsWith("DEEPSLATE_")?material.substring(10):material;
         return switch(name) {
             case "STONE","DEEPSLATE" -> .02;
-            case "COAL_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE","LAPIS_ORE" -> .08;
-            case "COPPER_ORE" -> .05;
-            case "IRON_ORE","REDSTONE_ORE" -> .10;
-            case "GOLD_ORE" -> .08;
+            case "COAL_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE","LAPIS_ORE" -> .04;
+            case "COPPER_ORE" -> .025;
+            case "IRON_ORE","REDSTONE_ORE" -> .05;
+            case "GOLD_ORE" -> .04;
             case "DIAMOND_ORE" -> .15;
             case "EMERALD_ORE","ANCIENT_DEBRIS" -> .50;
             default -> 0;
@@ -39,6 +39,10 @@ public final class CrystalDropRules {
         }
         double start=Double.isFinite(base)?Math.clamp(base,0,1):.02;
         double cap=Double.isFinite(maximum)?Math.clamp(maximum,0,1):.12;
-        return chance(ore,perLevel,Math.min(1,ore+Math.max(0,cap-start)),level);
+        // Halve common-ore growth and its cap as well as the base, so skill levels
+        // cannot erase the reduction. Diamond and the rare-ore branch stay unchanged.
+        double scale=material.endsWith("DIAMOND_ORE")?1:.5;
+        double gain=Double.isFinite(perLevel)?Math.clamp(perLevel,0,1):.002;
+        return chance(ore,gain*scale,Math.min(1,ore+Math.max(0,cap-start)*scale),level);
     }
 }
