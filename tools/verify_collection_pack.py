@@ -90,7 +90,7 @@ def verify(pack_path, client_path):
             dark=Image.open(io.BytesIO(pack.read(name))).convert("RGBA")
             assert dark.size==original.size
             assert ImageChops.difference(dark.getchannel("A"),original.getchannel("A")).getbbox() is None
-            expected=ImageEnhance.Brightness(ImageEnhance.Color(original).enhance(.15)).enhance(.30)
+            expected=ImageEnhance.Brightness(ImageEnhance.Color(original).enhance(.80)).enhance(.85)
             expected.putalpha(original.getchannel("A"))
             assert dark.tobytes()==expected.tobytes(),name
             sprite="servercore:disabled/minecraft/"+name[len(prefix):-4]

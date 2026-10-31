@@ -40,8 +40,8 @@ class DisabledModels:
         source = f"assets/{namespace}/textures/{path}.png"
         image = Image.open(io.BytesIO(self.jar.z.read(source))).convert("RGBA")
         alpha = image.getchannel("A")
-        image = ImageEnhance.Color(image).enhance(.15)
-        image = ImageEnhance.Brightness(image).enhance(.30)
+        image = ImageEnhance.Color(image).enhance(.80)
+        image = ImageEnhance.Brightness(image).enhance(.85)
         image.putalpha(alpha)
         output = self.root / f"textures/{destination}.png"
         output.parent.mkdir(parents=True, exist_ok=True)
