@@ -151,18 +151,18 @@ public final class ArtisanRulesTest {
         check(CrystalDropRules.chance(.02,.002,.12,50)==.12,"level fifty crystal chance reaches twelve percent");
         check(CrystalDropRules.chance(.02,.002,.12,-1)==.02,"missing or invalid skill level uses the base probability");
         check(CrystalDropRules.chance(Double.NaN,Double.NaN,Double.NaN,0)==.02,"non-finite configuration uses safe defaults");
-        check(CrystalDropRules.fishingChance(0)==.10,"fishing base is ten percent without skill bonuses");
-        check(Math.abs(CrystalDropRules.fishingChance(1)-.10)<1e-12,"fishing stays at base before first milestone");
-        check(Math.abs(CrystalDropRules.fishingChance(10)-.16)<1e-12,"fishing level ten is sixteen percent");
-        check(Math.abs(CrystalDropRules.fishingChance(30)-.28)<1e-12,"fishing level thirty is twenty-eight percent");
-        check(CrystalDropRules.fishingChance(50)==.40,"fishing level fifty reaches forty percent");
-        check(CrystalDropRules.fishingChance(-1)==.10,"negative fishing levels clamp to base");
-        check(CrystalDropRules.fishingChance(Integer.MAX_VALUE)==.40,"oversized fishing levels stay capped at forty percent");
-        double previousFishing=.10;
+        check(CrystalDropRules.fishingChance(0)==.08,"fishing base is eight percent without skill bonuses");
+        check(CrystalDropRules.fishingChance(1)==.08,"fishing stays at base before first milestone");
+        check(CrystalDropRules.fishingChance(10)==.12,"twenty displayed fishing levels use twelve percent");
+        check(CrystalDropRules.fishingChance(30)==.20,"sixty displayed fishing levels use twenty percent");
+        check(CrystalDropRules.fishingChance(50)==.28,"one hundred displayed fishing levels reach twenty-eight percent");
+        check(CrystalDropRules.fishingChance(-1)==.08,"negative fishing levels clamp to base");
+        check(CrystalDropRules.fishingChance(Integer.MAX_VALUE)==.28,"oversized fishing levels stay capped at twenty-eight percent");
+        double previousFishing=.08;
         for(int level=0;level<=100;level++) {
             double fishing=CrystalDropRules.fishingChance(level);
-            check(fishing>=previousFishing && fishing<=.40,"fishing increases monotonically to forty percent");
-            check((level>=50)==(fishing==.40),"fishing reaches its cap exactly at level fifty");
+            check(fishing>=previousFishing && fishing<=.28,"fishing increases monotonically to twenty-eight percent");
+            check((level>=50)==(fishing==.28),"fishing reaches its cap exactly at one hundred displayed levels");
             previousFishing=fishing;
         }
         check(ToolType.PICKAXE.relatedSkill()==Skill.MINING && ToolType.AXE.relatedSkill()==Skill.WOODCUTTING,"mining and woodcutting map to the correct tools");

@@ -15,13 +15,17 @@ public final class CrystalDropRules {
         double cap=Double.isFinite(maximum)?Math.clamp(maximum,0,1):.12;
         return Math.min(Math.max(start,cap),start+milestoneLevel(skillLevel)*gain);
     }
-    /** Shared weapon crystals: 5% base, +2 percentage points per ten combat levels, 25% at 100. */
+    /** Shared weapon crystals: 8% base, +2 percentage points per ten combat levels, 28% at 100. */
     public static double weaponChance(double skillLevel) {
-        return .05 + .20 * (milestoneLevel(skillLevel)/50.0);
+        return (8 + 2 * (milestoneLevel(skillLevel)/5)) / 100.0;
     }
-    /** Fishing keeps its 10% base and 40% maximum, now in ten displayed-level steps. */
+    /** Fishing crystals follow the same 8..28% ten-level curve as weapons. */
     public static double fishingChance(double skillLevel) {
-        return .10 + .30 * (milestoneLevel(skillLevel) / 50.0);
+        return weaponChance(skillLevel);
+    }
+    /** Axe crystals: 4% base, +2 percentage points per ten woodcutting levels, 24% at 100. */
+    public static double axeChance(double skillLevel) {
+        return (4 + 2 * (milestoneLevel(skillLevel)/5)) / 100.0;
     }
     /** Initial mining rates before any skill milestone. */
     public static double miningBase(String material) {

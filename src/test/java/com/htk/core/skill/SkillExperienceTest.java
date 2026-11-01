@@ -20,7 +20,7 @@ public final class SkillExperienceTest {
             check(CrystalDropRules.fishingChance(SkillScale.rewardLevel(old*2))==CrystalDropRules.fishingChance(old),"Fishing endpoints move to 100");
         }
         check(SkillScale.rewardLevel(51)==25.5,"Inserted levels interpolate rewards");
-        check(CrystalDropRules.fishingChance(SkillScale.rewardLevel(99))<.40 && CrystalDropRules.fishingChance(SkillScale.rewardLevel(100))==.40,"Fishing maximum only at 100");
+        check(CrystalDropRules.fishingChance(SkillScale.rewardLevel(99))<.28 && CrystalDropRules.fishingChance(SkillScale.rewardLevel(100))==.28,"Fishing maximum only at 100");
         check(CrystalDropRules.miningChance("EMERALD_ORE",.02,.002,.12,SkillScale.rewardLevel(99))<1,"Rare crystal guarantee waits until 100");
         for(int l=0;l<=120;l++)check(CombatHealth.bonus(l)==2*(Math.min(l,100)/5),"Full heart at each five-level milestone, capped at 100");
         check(CombatHealth.bonus(4)==0 && CombatHealth.bonus(5)==2 && CombatHealth.bonus(100)==40,"Combat health endpoints");

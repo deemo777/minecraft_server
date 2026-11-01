@@ -8,9 +8,10 @@ final class CrystalMilestoneRegression {
     private record Curve(String name,double initial,double at10,double maximum,DoubleUnaryOperator chance) {}
     static void run() {
         var curves=new ArrayList<Curve>();
-        curves.add(new Curve("weapon",.05,.07,.25,CrystalDropRules::weaponChance));
-        curves.add(new Curve("axe/hoe/can",.02,.03,.12,l->CrystalDropRules.chance(.02,.002,.12,l)));
-        curves.add(new Curve("fishing",.10,.13,.40,CrystalDropRules::fishingChance));
+        curves.add(new Curve("weapon",.08,.10,.28,CrystalDropRules::weaponChance));
+        curves.add(new Curve("axe",.04,.06,.24,CrystalDropRules::axeChance));
+        curves.add(new Curve("hoe/can",.02,.03,.12,l->CrystalDropRules.chance(.02,.002,.12,l)));
+        curves.add(new Curve("fishing",.08,.10,.28,CrystalDropRules::fishingChance));
         String[] ores={"STONE","DEEPSLATE","COPPER_ORE","DEEPSLATE_COPPER_ORE","COAL_ORE","DEEPSLATE_COAL_ORE",
                 "IRON_ORE","DEEPSLATE_IRON_ORE","GOLD_ORE","DEEPSLATE_GOLD_ORE","REDSTONE_ORE","DEEPSLATE_REDSTONE_ORE",
                 "LAPIS_ORE","DEEPSLATE_LAPIS_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE",
@@ -26,6 +27,8 @@ final class CrystalMilestoneRegression {
             double previous=curve.initial;
             for(int displayed=0;displayed<=100;displayed++) {
                 double chance=curve.chance.applyAsDouble(SkillScale.rewardLevel(displayed));
+                double expected=curve.initial+(curve.at10-curve.initial)*(displayed/10);
+                check(Math.abs(chance-expected)<1e-12,curve.name+": exact requested rate at displayed level "+displayed);
                 check(chance>=previous-1e-12 && chance<=curve.maximum+1e-12,curve.name+": monotonic and bounded");
                 if(displayed%10!=0)check(Math.abs(chance-previous)<1e-12,curve.name+": no increase within a ten-level band");
                 else if(displayed>0)check(chance>previous,curve.name+": increases at every completed ten-level milestone");
