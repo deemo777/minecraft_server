@@ -131,7 +131,7 @@ public final class ArtisanRulesTest {
             check(Math.abs(CrystalDropRules.miningChance(rare,.02,.002,.12,10)-.60)<1e-12,"rare ores reach sixty percent at level ten");
             check(Math.abs(CrystalDropRules.miningChance(rare,.02,.002,.12,30)-.80)<1e-12,"rare ores reach eighty percent at level thirty");
             check(CrystalDropRules.miningChance(rare,.02,.002,.12,-1)==base,"negative rare-ore level clamps to base");
-            check(Math.abs(CrystalDropRules.miningChance(rare,.02,.002,.12,1)-.51)<1e-12,"rare-ore level-one chance");
+            check(Math.abs(CrystalDropRules.miningChance(rare,.02,.002,.12,1)-.50)<1e-12,"rare-ore chance stays at base before first displayed milestone");
             for(int level=0;level<=100;level++) {
                 double chance=CrystalDropRules.miningChance(rare,.02,.002,.12,level);
                 check(chance>=last && chance<=1,"rare-ore chance rises monotonically without exceeding one");
@@ -145,14 +145,14 @@ public final class ArtisanRulesTest {
             double chance=CrystalDropRules.chance(.02,.002,.12,level);
             check(chance>=previous && chance<=.12,"crystal probability rises monotonically to its cap");previous=chance;
         }
-        check(Math.abs(CrystalDropRules.chance(.02,.002,.12,1)-.022)<1e-12,"level one crystal chance is 2.2 percent");
+        check(Math.abs(CrystalDropRules.chance(.02,.002,.12,1)-.02)<1e-12,"crystal rate stays at base before first milestone");
         check(Math.abs(CrystalDropRules.chance(.02,.002,.12,10)-.04)<1e-12,"level ten crystal chance is 4 percent");
         check(Math.abs(CrystalDropRules.chance(.02,.002,.12,20)-.06)<1e-12,"level twenty crystal chance is 6 percent");
         check(CrystalDropRules.chance(.02,.002,.12,50)==.12,"level fifty crystal chance reaches twelve percent");
         check(CrystalDropRules.chance(.02,.002,.12,-1)==.02,"missing or invalid skill level uses the base probability");
         check(CrystalDropRules.chance(Double.NaN,Double.NaN,Double.NaN,0)==.02,"non-finite configuration uses safe defaults");
         check(CrystalDropRules.fishingChance(0)==.10,"fishing base is ten percent without skill bonuses");
-        check(Math.abs(CrystalDropRules.fishingChance(1)-.106)<1e-12,"fishing level one is ten point six percent");
+        check(Math.abs(CrystalDropRules.fishingChance(1)-.10)<1e-12,"fishing stays at base before first milestone");
         check(Math.abs(CrystalDropRules.fishingChance(10)-.16)<1e-12,"fishing level ten is sixteen percent");
         check(Math.abs(CrystalDropRules.fishingChance(30)-.28)<1e-12,"fishing level thirty is twenty-eight percent");
         check(CrystalDropRules.fishingChance(50)==.40,"fishing level fifty reaches forty percent");
@@ -181,6 +181,7 @@ public final class ArtisanRulesTest {
             }
             System.out.printf(java.util.Locale.ROOT,"Artisan balance +%d -> +%d: mean crystals %.2f; maximum crystals %d%n",base,base+5,expected,ceiling*UpgradeRules.required(base+1));
         }
+        CrystalMilestoneRegression.run();
         System.out.println("Artisan and crystal-drop regression checks passed: "+checks);
     }
 }

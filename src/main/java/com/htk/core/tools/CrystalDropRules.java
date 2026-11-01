@@ -5,15 +5,23 @@ package com.htk.core.tools;
  * Never use the tool upgrade level here. */
 public final class CrystalDropRules {
     private CrystalDropRules() {}
+    /** Five legacy reward levels are ten displayed levels. All crystal growth shares these steps. */
+    private static double milestoneLevel(double level) {
+        return Double.isNaN(level)?0:Math.floor(Math.clamp(level,0,50)/5)*5;
+    }
     public static double chance(double base,double perLevel,double maximum,double skillLevel) {
         double start=Double.isFinite(base)?Math.clamp(base,0,1):.02;
         double gain=Double.isFinite(perLevel)?Math.clamp(perLevel,0,1):.002;
         double cap=Double.isFinite(maximum)?Math.clamp(maximum,0,1):.12;
-        return Math.min(Math.max(start,cap),start+Math.max(0,skillLevel)*gain);
+        return Math.min(Math.max(start,cap),start+milestoneLevel(skillLevel)*gain);
     }
-    /** Fishing has an independent ten-to-forty-percent curve through skill level 50. */
+    /** Shared weapon crystals: 5% base, +2 percentage points per ten combat levels, 25% at 100. */
+    public static double weaponChance(double skillLevel) {
+        return .05 + .20 * (milestoneLevel(skillLevel)/50.0);
+    }
+    /** Fishing keeps its 10% base and 40% maximum, now in ten displayed-level steps. */
     public static double fishingChance(double skillLevel) {
-        return .10 + .30 * (Math.clamp(skillLevel, 0, 50) / 50.0);
+        return .10 + .30 * (milestoneLevel(skillLevel) / 50.0);
     }
     /** Initial mining rates before any skill milestone. */
     public static double miningBase(String material) {
@@ -32,21 +40,20 @@ public final class CrystalDropRules {
     public static double miningChance(String material,double base,double perLevel,double maximum,double level) {
         double ore=miningBase(material);
         if(ore==0)return 0;
-        // Rare natural ores reach a guaranteed single crystal at mining level 50.
-        // Preserve their base rates at level zero and interpolate linearly to 100%.
+        // Rare ores retain 50% base and 100% at displayed level 100, in ten-level steps.
         if(material.equals("EMERALD_ORE") || material.equals("DEEPSLATE_EMERALD_ORE")
                 || material.equals("ANCIENT_DEBRIS")) {
-            return ore + (1 - ore) * (Math.clamp(level, 0, 50) / 50.0);
+            return ore + (1 - ore) * (milestoneLevel(level) / 50.0);
         }
         if(!material.endsWith("DIAMOND_ORE")) {
             // The caller supplies displayed level / 2. Five reward levels = ten displayed levels.
             // Each completed milestone adds 20% of the INITIAL rate, without compounding.
-            int milestones=(int)(Math.clamp(level,0,50)/5);
+            int milestones=(int)(milestoneLevel(level)/5);
             return ore*(1+.2*milestones);
         }
         double start=Double.isFinite(base)?Math.clamp(base,0,1):.02;
         double cap=Double.isFinite(maximum)?Math.clamp(maximum,0,1):.12;
-        // Preserve the existing diamond curve and configurable bonus cap.
+        // Preserve diamond's base and final probability; chance() applies the shared milestones.
         double gain=Double.isFinite(perLevel)?Math.clamp(perLevel,0,1):.002;
         return chance(ore,gain,Math.min(1,ore+Math.max(0,cap-start)),level);
     }

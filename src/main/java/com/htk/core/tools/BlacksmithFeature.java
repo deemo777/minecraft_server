@@ -122,6 +122,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         var skills=plugin.feature(SkillFeature.class);
         double level=skills==null?0:com.htk.core.skill.SkillScale.rewardLevel(skills.progress(p.getUniqueId(),type.relatedSkill()).level);
         double chance=CrystalDropRules.chance(dropChance,dropPerLevel,dropMaximum,level);
+        if(type.weapon())chance=CrystalDropRules.weaponChance(level);
         if(type==ToolType.PICKAXE) {
             if(mined==null)return;
             chance=CrystalDropRules.miningChance(mined.name(),dropChance,dropPerLevel,dropMaximum,level);

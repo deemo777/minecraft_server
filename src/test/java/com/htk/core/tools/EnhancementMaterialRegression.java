@@ -29,12 +29,12 @@ final class EnhancementMaterialRegression {
         check(!EnhancementMaterialRules.matches(ToolType.TACHI,null),"missing tool cannot match");
         check(EnhancementMaterialRules.fromId(null)==null && EnhancementMaterialRules.fromId("unknown")==null,"unmarked items remain invalid");
         check(EnhancementMaterialRules.matches(EnhancementMaterialRules.fromId("weapon"),ToolType.GREATSWORD),"new common ID upgrades any weapon");
-        int[] levels={0,1,10,50,100};double[] expected={.02,.021,.03,.07,.12};
+        int[] levels={0,1,10,50,100};double[] expected={.05,.05,.07,.15,.25};
         for(int i=0;i<levels.length;i++)
-            check(Math.abs(CrystalDropRules.chance(.02,.002,.12,SkillScale.rewardLevel(levels[i]))-expected[i])<1e-12,"existing weapon drop rate at displayed combat level "+levels[i]);
+            check(Math.abs(CrystalDropRules.weaponChance(SkillScale.rewardLevel(levels[i]))-expected[i])<1e-12,"requested weapon drop rate at displayed combat level "+levels[i]);
         for(int target=1;target<=25;target++)
             check(UpgradeRules.hasMaterials(target,true,UpgradeRules.required(target)),"common crystal quantity covers every upgrade tier");
-        System.out.println("Shared weapon crystal: legacy IDs, all material/tool pairs, presentation identity and unchanged combat drop curve passed");
+        System.out.println("Shared weapon crystal: legacy IDs, all material/tool pairs, presentation identity and five-to-twenty-five-percent combat milestone curve passed");
     }
     private static void check(boolean condition,String message) {
         if(!condition)throw new AssertionError(message);
