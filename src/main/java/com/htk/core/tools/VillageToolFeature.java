@@ -314,6 +314,8 @@ public final class VillageToolFeature implements Feature, Listener {
         ItemStack updated = item.clone();
         if (typeOf(item) != null) setLevel(updated, levelOf(item));
         else {
+            var plots=plugin.feature(com.htk.core.farm.FarmPlotFeature.class);
+            if(plots!=null && plots.refreshItem(updated))return updated;
             var smith = plugin.feature(BlacksmithFeature.class);
             if (smith == null || !smith.refreshMaterial(updated)) {
                 var meta=updated.getItemMeta();

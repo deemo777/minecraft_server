@@ -70,12 +70,12 @@ shops:
       honeycomb:      { material: HONEYCOMB, sell: 30 }
 
   farmplots:
-    title: "<#4f7d2a>비옥한 농지 상점"
+    title: "<#4f7d2a>토양 블록 상점"
     theme: crops
     npc-name: "<#91d46b><bold>상인"
     npc-profession: farmer
     items:
-      farm_plot: { material: MOSS_BLOCK, buy: 500, product: farm_plot }
+      farm_plot: { material: PAPER, buy: 500, product: soil_block }
 
   ores:
     title: "<#5a5048>광물 가게"

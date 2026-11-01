@@ -7,269 +7,281 @@ import com.htk.core.common.Items;
 import com.htk.core.common.Text;
 import com.htk.core.land.Land;
 import com.htk.core.land.LandFeature;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Farmland;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockGrowEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.block.BlockPistonExtendEvent;
-import org.bukkit.event.block.BlockPistonRetractEvent;
+import org.bukkit.event.*;
+import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.*;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** 구매 농지: 집 부지에서만 설치되며 수분 유지와 밟힘을 관리한다. */
+/** Custom soil planter: persistent farmland support plus a separate, collision-free 3D shell. */
 public final class FarmPlotFeature implements Feature, Listener {
     private final ServerCore plugin;
-    private final NamespacedKey itemKey;
-    private final NamespacedKey plotsKey;
-    private final NamespacedKey dryPlotsKey;
-    private final Set<org.bukkit.Location> plots = new HashSet<>();
+    // Keep legacy chunk/item keys so existing purchased plots and items remain usable.
+    private final NamespacedKey itemKey = new NamespacedKey("servercore","farm_plot_item");
+    private final NamespacedKey soilItemKey = new NamespacedKey("servercore","soil_block_item");
+    private final NamespacedKey plotsKey = new NamespacedKey("servercore","farm_plot_blocks");
+    private final NamespacedKey dryPlotsKey = new NamespacedKey("servercore","farm_plot_dry_blocks");
+    private final NamespacedKey displayKey = new NamespacedKey("servercore","soil_block_display");
+    private final Set<Location> plots = new HashSet<>();
+    private final Map<Location,ItemDisplay> displays = new HashMap<>();
+    private final Map<Location,Boolean> wetModels = new HashMap<>();
     private BukkitTask hydrationTask;
 
-    public FarmPlotFeature(ServerCore plugin) {
-        this.plugin = plugin;
-        itemKey = new NamespacedKey(plugin, "farm_plot_item");
-        plotsKey = new NamespacedKey(plugin, "farm_plot_blocks");
-        dryPlotsKey = new NamespacedKey(plugin, "farm_plot_dry_blocks");
-    }
-
+    public FarmPlotFeature(ServerCore plugin) { this.plugin=plugin; }
     @Override public void enable() {
-        Bukkit.getPluginManager().registerEvents(this, plugin);
-        for (var world : Bukkit.getWorlds()) for (var chunk : world.getLoadedChunks()) loadPlots(chunk);
-        hydrationTask = Bukkit.getScheduler().runTaskTimer(plugin, this::hydratePlots, 20L, 20L);
+        Bukkit.getPluginManager().registerEvents(this,plugin);
+        for(var world:Bukkit.getWorlds())for(var chunk:world.getLoadedChunks())loadPlots(chunk);
+        hydrationTask=Bukkit.getScheduler().runTaskTimer(plugin,this::hydratePlots,20L,20L);
     }
-
-    @Override public void reload() { }
-
+    @Override public void reload() { hydratePlots(); }
     @Override public void disable() {
-        if (hydrationTask != null) hydrationTask.cancel();
-        plots.clear();
+        if(hydrationTask!=null)hydrationTask.cancel();
+        displays.values().forEach(ItemDisplay::remove);
+        displays.clear();wetModels.clear();plots.clear();
     }
-
     public ItemStack createItem(int amount) {
-        ItemStack item = Items.of(Material.MOSS_BLOCK, amount,
-                "<#91d46b><bold>비옥한 농지",
-                java.util.List.of(),
-                plugin.resourcePackEnabled() ? Glyphs.model("farm_plot") : null);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.getPersistentDataContainer().set(itemKey, PersistentDataType.BYTE, (byte) 1);
-            item.setItemMeta(meta);
-        }
-        return item;
+        ItemStack item=Items.of(Material.PAPER,amount,"<#cfaa75><bold>토양 블록",List.of(),
+                plugin.resourcePackEnabled()?Glyphs.model("soil_block"):null);
+        ItemMeta meta=item.getItemMeta();
+        meta.getPersistentDataContainer().set(soilItemKey,PersistentDataType.BYTE,(byte)1);
+        item.setItemMeta(meta);return item;
     }
-
     public boolean isPlotItem(ItemStack item) {
-        return item != null && item.hasItemMeta()
-                && item.getItemMeta().getPersistentDataContainer().has(itemKey, PersistentDataType.BYTE);
+        if(item==null || !item.hasItemMeta())return false;
+        var data=item.getItemMeta().getPersistentDataContainer();
+        return data.has(soilItemKey,PersistentDataType.BYTE) || data.has(itemKey,PersistentDataType.BYTE);
     }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void place(BlockPlaceEvent event) {
-        if (!isPlotItem(event.getItemInHand())) return;
-        Block block = event.getBlockPlaced();
-        Player player = event.getPlayer();
-        if (!mayPlace(player, block)) {
-            event.setCancelled(true);
-            player.sendActionBar(Text.mm("<red>비옥한 농지는 본인이 사용할 수 있는 집 부지에만 설치할 수 있어요."));
-            return;
+    public boolean refreshItem(ItemStack item) {
+        if(!isPlotItem(item))return false;
+        ItemMeta meta=item.getItemMeta();
+        item.setType(Material.PAPER);
+        meta.getPersistentDataContainer().remove(itemKey);
+        meta.getPersistentDataContainer().set(soilItemKey,PersistentDataType.BYTE,(byte)1);
+        meta.displayName(Text.mm("<#cfaa75><bold>토양 블록").decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC,false));
+        meta.lore(null);
+        meta.setItemModel(plugin.resourcePackEnabled()?Glyphs.model("soil_block"):null);
+        item.setItemMeta(meta);return true;
+    }
+    private boolean mayPlace(Player player,Block block) {
+        LandFeature feature=plugin.feature(LandFeature.class);
+        if(feature==null)return true;
+        Land land=feature.landAt(block.getLocation());
+        return land!=null && feature.canBuildAt(player,land,block.getLocation());
+    }
+    /** Paper-backed custom item: fire the normal placement event before consuming anything. */
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void placeSoil(PlayerInteractEvent event) {
+        if(event.getAction()!=Action.RIGHT_CLICK_BLOCK || event.getClickedBlock()==null || !isPlotItem(event.getItem()))return;
+        if(event.useItemInHand()==Event.Result.DENY)return;
+        event.setCancelled(true);
+        Player player=event.getPlayer();
+        if(player.getGameMode()==GameMode.ADVENTURE || player.getGameMode()==GameMode.SPECTATOR)return;
+        Block clicked=event.getClickedBlock();
+        Block target=clicked.isReplaceable()?clicked:clicked.getRelative(event.getBlockFace());
+        if(!target.isReplaceable() || target.isLiquid() || marked(target)
+                || target.getY()<target.getWorld().getMinHeight() || target.getY()>=target.getWorld().getMaxHeight())return;
+        if(!mayPlace(player,target)) {
+            player.sendActionBar(Text.mm("<red>토양 블록은 본인이 사용할 수 있는 집 부지에만 설치할 수 있어요."));return;
         }
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (event.isCancelled() || block.getType() != Material.MOSS_BLOCK) return;
-            block.setType(Material.FARMLAND, false);
-            mark(block, true);
-            player.sendActionBar(Text.mm("<#91d46b>비옥한 농지 설치 · 물을 공급하면 수분을 유지해요"));
+        var previous=target.getState();
+        target.setType(Material.FARMLAND,false);
+        var placed=new BlockPlaceEvent(target,previous,clicked,event.getItem().clone(),player,true,event.getHand());
+        Bukkit.getPluginManager().callEvent(placed);
+        if(placed.isCancelled() || !placed.canBuild()) {previous.update(true,false);return;}
+        if(target.getType()!=Material.FARMLAND) {previous.update(true,false);return;}
+        mark(target,true);render(target);
+        if(player.getGameMode()!=GameMode.CREATIVE) {
+            ItemStack held=event.getHand()==EquipmentSlot.OFF_HAND?player.getInventory().getItemInOffHand():player.getInventory().getItemInMainHand();
+            held.setAmount(held.getAmount()-1);
+            if(event.getHand()==EquipmentSlot.OFF_HAND)player.getInventory().setItemInOffHand(held);
+            else player.getInventory().setItemInMainHand(held);
+        }
+        player.playSound(target.getLocation(),Sound.BLOCK_WOOD_PLACE,1,1);
+    }
+    /** Legacy block-backed items still work if another placement path emits a native event. */
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void legacyPlace(BlockPlaceEvent event) {
+        if(!isPlotItem(event.getItemInHand()) || event.getBlock().getType()!=Material.MOSS_BLOCK)return;
+        if(!mayPlace(event.getPlayer(),event.getBlock())) {event.setCancelled(true);return;}
+        Bukkit.getScheduler().runTask(plugin,()->{
+            if(event.isCancelled() || event.getBlock().getType()!=Material.MOSS_BLOCK)return;
+            event.getBlock().setType(Material.FARMLAND,false);mark(event.getBlock(),true);render(event.getBlock());
         });
     }
-
-    private boolean mayPlace(Player player, Block block) {
-        LandFeature landFeature = plugin.feature(LandFeature.class);
-        if (landFeature == null) return true;
-        Land land = landFeature.landAt(block.getLocation());
-        return land != null && landFeature.canBuildAt(player,land,block.getLocation());
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void preventDryDecay(BlockFadeEvent event) {
+        if(marked(event.getBlock()) && event.getNewState().getType()==Material.DIRT)event.setCancelled(true);
     }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void protectFromTrampling(EntityChangeBlockEvent event) {
-        Block block = event.getBlock();
-        if (event.getTo() == Material.DIRT && marked(block)) event.setCancelled(true);
+        if(event.getTo()==Material.DIRT && marked(event.getBlock()))event.setCancelled(true);
     }
-
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void moisture(MoistureChangeEvent event) {
+        if(marked(event.getBlock()) && dryLocked(event.getBlock())
+                && event.getNewState().getBlockData() instanceof Farmland farm && farm.getMoisture()>0)event.setCancelled(true);
+    }
+    @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true)
     public void grow(BlockGrowEvent event) {
-        Block soil = event.getBlock().getRelative(BlockFace.DOWN);
-        if (soil.getType() != Material.FARMLAND) return;
-        if (marked(soil)) {
-            if (!dryLocked(soil)) keepMoistWhileGrowing(soil);
-            return;
-        }
-        // Ordinary hoe-tilled farmland grows at half its current rate.
-        if (ThreadLocalRandom.current().nextBoolean()) event.setCancelled(true);
+        Block soil=event.getBlock().getRelative(BlockFace.DOWN);
+        if(soil.getType()!=Material.FARMLAND)return;
+        if(marked(soil)) {if(!dryLocked(soil))keepMoistWhileGrowing(soil);return;}
+        if(ThreadLocalRandom.current().nextBoolean())event.setCancelled(true);
     }
-
     private void keepMoistWhileGrowing(Block soil) {
-        if (!isAgeableCrop(soil.getRelative(BlockFace.UP))) return;
-        BlockData data = soil.getBlockData();
-        if (data instanceof Farmland farmland && farmland.getMoisture() > 0
-                && farmland.getMoisture() < farmland.getMaximumMoisture()) {
-            farmland.setMoisture(farmland.getMaximumMoisture());
-            soil.setBlockData(farmland, false);
+        if(!(soil.getRelative(BlockFace.UP).getBlockData() instanceof Ageable))return;
+        if(soil.getBlockData() instanceof Farmland farm && farm.getMoisture()>0 && farm.getMoisture()<farm.getMaximumMoisture()) {
+            farm.setMoisture(farm.getMaximumMoisture());soil.setBlockData(farm,false);
         }
     }
-
-    private boolean isAgeableCrop(Block block) {
-        return block.getBlockData() instanceof Ageable;
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void resetMoistureAfterMatureHarvest(BlockBreakEvent event) {
-        Block crop = event.getBlock();
-        if (!(crop.getBlockData() instanceof Ageable ageable)
-                || ageable.getAge() < ageable.getMaximumAge()) return;
-        Block soil = crop.getRelative(BlockFace.DOWN);
-        if (!marked(soil)) return;
-        BlockData data = soil.getBlockData();
-        if (data instanceof Farmland farmland) {
-            farmland.setMoisture(0);
-            soil.setBlockData(farmland, false);
-            setDryLocked(soil, true);
+        Block crop=event.getBlock();
+        if(!(crop.getBlockData() instanceof Ageable age) || age.getAge()<age.getMaximumAge())return;
+        Block soil=crop.getRelative(BlockFace.DOWN);
+        if(marked(soil) && soil.getBlockData() instanceof Farmland farm) {
+            farm.setMoisture(0);soil.setBlockData(farm,false);setDryLocked(soil,true);render(soil);
         }
     }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    /** Called only after the watering can's per-cell permission checks succeed. */
+    public void watered(Block soil) {
+        if(!marked(soil))return;
+        setDryLocked(soil,false);
+        if(soil.getBlockData() instanceof Farmland farm) {
+            farm.setMoisture(farm.getMaximumMoisture());soil.setBlockData(farm,false);
+        }
+        render(soil);
+    }
+    private void waterAround(Block water) {
+        if(water.getType()!=Material.WATER)return;
+        for(Location location:Set.copyOf(plots)) {
+            if(!water.getWorld().equals(location.getWorld()))continue;
+            int dx=water.getX()-location.getBlockX(),dz=water.getZ()-location.getBlockZ(),dy=water.getY()-location.getBlockY();
+            if(Math.abs(dx)<=4 && Math.abs(dz)<=4 && dy>=0 && dy<=1)watered(water.getWorld().getBlockAt(location));
+        }
+    }
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void waterPlaced(BlockPlaceEvent event) {
-        Block water = event.getBlockPlaced();
-        if (water.getType() != Material.WATER) return;
-        for (org.bukkit.Location location : Set.copyOf(plots)) {
-            if (location.getWorld() == null || !location.getWorld().equals(water.getWorld())) continue;
-            Block soil = water.getWorld().getBlockAt(location);
-            if (!dryLocked(soil) || !waterCanHydrate(water, soil)) continue;
-            setDryLocked(soil, false);
-            BlockData data = soil.getBlockData();
-            if (data instanceof Farmland farmland) {
-                farmland.setMoisture(farmland.getMaximumMoisture());
-                soil.setBlockData(farmland, false);
-            }
-        }
+        if(event.getBlock().getType()==Material.WATER)Bukkit.getScheduler().runTask(plugin,()->{if(!event.isCancelled())waterAround(event.getBlock());});
     }
-
-    private boolean waterCanHydrate(Block water, Block soil) {
-        int dx = water.getX() - soil.getX();
-        int dz = water.getZ() - soil.getZ();
-        int dy = water.getY() - soil.getY();
-        return dx * dx + dz * dz <= 16 && dy >= 0 && dy <= 1;
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void waterBucket(PlayerBucketEmptyEvent event) {
+        Block target=event.getBlock();
+        Bukkit.getScheduler().runTask(plugin,()->{if(!event.isCancelled())waterAround(target);});
     }
-
     private void hydratePlots() {
-        Iterator<org.bukkit.Location> iterator = plots.iterator();
-        while (iterator.hasNext()) {
-            org.bukkit.Location location = iterator.next();
-            var world = location.getWorld();
-            if (world == null || !world.isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) continue;
-            Block block = world.getBlockAt(location);
-            if (block.getType() != Material.FARMLAND) {
-                iterator.remove();
-                setDryLocked(block, false);
-                mark(block, false);
-                continue;
-            }
-            if (dryLocked(block)) {
-                BlockData data = block.getBlockData();
-                if (data instanceof Farmland farmland && farmland.getMoisture() != 0) {
-                    farmland.setMoisture(0);
-                    block.setBlockData(farmland, false);
-                }
-            } else keepMoistWhileGrowing(block);
+        for(Location location:Set.copyOf(plots)) {
+            World world=location.getWorld();
+            if(world==null || !world.isChunkLoaded(location.getBlockX()>>4,location.getBlockZ()>>4))continue;
+            Block block=world.getBlockAt(location);
+            // Recover registered legacy plots that already decayed; never replace unrelated construction.
+            if(block.getType()==Material.DIRT)block.setType(Material.FARMLAND,false);
+            if(block.getType()!=Material.FARMLAND) {mark(block,false);removeDisplay(location);continue;}
+            if(dryLocked(block) && block.getBlockData() instanceof Farmland farm && farm.getMoisture()!=0) {
+                farm.setMoisture(0);block.setBlockData(farm,false);
+            } else if(!dryLocked(block))keepMoistWhileGrowing(block);
+            render(block);
         }
     }
-
+    private void render(Block block) {
+        if(plugin==null)return;
+        if(!plugin.resourcePackEnabled()) {removeDisplay(block.getLocation());return;}
+        Location location=block.getLocation();
+        boolean wet=block.getBlockData() instanceof Farmland farm && farm.getMoisture()>0;
+        ItemDisplay display=displays.get(location);
+        if(display!=null && display.isValid() && Objects.equals(wetModels.get(location),wet))return;
+        ItemStack model=new ItemStack(Material.PAPER);
+        ItemMeta meta=model.getItemMeta();meta.setItemModel(Glyphs.model(wet?"soil_block_wet":"soil_block"));model.setItemMeta(meta);
+        if(display==null || !display.isValid()) {
+            display=block.getWorld().spawn(location.clone().add(.5,.5,.5),ItemDisplay.class,d->{
+                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                d.setPersistent(false);d.setInvulnerable(true);d.setDisplayWidth(1);d.setDisplayHeight(1);
+                d.getPersistentDataContainer().set(displayKey,PersistentDataType.BYTE,(byte)1);
+            });
+            displays.put(location,display);
+        }
+        display.setItemStack(model);wetModels.put(location,wet);
+    }
+    private void removeDisplay(Location location) {
+        ItemDisplay display=displays.remove(location);wetModels.remove(location);
+        if(display!=null)display.remove();
+    }
     @EventHandler public void chunkLoad(ChunkLoadEvent event) {
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (event.getChunk().isLoaded()) loadPlots(event.getChunk());
-        });
+        Bukkit.getScheduler().runTask(plugin,()->{if(event.getChunk().isLoaded())loadPlots(event.getChunk());});
     }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void chunkUnload(ChunkUnloadEvent event) {
-        var chunk = event.getChunk();
-        plots.removeIf(location -> location.getWorld() != null
-                && location.getWorld().getUID().equals(chunk.getWorld().getUID())
-                && (location.getBlockX() >> 4) == chunk.getX()
-                && (location.getBlockZ() >> 4) == chunk.getZ());
-    }
-
-    private void loadPlots(org.bukkit.Chunk chunk) {
-        int[] values = chunk.getPersistentDataContainer().get(plotsKey, PersistentDataType.INTEGER_ARRAY);
-        if (values == null) return;
-        for (int value : values) {
-            int x = (chunk.getX() << 4) | (value & 15);
-            int z = (chunk.getZ() << 4) | ((value >>> 4) & 15);
-            int y = (value >> 8) - 4096;
-            Block block = chunk.getWorld().getBlockAt(x, y, z);
-            if (block.getType() == Material.FARMLAND) plots.add(block.getLocation());
-            else mark(block, false);
+        var chunk=event.getChunk();
+        for(Location location:Set.copyOf(plots))if(location.getWorld().equals(chunk.getWorld())
+                && (location.getBlockX()>>4)==chunk.getX() && (location.getBlockZ()>>4)==chunk.getZ()) {
+            plots.remove(location);removeDisplay(location);
         }
     }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    private void loadPlots(org.bukkit.Chunk chunk) {
+        for(var entity:chunk.getEntities())if(entity instanceof ItemDisplay && entity.getPersistentDataContainer().has(displayKey,PersistentDataType.BYTE))entity.remove();
+        int[] values=chunk.getPersistentDataContainer().get(plotsKey,PersistentDataType.INTEGER_ARRAY);
+        if(values==null)return;
+        for(int value:values) {
+            Block block=chunk.getWorld().getBlockAt((chunk.getX()<<4)|(value&15),(value>>8)-4096,(chunk.getZ()<<4)|((value>>>4)&15));
+            if(block.getType()==Material.DIRT)block.setType(Material.FARMLAND,false);
+            if(block.getType()==Material.FARMLAND) {plots.add(block.getLocation());removeDisplay(block.getLocation());render(block);}
+            else mark(block,false);
+        }
+    }
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void protectFromPiston(BlockPistonExtendEvent event) {
-        if (event.getBlocks().stream().anyMatch(this::marked)) event.setCancelled(true);
+        // Farmland can be destroyed at the destination without appearing in the moved-block list.
+        if(marked(event.getBlock().getRelative(event.getDirection())) || event.getBlocks().stream()
+                .anyMatch(block->marked(block) || marked(block.getRelative(event.getDirection()))))event.setCancelled(true);
     }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void protectFromPiston(BlockPistonRetractEvent event) {
-        if (event.getBlocks().stream().anyMatch(this::marked)) event.setCancelled(true);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void stopVanillaDrop(BlockBreakEvent event) {
-        if (marked(event.getBlock())) event.setDropItems(false);
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void protectFromPiston(BlockPistonRetractEvent event) {if(event.getBlocks().stream().anyMatch(this::marked))event.setCancelled(true);}
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void protectExplosion(EntityExplodeEvent event) {event.blockList().removeIf(this::marked);}
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void protectExplosion(BlockExplodeEvent event) {event.blockList().removeIf(this::marked);}
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void stopVanillaDrop(BlockBreakEvent event) {if(marked(event.getBlock()))event.setDropItems(false);}
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void refund(BlockBreakEvent event) {
-        Block block = event.getBlock();
-        if (!marked(block)) return;
-        mark(block, false);
-        block.getWorld().dropItemNaturally(block.getLocation().add(.5, .2, .5), createItem(1));
+        Block block=event.getBlock();if(!marked(block))return;
+        mark(block,false);removeDisplay(block.getLocation());
+        if(event.getPlayer().getGameMode()!=GameMode.CREATIVE)
+            block.getWorld().dropItemNaturally(block.getLocation().add(.5,.2,.5),createItem(1));
     }
 
     private static int packed(Block block) {
         return (block.getX() & 15) | ((block.getZ() & 15) << 4) | ((block.getY() + 4096) << 8);
     }
 
-    private boolean marked(Block block) {
+    boolean marked(Block block) {
         int[] values = block.getChunk().getPersistentDataContainer().get(plotsKey, PersistentDataType.INTEGER_ARRAY);
         return values != null && Arrays.stream(values).anyMatch(value -> value == packed(block));
     }
 
-    private boolean dryLocked(Block block) {
+    boolean dryLocked(Block block) {
         int[] values = block.getChunk().getPersistentDataContainer().get(dryPlotsKey, PersistentDataType.INTEGER_ARRAY);
         return values != null && Arrays.stream(values).anyMatch(value -> value == packed(block));
     }
 
-    private void setDryLocked(Block block, boolean lock) {
+    void setDryLocked(Block block, boolean lock) {
         var data = block.getChunk().getPersistentDataContainer();
         int[] values = data.get(dryPlotsKey, PersistentDataType.INTEGER_ARRAY);
         if (values == null) values = new int[0];
@@ -283,7 +295,7 @@ public final class FarmPlotFeature implements Feature, Listener {
         else data.set(dryPlotsKey, PersistentDataType.INTEGER_ARRAY, updated);
     }
 
-    private void mark(Block block, boolean add) {
+    void mark(Block block, boolean add) {
         var data = block.getChunk().getPersistentDataContainer();
         int[] values = data.get(plotsKey, PersistentDataType.INTEGER_ARRAY);
         if (values == null) values = new int[0];

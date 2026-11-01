@@ -103,6 +103,13 @@ public final class ShopFeature implements Feature, Listener {
             copySection(farmPlots, yaml, "shops.farmplots");
             migrated = true;
         }
+        if("<#4f7d2a>비옥한 농지 상점".equals(yaml.getString("shops.farmplots.title"))) {
+            yaml.set("shops.farmplots.title","<#4f7d2a>토양 블록 상점");migrated=true;
+        }
+        if("farm_plot".equalsIgnoreCase(yaml.getString("shops.farmplots.items.farm_plot.product",""))) {
+            yaml.set("shops.farmplots.items.farm_plot.product","soil_block");
+            yaml.set("shops.farmplots.items.farm_plot.material","PAPER");migrated=true;
+        }
         if ("farm_plot".equalsIgnoreCase(yaml.getString("shops.crops.items.farm_plot.product", ""))) {
             yaml.set("shops.crops.items.farm_plot", null);
             migrated = true;
@@ -110,7 +117,7 @@ public final class ShopFeature implements Feature, Listener {
         if (migrated) {
             try {
                 yaml.save(new File(plugin.getDataFolder(), "shops.yml"));
-                plugin.getLogger().info("비옥한 농지 상점을 shops.yml에 추가했어요.");
+                plugin.getLogger().info("토양 블록 상점을 shops.yml에 갱신했어요.");
             } catch (IOException e) {
                 plugin.getLogger().warning("shops.yml 농지 상점 갱신 실패: " + e.getMessage());
             }
@@ -272,7 +279,7 @@ public final class ShopFeature implements Feature, Listener {
     }
 
     ItemStack purchaseItem(ShopConfig.Item item, int amount) {
-        if (item.product().equalsIgnoreCase("farm_plot")) {
+        if (item.product().equalsIgnoreCase("farm_plot") || item.product().equalsIgnoreCase("soil_block")) {
             com.htk.core.farm.FarmPlotFeature plots = plugin.feature(com.htk.core.farm.FarmPlotFeature.class);
             if (plots != null) return plots.createItem(amount);
         }

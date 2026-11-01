@@ -481,6 +481,8 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
                 if (!(target.getBlockData() instanceof Farmland farm)
                         || farm.getMoisture() == farm.getMaximumMoisture()) continue;
                 farm.setMoisture(farm.getMaximumMoisture()); target.setBlockData(farm);
+                var plots=plugin.feature(com.htk.core.farm.FarmPlotFeature.class);
+                if(plots!=null)plots.watered(target);
                 target.getWorld().spawnParticle(Particle.SPLASH, target.getLocation().add(.5,1,.5), 8, .3,.1,.3);
                 watered++;
             }

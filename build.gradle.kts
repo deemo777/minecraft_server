@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.16.0"
+version = "4.17.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -52,6 +52,13 @@ val verifyEnhancementRules by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.tools.UpgradeRulesTest")
 }
 tasks.check { dependsOn(verifyEnhancementRules) }
+
+val verifySoilBlocks by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.farm.SoilBlockRegression")
+}
+tasks.check { dependsOn(verifySoilBlocks) }
 
 // Tests use a dependency-free assertion runner via verifyLandRules, rather than JUnit.
 tasks.test { failOnNoDiscoveredTests = false }
