@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.htk"
-version = "4.17.3"
+version = "4.18.0"
 
 val paperVersion: String by project
 val javaVersion: String by project
@@ -66,6 +66,13 @@ val verifyOrePrices by tasks.registering(JavaExec::class) {
     mainClass.set("com.htk.core.shop.OrePriceRulesTest")
 }
 tasks.check { dependsOn(verifyOrePrices) }
+
+val verifyVanillaTrades by tasks.registering(JavaExec::class) {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.htk.core.shop.VanillaTradeProtectionTest")
+}
+tasks.check { dependsOn(verifyVanillaTrades) }
 
 // Tests use a dependency-free assertion runner via verifyLandRules, rather than JUnit.
 tasks.test { failOnNoDiscoveredTests = false }

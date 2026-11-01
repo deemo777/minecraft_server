@@ -1,4 +1,4 @@
-ore-price-revision: 1
+ore-price-revision: 2
 
 # 상점 (NPC 상점 주인을 클릭하면 열려요)
 #
@@ -12,7 +12,7 @@ ore-price-revision: 1
 #   npc-name         상점 주인 머리 위 이름
 #   npc-profession   상점 주인 옷: fisherman, farmer, toolsmith, armorer, weaponsmith, butcher, librarian ... (none = 기본)
 #   items            품목 (적은 순서대로 칸에 놓여요; product는 ServerCore 커스텀 구매 아이템 ID)
-#     sell: 플레이어가 팔 때 받는 골드 (1개 값) — 처음 값의 2배로 올림 (빚 기준에 맞춤)
+#     sell: 플레이어가 팔 때 받는 골드 (1개 값)
 #     skill: (상점마다) 이 분야 레벨이 높을수록 판매가 보너스 (skills.yml → perks.sell-bonus-per-level)
 #     buy:  플레이어가 상점에서 살 때 내는 골드 (1개 값)
 #
@@ -86,20 +86,21 @@ shops:
     npc-profession: toolsmith
     skill: mining
     items:
-      # 구리 원석/주괴 각각 반값. 철·금은 형태별 1:2:4. 나머지는 주괴 기준, 1.5배의 소수는 반올림.
-      coal:            { material: COAL, sell: 11 }
-      raw_copper:      { material: RAW_COPPER, sell: 4 }
-      copper_ingot:    { material: COPPER_INGOT, sell: 11 }
-      raw_iron:        { material: RAW_IRON, sell: 8 }
-      iron_ingot:      { material: IRON_INGOT, sell: 22 }
-      raw_gold:        { material: RAW_GOLD, sell: 16 }
-      gold_ingot:      { material: GOLD_INGOT, sell: 44 }
-      redstone:        { material: REDSTONE, sell: 17 }
-      lapis_lazuli:    { material: LAPIS_LAZULI, sell: 17 }
-      quartz:          { material: QUARTZ, sell: 12 }
-      amethyst_shard:  { material: AMETHYST_SHARD, sell: 20 }
-      emerald:         { material: EMERALD, sell: 132 }
-      diamond:         { material: DIAMOND, sell: 66 }
-      netherite_scrap: { material: NETHERITE_SCRAP, sell: 1200 }
-      netherite_ingot: { material: NETHERITE_INGOT, sell: 330 }
-      flint:           { material: FLINT, sell: 4 }
+      # 광물 1개 기본 판매가. 채광 판매 보너스는 별도로 적용합니다.
+      coal:            { material: COAL, sell: 10 }
+      raw_copper:      { material: RAW_COPPER, sell: 10 }
+      copper_ingot:    { material: COPPER_INGOT, sell: 25 }
+      raw_iron:        { material: RAW_IRON, sell: 50 }
+      iron_ingot:      { material: IRON_INGOT, sell: 100 }
+      raw_gold:        { material: RAW_GOLD, sell: 100 }
+      gold_ingot:      { material: GOLD_INGOT, sell: 200 }
+      redstone:        { material: REDSTONE, sell: 25 }
+      lapis_lazuli:    { material: LAPIS_LAZULI, sell: 25 }
+      quartz:          { material: QUARTZ, sell: 25 }
+      amethyst_shard:  { material: AMETHYST_SHARD, sell: 150 }
+      emerald:         { material: EMERALD, sell: 2000 }
+      diamond:         { material: DIAMOND, sell: 400 }
+      ancient_debris:  { material: ANCIENT_DEBRIS, sell: 5000 }
+      netherite_scrap: { material: NETHERITE_SCRAP, sell: 6000 }
+      netherite_ingot: { material: NETHERITE_INGOT, sell: 35000 }
+      flint:           { material: FLINT, sell: 25 }

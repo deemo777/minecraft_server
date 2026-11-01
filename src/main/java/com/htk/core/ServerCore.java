@@ -45,6 +45,7 @@ public final class ServerCore extends JavaPlugin {
         points = new Points(getDataFolder(), getLogger());
         points.remove("race-track"); // Retire the removed feature's saved demonstration point.
         getServer().getPluginManager().registerEvents(new GuiListener(), this);
+        getServer().getPluginManager().registerEvents(new com.htk.core.shop.VanillaTradeProtection(), this);
 
         features.add(new com.htk.core.tools.CombatImmunityFeature(this));
         EconomyFeature economy = null;
