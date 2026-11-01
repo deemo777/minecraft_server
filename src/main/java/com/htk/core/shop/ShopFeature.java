@@ -97,7 +97,7 @@ public final class ShopFeature implements Feature, Listener {
     private void loadConfig() {
         YamlConfiguration yaml = plugin.loadYaml("shops.yml");
         YamlConfiguration defaults = plugin.loadDefaultYaml("shops.yml");
-        boolean migrated = false;
+        boolean migrated = OrePriceRules.migrate(yaml);
         ConfigurationSection farmPlots = defaults.getConfigurationSection("shops.farmplots");
         if (farmPlots != null && !yaml.isConfigurationSection("shops.farmplots")) {
             copySection(farmPlots, yaml, "shops.farmplots");
@@ -117,9 +117,9 @@ public final class ShopFeature implements Feature, Listener {
         if (migrated) {
             try {
                 yaml.save(new File(plugin.getDataFolder(), "shops.yml"));
-                plugin.getLogger().info("토양 블록 상점을 shops.yml에 갱신했어요.");
+                plugin.getLogger().info("상점 설정과 광물 가격을 shops.yml에 갱신했어요.");
             } catch (IOException e) {
-                plugin.getLogger().warning("shops.yml 농지 상점 갱신 실패: " + e.getMessage());
+                plugin.getLogger().warning("shops.yml 상점 설정 갱신 실패: " + e.getMessage());
             }
         }
         config = ShopConfig.load(yaml, plugin.getLogger());
