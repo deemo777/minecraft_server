@@ -83,16 +83,11 @@ public final class ArtisanRulesTest {
         check(ArtisanRules.attempt(24,0,zero,.99).level()==25,"custom zero-percent ceiling completes on attempt 201");
         check(ArtisanRules.attempt(24,3,new ArtisanRules.Progress(10,500000),.99).progress().energy()==512821,"existing earned energy is retained with the new gain");
         double previous=0;
-        for(String stone:new String[]{"STONE","DEEPSLATE"}) {
-            check(CrystalDropRules.miningChance(stone,.02,.002,.12,100)==.01,"ordinary stone stays fixed at one percent");
-        }
         for(String name:new String[]{"GRANITE","DIORITE","ANDESITE","TUFF","CALCITE","NETHERRACK","BASALT","BLACKSTONE","END_STONE","DIRT","COBBLESTONE"})
             check(CrystalDropRules.miningChance(name,.02,.002,.12,100)==0,"ineligible material never drops mining crystals: "+name);
         for(String ore:new String[]{"COAL_ORE","COPPER_ORE","IRON_ORE","GOLD_ORE","REDSTONE_ORE","LAPIS_ORE","DIAMOND_ORE"}) {
             check(CrystalDropRules.miningBase(ore)==CrystalDropRules.miningBase("DEEPSLATE_"+ore),"deepslate variant has identical ore probability");
-            double initial=CrystalDropRules.miningBase(ore),scale=ore.equals("DIAMOND_ORE")?1:.25;
-            check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,10)-initial-.02*scale)<1e-9,"ore skill growth uses its own reduction factor");
-            check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,100)-initial-.10*scale)<1e-9,"ore bonus cap uses its own reduction factor");
+
         }
         check(CrystalDropRules.miningBase("ANCIENT_DEBRIS")==.50,"ancient debris starts at fifty percent");
         for(int level=0;level<=100;level++) {
@@ -106,18 +101,30 @@ public final class ArtisanRulesTest {
         check(CrystalDropRules.miningBase("COAL_ORE")==.02,"coal group starts at two percent");
         check(CrystalDropRules.miningBase("IRON_ORE")==.025,"iron group starts at two point five percent");
         check(CrystalDropRules.miningBase("GOLD_ORE")==.02 && CrystalDropRules.miningBase("DIAMOND_ORE")==.15,"gold is reduced, diamond remains unchanged");
-        String[] reduced={"COPPER_ORE","COAL_ORE","IRON_ORE","GOLD_ORE","REDSTONE_ORE","LAPIS_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE"};
-        double[] previousBases={.025,.04,.05,.04,.05,.04,.04,.04};
-        for(int index=0;index<reduced.length;index++)for(int halfLevel=0;halfLevel<=200;halfLevel++) {
-            double level=halfLevel/2.0; // Includes fractional rewards from odd displayed skill levels.
-            double before=CrystalDropRules.chance(previousBases[index],.001,previousBases[index]+.05,level);
-            check(Math.abs(CrystalDropRules.miningChance(reduced[index],.02,.002,.12,level)-before/2)<1e-12,"Common ore rates are halved at every skill level");
-            if(!reduced[index].startsWith("NETHER_"))check(Math.abs(CrystalDropRules.miningChance("DEEPSLATE_"+reduced[index],.02,.002,.12,level)-before/2)<1e-12,"Deep ore reduction is identical");
-            check(CrystalDropRules.miningChance("STONE",.02,.002,.12,level)==.01,"Stone chance is halved");
-            check(CrystalDropRules.miningChance("DEEPSLATE",.02,.002,.12,level)==.01,"Deepslate chance is halved");
-            check(Math.abs(CrystalDropRules.miningChance("DIAMOND_ORE",.02,.002,.12,level)-CrystalDropRules.chance(.15,.002,.25,level))<1e-12,"Diamond curve unchanged at every level");
-            check(Math.abs(CrystalDropRules.miningChance("DEEPSLATE_DIAMOND_ORE",.02,.002,.12,level)-CrystalDropRules.chance(.15,.002,.25,level))<1e-12,"Deep diamond curve unchanged");
+        String[] stepped={"STONE","DEEPSLATE","COPPER_ORE","COAL_ORE","IRON_ORE","GOLD_ORE","REDSTONE_ORE","LAPIS_ORE","NETHER_GOLD_ORE","NETHER_QUARTZ_ORE"};
+        for(String ore:stepped) {
+            double base=CrystalDropRules.miningBase(ore),expected=base;
+            for(int displayed=0;displayed<=100;displayed++) {
+                if(displayed>0 && displayed%10==0)expected+=base*.2;
+                double reward=com.htk.core.skill.SkillScale.rewardLevel(displayed);
+                double actual=CrystalDropRules.miningChance(ore,.02,.002,.12,reward);
+                check(Math.abs(actual-expected)<1e-12,"Every displayed level uses initial-rate additive ten-level milestones: "+ore+" Lv."+displayed);
+                check(actual==CrystalDropRules.miningChance(ore,0,0,0,reward),"Common mining milestone curve is independent of legacy gain/cap settings");
+                if(ore.endsWith("_ORE") && !ore.startsWith("NETHER_"))
+                    check(actual==CrystalDropRules.miningChance("DEEPSLATE_"+ore,.02,.002,.12,reward),"Deepslate ore has the same milestone curve");
+            }
+            check(CrystalDropRules.miningChance(ore,.02,.002,.12,-1)==base,"Negative skill level uses base chance");
+            check(Math.abs(CrystalDropRules.miningChance(ore,.02,.002,.12,100)-base*3)<1e-12,"Over-cap skill saturates at three times base, without compounding");
         }
+        for(int displayed=0;displayed<=100;displayed++) {
+            double reward=com.htk.core.skill.SkillScale.rewardLevel(displayed);
+            for(String diamond:new String[]{"DIAMOND_ORE","DEEPSLATE_DIAMOND_ORE"})
+                check(Math.abs(CrystalDropRules.miningChance(diamond,.02,.002,.12,reward)-CrystalDropRules.chance(.15,.002,.25,reward))<1e-12,"Diamond curve unchanged at every displayed level");
+        }
+        double[] milestoneLevels={1,9,10,19,20,99,100};
+        double[] coalChances={.02,.02,.024,.024,.028,.056,.06};
+        for(int i=0;i<milestoneLevels.length;i++)
+            check(Math.abs(CrystalDropRules.miningChance("COAL_ORE",.02,.002,.12,milestoneLevels[i]/2)-coalChances[i])<1e-12,"Explicit displayed milestone boundaries");
         for(String rare:new String[]{"EMERALD_ORE","DEEPSLATE_EMERALD_ORE","ANCIENT_DEBRIS"}) {
             double base=CrystalDropRules.miningBase(rare), last=base;
             check(base==.50,"both rare ores share the requested fifty-percent base");

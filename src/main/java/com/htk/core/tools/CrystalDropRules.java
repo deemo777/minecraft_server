@@ -15,7 +15,7 @@ public final class CrystalDropRules {
     public static double fishingChance(double skillLevel) {
         return .10 + .30 * (Math.clamp(skillLevel, 0, 50) / 50.0);
     }
-    /** Ordinary stone is a fixed exception; only actual ores receive skill growth. */
+    /** Initial mining rates before any skill milestone. */
     public static double miningBase(String material) {
         String name=material.startsWith("DEEPSLATE_")?material.substring(10):material;
         return switch(name) {
@@ -32,20 +32,22 @@ public final class CrystalDropRules {
     public static double miningChance(String material,double base,double perLevel,double maximum,double level) {
         double ore=miningBase(material);
         if(ore==0)return 0;
-        if(material.equals("STONE") || material.equals("DEEPSLATE"))return ore;
         // Rare natural ores reach a guaranteed single crystal at mining level 50.
         // Preserve their base rates at level zero and interpolate linearly to 100%.
         if(material.equals("EMERALD_ORE") || material.equals("DEEPSLATE_EMERALD_ORE")
                 || material.equals("ANCIENT_DEBRIS")) {
             return ore + (1 - ore) * (Math.clamp(level, 0, 50) / 50.0);
         }
+        if(!material.endsWith("DIAMOND_ORE")) {
+            // The caller supplies displayed level / 2. Five reward levels = ten displayed levels.
+            // Each completed milestone adds 20% of the INITIAL rate, without compounding.
+            int milestones=(int)(Math.clamp(level,0,50)/5);
+            return ore*(1+.2*milestones);
+        }
         double start=Double.isFinite(base)?Math.clamp(base,0,1):.02;
         double cap=Double.isFinite(maximum)?Math.clamp(maximum,0,1):.12;
-        // Common ores use one quarter of the original growth/cap, halving the previous curve again.
-        // Reduce growth and its cap as well as the base, so skill levels
-        // cannot erase the reduction. Diamond and the rare-ore branch stay unchanged.
-        double scale=material.endsWith("DIAMOND_ORE")?1:.25;
+        // Preserve the existing diamond curve and configurable bonus cap.
         double gain=Double.isFinite(perLevel)?Math.clamp(perLevel,0,1):.002;
-        return chance(ore,gain*scale,Math.min(1,ore+Math.max(0,cap-start)*scale),level);
+        return chance(ore,gain,Math.min(1,ore+Math.max(0,cap-start)),level);
     }
 }
