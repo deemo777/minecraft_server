@@ -33,7 +33,8 @@ def prepare(pack, category=None, name=None, model_path=None, angle=-23):
     textures = {}; meta = {}
     for slot, ref in model['textures'].items():
         if slot == 'particle': continue
-        path = 'assets/servercore/textures/' + ref.split(':')[1] + '.png'
+        namespace, texture_path = ref.split(':', 1)
+        path = f'assets/{namespace}/textures/{texture_path}.png'
         textures[slot] = np.array(Image.open(io.BytesIO(pack.read(path))).convert('RGBA'))
         meta[slot] = json.loads(pack.read(path + '.mcmeta'))['animation'] if path+'.mcmeta' in pack.namelist() else {}
         meta[slot].setdefault('width',textures[slot].shape[1])

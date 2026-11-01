@@ -36,3 +36,9 @@
 - All life skills cap at 100. Preserve existing player levels and stored XP; never double, rescale, or reset them during this expansion.
 - Keep the original shared XP curve through level 100; do not restore the cancelled mining-only multiplier.
 - Move old level-25 rewards to 50 and old level-50 rewards to 100. Use displayed level / 2 for continuous rewards and crystal skill bonuses, and double legacy title thresholds exactly once. Gear upgrade levels and the fixed mining rules are separate.
+
+# Block and item pixel-art scale
+
+- New block art must follow Minecraft's native 16×16 texel grid per full block face. Do not add 32×32 fine grain, per-pixel procedural noise, subpixel decorative geometry, or UVs that shrink a texture pixel below one native block pixel.
+- Match supplied references with broad pixel clusters and their actual plank/frame layout. Existing unrelated third-party assets keep their original designs unless requested otherwise.
+- The soil block uses the unchanged vanilla `minecraft:block/dirt_path_top` texture with full 16×16 UV coverage. Keep that top unmodified in both dry and wet visual states.

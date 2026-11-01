@@ -212,7 +212,7 @@ public final class FarmPlotFeature implements Feature, Listener {
         if(display==null || !display.isValid()) {
             display=block.getWorld().spawn(location.clone().add(.5,.5,.5),ItemDisplay.class,d->{
                 d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-                d.setPersistent(false);d.setInvulnerable(true);d.setDisplayWidth(1);d.setDisplayHeight(1);
+                d.setPersistent(false);d.setInvulnerable(true);d.setDisplayWidth(1);d.setDisplayHeight(1.25f);
                 d.getPersistentDataContainer().set(displayKey,PersistentDataType.BYTE,(byte)1);
             });
             displays.put(location,display);

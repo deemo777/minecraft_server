@@ -1,71 +1,63 @@
-"""Install a native 3D wooden soil planter, matching the supplied crate-and-soil reference.
+"""Native 16px crate-style soil block; use the unchanged vanilla dirt-path top.
 
-All geometry and textures are generated deterministically; no vanilla item/block mesh is reused.
-The old farm_plot item model remains an alias for already-issued legacy items.
+A block face has at most 16 texels across 16 model units. No random noise, fine grain,
+resized vanilla textures or subpixel decorative geometry. The supplied example pack
+uses cube_bottom_top and the byte-identical vanilla dirt_path_top texture.
 """
 import json
-import random
 from pathlib import Path
 from PIL import Image, ImageDraw
 
 
 def texture(kind):
-    rng=random.Random(9271)
-    image=Image.new("RGBA",(32,32))
-    for y in range(32):
-        for x in range(32):
-            if kind.startswith("soil"):
-                base=(119,83,54) if kind=="soil" else (73,49,32)
-                noise=rng.choice([-12,-7,-3,0,3,7,11])
-                color=tuple(max(0,min(255,c+noise)) for c in base)
-            else:
-                base=(164,119,70) if kind=="wood" else (191,150,96)
-                grain=[-18,5,10,-5,2,-8,13,-4][x%8]
-                noise=rng.choice([-4,-2,0,2,4])
-                color=tuple(max(0,min(255,c+grain+noise)) for c in base)
-            image.putpixel((x,y),(*color,255))
-    d=ImageDraw.Draw(image)
+    # Hand-placed, broad pixel clusters: three vertical boards inside substantial rails.
+    image=Image.new("RGBA",(16,16),(159,115,65,255));d=ImageDraw.Draw(image)
     if kind=="wood":
-        for x in (0,8,16,24):
-            d.line((x,0,x,31),fill=(98,67,36,255))
-            d.line((x+1,0,x+1,31),fill=(207,162,101,255))
-        for x,y in ((5,10),(13,22),(21,6),(28,18)):
-            d.line((x,y,x,y+5),fill=(118,77,38,255))
-            d.point((x+1,y+2),fill=(214,167,100,255))
-    elif kind=="rim":
-        d.line((0,0,31,0),fill=(231,190,127,255));d.line((0,31,31,31),fill=(121,82,43,255))
-        for x,y in ((4,8),(21,18),(12,26)):
-            d.line((x,y,min(31,x+7),y),fill=(147,103,57,255))
+        for x0,x1,color in ((2,5,(171,126,72)),(6,9,(164,119,66)),(10,13,(176,130,76))):
+            d.rectangle((x0,2,x1,13),fill=(*color,255))
+        # Two dark joints between the three boards; no thin repeated hatching.
+        d.line((5,2,5,13),fill=(113,76,39,255));d.line((9,2,9,13),fill=(113,76,39,255))
+        for x,y0,y1 in ((3,5,8),(7,9,12),(12,3,6)):
+            d.line((x,y0,x,y1),fill=(151,104,53,255))
+        for x,y in ((2,3),(6,6),(11,10)):
+            d.rectangle((x,y,x+1,y+1),fill=(184,139,83,255))
+        # Outer corner posts and horizontal top/bottom rails from the reference crate.
+        d.rectangle((0,0,1,15),fill=(184,139,82,255));d.rectangle((14,0,15,15),fill=(176,129,73,255))
+        d.rectangle((0,0,15,1),fill=(194,150,91,255));d.rectangle((0,14,15,15),fill=(142,98,50,255))
+        d.line((0,0,15,0),fill=(216,175,110,255));d.line((0,0,0,14),fill=(204,160,96,255))
+        d.line((1,2,1,13),fill=(154,108,56,255));d.line((14,2,14,13),fill=(122,81,40,255))
+        d.line((2,13,13,13),fill=(123,82,41,255))
     else:
-        shift=0 if kind=="soil" else -25
-        for x,y in ((3,5),(17,11),(25,25),(8,23),(23,4)):
-            d.rectangle((x,y,x+1,y+1),fill=(164+shift,117+shift,77+shift,255))
+        image=Image.new("RGBA",(16,16),(190,147,90,255));d=ImageDraw.Draw(image)
+        d.line((0,0,15,0),fill=(221,181,117,255));d.line((0,15,15,15),fill=(132,90,45,255))
+        for x0,x1,y,color in ((2,5,4,(177,130,72,255)),(9,12,9,(204,160,98,255)),(4,7,12,(170,121,65,255))):
+            d.line((x0,y,x1,y),fill=color)
     return image
 
 
 def box(start,end,slot):
     x,y,z=[b-a for a,b in zip(start,end)]
     sizes={"north":(x,y),"south":(x,y),"east":(z,y),"west":(z,y),"up":(x,z),"down":(x,z)}
-    return {"from":start,"to":end,"faces":{face:{"uv":[0,0,w,h],"texture":"#"+slot}
+    return {"from":start,"to":end,"faces":{face:{"uv":[0,0,min(w,16),min(h,16)],"texture":"#"+slot}
             for face,(w,h) in sizes.items()}}
 
 
 def soil_model(wet=False):
-    elements=[box([0,0,0],[16,2,16],"wood"),box([2,2,2],[14,15.02,14],"soil")]
-    # Full-width panels conceal the native farmland side while its collision/crop support stay intact.
-    elements += [box([0,2,0],[2,15.02,16],"wood"),box([14,2,0],[16,15.02,16],"wood"),
-                 box([2,2,0],[14,15.02,2],"wood"),box([2,2,14],[14,15.02,16],"wood")]
-    elements += [box([0,15.02,0],[16,16,2],"rim"),box([0,15.02,14],[16,16,16],"rim"),
-                 box([0,15.02,2],[2,16,14],"rim"),box([14,15.02,2],[16,16,14],"rim")]
-    for x in (0,14):
-        for z in (0,14):elements.append(box([x,0,z],[x+2,16,z+2],"rim"))
-    # Slightly heaped soil under the raised wooden lip, no sprouts or decorative crops.
-    elements.append(box([5,15.02,5],[11,15.05,11],"soil"))
+    # Full 16-unit face, as in the supplied full-block farmland/path example.
+    body=box([0,0,0],[16,16,16],"wood")
+    body["faces"]["up"]={"uv":[0,0,16,16],"texture":"#soil"}
+    elements=[body]
+    # One-block-pixel wooden lip and corner posts. Integer geometry only.
+    elements += [box([0,16,0],[16,17,1],"rim"),box([0,16,15],[16,17,16],"rim"),
+                 box([0,16,1],[1,17,15],"rim"),box([15,16,1],[16,17,15],"rim")]
+    for x in (0,15):
+        for z in (0,15):elements.append(box([x,16,z],[x+1,18,z+1],"rim"))
+    # Dry/wet IDs deliberately share the unchanged vanilla top; moisture remains functional.
     return {"ambientocclusion":True,"textures":{"particle":"servercore:block/soil_block_wood",
             "wood":"servercore:block/soil_block_wood","rim":"servercore:block/soil_block_rim",
-            "soil":"servercore:block/soil_block_soil"+("_wet" if wet else "")},
+            "soil":"minecraft:block/dirt_path_top"},
             "elements":elements,"display":{
-                "gui":{"rotation":[30,225,0],"translation":[0,0,0],"scale":[.625,.625,.625]},
+                "gui":{"rotation":[30,225,0],"translation":[0,-.5,0],"scale":[.625,.625,.625]},
                 "ground":{"translation":[0,3,0],"scale":[.25,.25,.25]},
                 "fixed":{"rotation":[0,0,0],"scale":[.5,.5,.5]},
                 "firstperson_righthand":{"rotation":[0,45,0],"scale":[.4,.4,.4]},
@@ -78,8 +70,8 @@ def install_farm_plot_assets(pack_dir):
     root=Path(pack_dir)/"assets/servercore"
     for directory in (root/"textures/block",root/"models/item",root/"items"):
         directory.mkdir(parents=True,exist_ok=True)
-    for kind,suffix in (("wood","wood"),("rim","rim"),("soil","soil"),("soil_wet","soil_wet")):
-        texture(kind).save(root/"textures/block"/f"soil_block_{suffix}.png")
+    for kind in ("wood","rim"):
+        texture(kind).save(root/"textures/block"/f"soil_block_{kind}.png")
     for name,wet in (("soil_block",False),("soil_block_wet",True),("farm_plot",False)):
         (root/"models/item"/f"{name}.json").write_text(json.dumps(soil_model(wet),indent=2),encoding="utf-8")
         item={"model":{"type":"minecraft:model","model":f"servercore:item/{name}"}}
