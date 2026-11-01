@@ -16,7 +16,7 @@ def verify(path,client_path,reference=None):
             def read(self,name): return pack.read(name) if name in names else client.read(name)
             def namelist(self): return pack.namelist()+client.namelist()
         resources=Resources()
-        vanilla=client.read("assets/minecraft/textures/block/dirt_path_top.png")
+        vanilla=client.read("assets/minecraft/textures/block/farmland.png")
         if reference:
             assert Path(reference).read_bytes()==vanilla,"example top differs from the original vanilla PNG"
         models=[]
@@ -25,7 +25,8 @@ def verify(path,client_path,reference=None):
             assert item["model"]["model"]==f"servercore:item/{name}"
             model=json.loads(pack.read(f"assets/servercore/models/item/{name}.json"))
             assert "parent" not in model
-            assert model["textures"]["soil"]=="minecraft:block/dirt_path_top","use original vanilla texture directly, without recoloring or resizing"
+            expected_top="farmland_moist" if name=="soil_block_wet" else "farmland"
+            assert model["textures"]["soil"]=="minecraft:block/"+expected_top,"dry/wet state must use the corresponding original vanilla farmland texture"
             body=model["elements"][0]
             assert body["from"]==[0,0,0] and body["to"]==[16,16,16]
             assert body["faces"]["up"]=={"uv":[0,0,16,16],"texture":"#soil"},"full 16px UV coverage, no stretched top"
@@ -43,23 +44,23 @@ def verify(path,client_path,reference=None):
                     assert image.size==(16,16),"all soil textures must follow the vanilla 16x16 block grid"
                     image.verify()
             models.append(model)
-        assert models[0]==models[1]==models[2],"legacy and wet IDs must keep the unchanged vanilla top"
+        assert models[0]==models[2],"legacy item must retain the dry farmland model"
+        wet=json.loads(json.dumps(models[1]));wet["textures"]["soil"]=models[0]["textures"]["soil"]
+        assert wet==models[0],"watering changes only the original farmland top, preserving all side textures and geometry"
+        assert client.read("assets/minecraft/textures/block/farmland.png")!=client.read("assets/minecraft/textures/block/farmland_moist.png")
         original=renderer.rotation
         renderer.rotation=lambda axis,angle: original(axis,28 if axis=="x" and angle==-8 else angle)
         try:
-            image=renderer.prepare(resources,model_path="assets/servercore/models/item/soil_block.json",angle=-35)(0)
+            images=[renderer.prepare(resources,model_path=f"assets/servercore/models/item/{name}.json",angle=-35)(0)
+                    for name in ("soil_block","soil_block_wet")]
         finally: renderer.rotation=original
         output=Image.new("RGB",(480,275),(34,31,26));draw=ImageDraw.Draw(output)
-        output.paste(image,(0,0),image)
-        side=Image.open(io.BytesIO(pack.read("assets/servercore/textures/block/soil_block_wood.png"))).convert("RGBA")
-        output.paste(side.resize((128,128),Image.Resampling.NEAREST),(300,24))
-        top=Image.open(io.BytesIO(vanilla)).convert("RGBA")
-        output.paste(top.resize((64,64),Image.Resampling.NEAREST),(332,184))
-        draw.text((20,250),"Shipped 3D soil block",fill=(234,218,190))
-        draw.text((289,160),"Side: native 16 x 16",fill=(234,218,190))
-        draw.text((269,252),"Top: original vanilla dirt path",fill=(234,218,190))
+        for index,image in enumerate(images):
+            output.paste(image,(240*index,0),image)
+            label="Dry: vanilla farmland" if index==0 else "Watered: vanilla farmland_moist"
+            draw.text((240*index+12,250),label,fill=(234,218,190))
         target=Path(path).parent/"soil_block_preview.png";output.save(target)
-        print("Soil block: 16px textures, >=1 native pixel per texel, integer geometry, original dirt-path full UVs and legacy/wet IDs passed")
+        print("Soil block: 16px textures, >=1 native pixel per texel, integer geometry, original farmland/farmland_moist tops, identical wooden sides and legacy/wet IDs passed")
         print(target)
 
 

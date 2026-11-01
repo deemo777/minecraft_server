@@ -1,8 +1,8 @@
-"""Native 16px crate-style soil block; use the unchanged vanilla dirt-path top.
+"""Native 16px crate-style soil block; use the original vanilla dry/wet farmland tops.
 
 A block face has at most 16 texels across 16 model units. No random noise, fine grain,
 resized vanilla textures or subpixel decorative geometry. The supplied example pack
-uses cube_bottom_top and the byte-identical vanilla dirt_path_top texture.
+uses cube_bottom_top and the byte-identical vanilla farmland/farmland_moist textures.
 """
 import json
 from pathlib import Path
@@ -52,10 +52,10 @@ def soil_model(wet=False):
                  box([0,16,1],[1,17,15],"rim"),box([15,16,1],[16,17,15],"rim")]
     for x in (0,15):
         for z in (0,15):elements.append(box([x,16,z],[x+1,18,z+1],"rim"))
-    # Dry/wet IDs deliberately share the unchanged vanilla top; moisture remains functional.
+    # Native farmland textures follow the actual moisture state; the wooden sides stay identical.
     return {"ambientocclusion":True,"textures":{"particle":"servercore:block/soil_block_wood",
             "wood":"servercore:block/soil_block_wood","rim":"servercore:block/soil_block_rim",
-            "soil":"minecraft:block/dirt_path_top"},
+            "soil":"minecraft:block/"+("farmland_moist" if wet else "farmland")},
             "elements":elements,"display":{
                 "gui":{"rotation":[30,225,0],"translation":[0,-.5,0],"scale":[.625,.625,.625]},
                 "ground":{"translation":[0,3,0],"scale":[.25,.25,.25]},

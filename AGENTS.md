@@ -41,4 +41,4 @@
 
 - New block art must follow Minecraft's native 16×16 texel grid per full block face. Do not add 32×32 fine grain, per-pixel procedural noise, subpixel decorative geometry, or UVs that shrink a texture pixel below one native block pixel.
 - Match supplied references with broad pixel clusters and their actual plank/frame layout. Existing unrelated third-party assets keep their original designs unless requested otherwise.
-- The soil block uses the unchanged vanilla `minecraft:block/dirt_path_top` texture with full 16×16 UV coverage. Keep that top unmodified in both dry and wet visual states.
+- The soil block uses unchanged vanilla `minecraft:block/farmland` when dry and `minecraft:block/farmland_moist` when watered, with full 16×16 UV coverage. Keep the wooden side design identical across moisture states.
