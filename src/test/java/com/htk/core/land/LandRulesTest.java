@@ -68,6 +68,7 @@ public final class LandRulesTest {
         try { LandLayout.square(5, 5, core); } catch (IllegalArgumentException expected) { rejected = true; }
         check(rejected, "invalid off-footprint core rejected");
         LandStoreRegression.run();
+        CorePlacementRegression.run();
         System.out.println("Land layout regression checks passed: " + checks);
     }
 }

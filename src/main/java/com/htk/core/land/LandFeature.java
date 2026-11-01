@@ -99,6 +99,7 @@ public final class LandFeature implements Feature, Listener {
         loadConfig();
         migrateFixedPlots();
         placement.start();
+        WorldGuardCorePlacement.register(plugin, this);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getServer().getPluginManager().registerEvents(new LandProtection(this), plugin);
         PluginCommand cmd = plugin.getCommand("land");

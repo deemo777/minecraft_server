@@ -2,6 +2,7 @@ name: ServerCore
 version: '${version}'
 main: com.htk.core.ServerCore
 api-version: '1.21'
+softdepend: [WorldGuard]
 description: 서버 전용 기능 모음 (메뉴, 도감, 점프 패드, 도약, 골드, 상점, 레벨링·칭호, HUD, 집 땅, 이장님, 안내서)
 
 commands:
