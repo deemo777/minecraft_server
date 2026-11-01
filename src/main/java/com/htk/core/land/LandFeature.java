@@ -198,6 +198,13 @@ public final class LandFeature implements Feature, Listener {
                 p.isOp(),bypass.contains(p.getUniqueId()));
     }
 
+    /** WG construction exceptions require an actual unlocked claim, even for OP/admins. */
+    boolean canBypassWorldGuardAt(Player p, Location where) {
+        Land land=store.at(where);
+        return LandAccessRules.canBypassWorldGuard(allowedWorld(where.getWorld()),land,p.getUniqueId(),
+                where.getBlockX() >> 4,where.getBlockZ() >> 4);
+    }
+
     boolean toggleBypass(Player p) {
         if (!bypass.remove(p.getUniqueId())) {
             bypass.add(p.getUniqueId());

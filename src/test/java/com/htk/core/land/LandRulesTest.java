@@ -69,6 +69,7 @@ public final class LandRulesTest {
         check(rejected, "invalid off-footprint core rejected");
         LandStoreRegression.run();
         CorePlacementRegression.run();
+        WorldGuardBuildRegression.run();
         System.out.println("Land layout regression checks passed: " + checks);
     }
 }

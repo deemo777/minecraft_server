@@ -8,6 +8,9 @@ final class LandAccessRules {
         if(!claimed)return !village;
         return trusted && unlocked;
     }
+    static boolean canBypassWorldGuard(boolean village,Land land,java.util.UUID player,int cx,int cz) {
+        return village && land!=null && land.trusts(player) && land.has(cx,cz);
+    }
     static boolean canPlaceCore(boolean village,boolean claimed,boolean coreItem) {
         return village && !claimed && coreItem;
     }

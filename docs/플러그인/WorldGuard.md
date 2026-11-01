@@ -27,7 +27,7 @@
 `build` 플래그를 일괄 설정하면 멤버 권한 구성이 달라질 수 있으므로 먼저 현재 플래그를 확인합니다.
 ServerCore 집의 잠긴 청크는 WorldGuard 멤버 권한만으로 해방되지 않습니다.
 
-ServerCore 집터 아이템은 마을에서 WorldGuard의 `build`·`block-place` 제한과 관계없이 설치할 수 있습니다. 집 구역·기존 집 보유·2×2 부지 겹침 검사는 유지됩니다. 일반 블록 설치나 상자 사용·파괴에는 이 예외가 적용되지 않으며, 구역 플래그나 플레이어 멤버 권한도 변경하지 않습니다.
+ServerCore 집터 아이템은 마을에서 WorldGuard의 `build`·`block-place` 제한과 관계없이 설치할 수 있습니다. 집 구역·기존 집 보유·2×2 부지 겹침 검사는 유지됩니다. 집터 설치 후 해방된 자기 부지에서는 집주인과 명시적으로 허가한 이웃의 블록 설치·파괴·사용도 WorldGuard 제한에서 예외로 처리합니다. 실제 대상 블록 전체가 허용된 부지에 있어야 하며 잠긴 청크·타인 부지·공용지는 계속 보호됩니다. 집터 핵심 블록은 직접 부술 수 없습니다. 구역 플래그나 WorldGuard 멤버 권한은 변경하지 않습니다.
 
 출처: [영역 명령어](https://worldguard.enginehub.org/en/latest/regions/commands/),
 [우선순위·상속](https://worldguard.enginehub.org/en/latest/regions/priorities/).
