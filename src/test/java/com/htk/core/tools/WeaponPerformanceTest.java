@@ -2,7 +2,7 @@ package com.htk.core.tools;
 public final class WeaponPerformanceTest {
  public static void main(String[] args) {
   ToolType[] types={ToolType.DAGGER,ToolType.TACHI,ToolType.GREATSWORD};
-  double[] initial={4,6,9},maximum={10.7,13,24},startSpeed={3,2,1.3},endSpeed={4.5,2.4,1},ratios={.1,.77,1.8};
+  double[] initial={4,6,9},maximum={36,44,72},startSpeed={3,2,1.3},endSpeed={4.5,2.4,1},ratios={.1,.77,1.8};
   int[] startAnimation={7,10,15},endAnimation={4,8,20};
   for(int t=0;t<types.length;t++) {
    var type=types[t];
@@ -25,6 +25,7 @@ public final class WeaponPerformanceTest {
     if(type!=ToolType.DAGGER && WeaponPerformance.sweepRatio(type,level)<=WeaponPerformance.sweepRatio(type,level-1))throw new AssertionError("Sweep growth");
    }
   }
+  WeaponDamageRegression.run();
   if(WeaponPerformance.growth(5)>=.2 || WeaponPerformance.growth(20)>=.8)throw new AssertionError("Identity develops gradually, later in progression");
   if(!SweepTargets.ready(.9f,true,false,0) || SweepTargets.ready(.899f,true,false,0))throw new AssertionError("Sweep charge threshold");
   if(SweepTargets.ready(1,false,false,0) || SweepTargets.ready(1,true,true,0) || SweepTargets.ready(1,true,false,1))throw new AssertionError("Airborne, sprinting and falling attacks do not sweep");

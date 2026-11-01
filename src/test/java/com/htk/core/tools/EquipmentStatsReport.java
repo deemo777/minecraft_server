@@ -69,6 +69,7 @@ public final class EquipmentStatsReport {
         out.append("\n기존 낚시 스킬의 보너스는 별도로 유지합니다. 추가 획득은 일반 물고기 4종만 대상으로 보물·잡동사니는 복제하지 않습니다. 던진 낚싯대의 인스턴스와 강화 단계를 낚싯바늘에 연결하고 손 교체/다른 낚싯대 사용 시 추가 보상을 주지 않습니다. 기본 보물 확률은 변경하지 않습니다.\n");
         header(out,"물뿌리개","강화","물주기 칸 수","보충당 사용 횟수","최대 내구도","내구도 소모율");
         for(int l=0;l<=25;l++)row(out,l,n(WateringCanRules.expectedCells(l)),l==25?"무한":WateringCanRules.capacity(l),durability(ToolType.WATERING_CAN,l),n(ToolPerformance.wearChance(ToolType.WATERING_CAN,l)*100)+"%");
+        out.append("\n무기 공격력은 0~5강 기존 수치를 보존하고 6강부터 5/10/15/20/25강 기준점 사이를 선형 보간합니다. 태도 10강 14·15강 22는 게이지를 완전히 채운 비치명타, 스킬/버프/몹 장비 없는 일반 좀비(체력 20·기본 방어력 2)를 각각 2대·1대로 처치하는 기준입니다. 체력 30~40·방어력 0 대상은 10강 태도로 3대이며 갑옷·추가 체력·효과가 있으면 달라집니다. 공속·사거리·주변 피해 비율·최대 타격 수는 기존 값을 유지합니다.\n");
         for(var type:new ToolType[]{ToolType.DAGGER,ToolType.TACHI,ToolType.GREATSWORD}) {
             header(out,type.korean,"강화","순수 공격력","초당 공격","사거리","단일 이론 DPS","주변 피해 비율","최대 타격 수","최대 내구도");
             for(int l=0;l<=25;l++)row(out,l,n(WeaponPerformance.damage(type,l)),n(WeaponPerformance.speed(type,l)),n(WeaponPerformance.reach(type,l)),n(WeaponPerformance.damage(type,l)*WeaponPerformance.speed(type,l)),n(WeaponPerformance.sweepRatio(type,l)*100)+"%",WeaponPerformance.maxTargets(type),durability(type,l));

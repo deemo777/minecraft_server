@@ -18,7 +18,18 @@ public final class WeaponPerformance {
     public static double growth(int level){return Math.pow(Math.clamp(level,0,25)/25.0,1.5);}
     private static double between(int level,double start,double end){return start+(end-start)*growth(level);}
     public static double damage(ToolType type,int level) {
-        return switch(type){case DAGGER->between(level,4,10.7);case TACHI->between(level,6,13);case GREATSWORD->between(level,9,24);default->throw new IllegalArgumentException("Not a weapon");};
+        return switch(type){
+            case DAGGER->damageCurve(level,4,10.7,10,16,24,36);
+            case TACHI->damageCurve(level,6,13,14,22,33,44);
+            case GREATSWORD->damageCurve(level,9,24,23,36,54,72);
+            default->throw new IllegalArgumentException("Not a weapon");
+        };
+    }
+    /** Preserve every +0..5 value; accelerate damage from +6 with explicit five-level anchors. */
+    private static double damageCurve(int level,double start,double oldMaximum,double at10,double at15,double at20,double at25) {
+        int bounded=Math.clamp(level,0,25);
+        if(bounded<=5)return between(bounded,start,oldMaximum);
+        return Progression.value(bounded,start,between(5,start,oldMaximum),at10,at15,at20,at25);
     }
     public static double sweepRatio(ToolType type,int level){return switch(type){case DAGGER->.1;case TACHI->between(level,.2,.77);case GREATSWORD->between(level,.35,1.8);default->0;};}
     public static double speed(ToolType type) {return type==ToolType.DAGGER?3:type==ToolType.TACHI?2:1.3;}
