@@ -10,7 +10,7 @@ public final class EnhancementPaymentTest {
         public void refund(long amount){refunds++;balance+=amount;}
     }
     public static void main(String[] args){
-        long[] expected={500,500,500,500,500,1000,1500,2000,2500,3000,3000,3750,4500,5250,6000,
+        long[] expected={300,350,400,450,500,1000,1500,2000,2500,3000,3000,3750,4500,5250,6000,
             6000,7500,9000,10500,12000,12000,16500,21000,25500,30000};
         long before=0;
         for(int target=1;target<=25;target++){
@@ -18,6 +18,28 @@ public final class EnhancementPaymentTest {
             check(cost==expected[target-1],"exact progressive fee at +"+target);
             check(cost>=before,"fees never decrease between stages");before=cost;
             check(UpgradeRules.configuredGoldCost(target,java.util.List.of())==cost,"missing config keeps the requested fee");
+        }
+        var legacy=java.util.List.of(500L,500L,500L,500L,500L,7777L);
+        for(int target=1;target<=5;target++) {
+            long fee=UpgradeRules.configuredGoldCost(target,legacy);
+            check(fee==expected[target-1],"legacy early fees adopt new schedule");
+            check(EnhancementPayment.attempt(new Wallet(fee),fee,()->{},()->{}),"exact new early-stage balance pays");
+            check(!EnhancementPayment.attempt(new Wallet(fee-1),fee,()->{},()->{}),"one gold short cannot pay new early-stage fee");
+        }
+        check(UpgradeRules.configuredGoldCost(6,legacy)==7777,"legacy early conversion preserves custom later fees");
+        check(UpgradeRules.configuredGoldCost(1,java.util.List.of(250L,350L,400L,450L,500L))==250,"non-default early schedule stays customized");
+        double meanGold=0;long worstGold=0;
+        for(int current=0;current<25;current++) {
+            var progress=ArtisanRules.Progress.EMPTY;double surviving=1;
+            while(true) {
+                long fee=UpgradeRules.goldCost(current+1);
+                meanGold+=surviving*fee;worstGold+=fee;
+                var outcome=ArtisanRules.attempt(current,UpgradeRules.success(current+1),progress,.999999999);
+                surviving*=1-outcome.percent()/100;
+                if(outcome.level()>current)break;
+                progress=outcome.progress();
+            }
+            if((current+1)%5==0)System.out.printf(java.util.Locale.ROOT,"Enhancement gold 0 -> +%d: mean %.6f; maximum %d%n",current+1,meanGold,worstGold);
         }
         check(UpgradeRules.configuredGoldCost(2,java.util.List.of(500L,1250L))==1250,"custom fee is honored");
         check(UpgradeRules.configuredGoldCost(1,java.util.List.of(-500L))==0,"negative custom fee cannot credit the wallet");

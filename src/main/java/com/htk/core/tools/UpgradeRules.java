@@ -15,7 +15,7 @@ public final class UpgradeRules {
     }
     public static long goldCost(int target) {
         required(target);
-        if(target<=5)return 500;
+        if(target<=5)return 250+target*50L;
         if(target<=10)return 1000+(target-6)*500L;
         if(target<=15)return 3000+(target-11)*750L;
         if(target<=20)return 6000+(target-16)*1500L;
@@ -23,6 +23,9 @@ public final class UpgradeRules {
     }
     public static long configuredGoldCost(int target,java.util.List<Long> configured) {
         long fallback=goldCost(target);
+        // Upgrade the former +1..5 default without changing custom later-stage fees.
+        if(target<=5 && configured.size()>=5
+                && configured.subList(0,5).stream().allMatch(value->value==500L))return fallback;
         return target<=configured.size()?Math.max(0,configured.get(target-1)):fallback;
     }
     public static double success(int target) { required(target); return SUCCESS[target - 1]; }
