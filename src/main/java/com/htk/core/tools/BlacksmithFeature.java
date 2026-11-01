@@ -87,23 +87,27 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
     }
     ToolType materialType(ItemStack item) {
         if (item == null || item.getType() != Material.AMETHYST_SHARD || !item.hasItemMeta()) return null;
-        return ToolType.byId(item.getItemMeta().getPersistentDataContainer().get(materialKey, PersistentDataType.STRING));
+        return EnhancementMaterialRules.fromId(item.getItemMeta().getPersistentDataContainer().get(materialKey, PersistentDataType.STRING));
+    }
+    boolean matchesMaterial(ItemStack item,ToolType type) {
+        return EnhancementMaterialRules.matches(materialType(item),type);
     }
     public ItemStack material(ToolType type, int count) {
         ItemStack item = new ItemStack(Material.AMETHYST_SHARD, count);
         ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(materialKey, PersistentDataType.STRING, type.id);
-        meta.displayName(Text.mm("<#a9dce7><bold>" + type.korean + " 강화 결정"));
+        meta.getPersistentDataContainer().set(materialKey, PersistentDataType.STRING, EnhancementMaterialRules.id(type));
+        meta.displayName(Text.mm("<#a9dce7><bold>" + EnhancementMaterialRules.name(type)));
         meta.lore(null);
-        if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model("enhancement_" + type.id));
+        if (plugin.resourcePackEnabled()) meta.setItemModel(Glyphs.model(EnhancementMaterialRules.model(type)));
         item.setItemMeta(meta); return item;
     }
-    /** Refresh presentation only; preserve quantity and unrelated persistent item data. */
+    /** Normalize legacy crystal IDs and presentation; preserve quantity and unrelated persistent data. */
     boolean refreshMaterial(ItemStack item) {
         ToolType type = materialType(item);
         if (type == null) return false;
         ItemMeta fresh = material(type, 1).getItemMeta();
         ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(materialKey,PersistentDataType.STRING,EnhancementMaterialRules.id(type));
         meta.displayName(fresh.displayName());
         meta.lore(fresh.lore());
         meta.setItemModel(fresh.getItemModel());
@@ -146,6 +150,8 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         if (!(e.getView().getTopInventory().getHolder() instanceof EnhancementGui gui)) return;
         if (!(e.getWhoClicked() instanceof Player p)) { e.setCancelled(true); return; }
         if (!gui.owner.equals(p.getUniqueId()) || gui.returned) { e.setCancelled(true); return; }
+        ItemStack crystal=gui.inventory.getItem(EnhancementGui.MATERIAL);
+        if(refreshMaterial(crystal))gui.inventory.setItem(EnhancementGui.MATERIAL,crystal);
         int raw = e.getRawSlot();
         if (raw >= 27 && !e.isShiftClick() && e.getClick() != ClickType.DOUBLE_CLICK
                 && e.getClick() != ClickType.SWAP_OFFHAND && e.getClick() != ClickType.NUMBER_KEY
@@ -160,6 +166,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         }
         if (raw >= 27 && e.isShiftClick()) {
             ItemStack source = e.getCurrentItem();
+            if(refreshMaterial(source))e.setCurrentItem(source);
             int target = validTool(source) ? EnhancementGui.TOOL : materialType(source) != null ? EnhancementGui.MATERIAL : -1;
             if (target < 0) return;
             ItemStack current = gui.inventory.getItem(target);
@@ -176,6 +183,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         if ((raw != EnhancementGui.TOOL && raw != EnhancementGui.MATERIAL)
                 || (e.getClick() != ClickType.LEFT && e.getClick() != ClickType.RIGHT)) return;
         ItemStack cursor = e.getCursor(), slot = gui.inventory.getItem(raw);
+        if(refreshMaterial(cursor))e.getView().setCursor(cursor);
         boolean emptyCursor = cursor == null || cursor.getType().isAir();
         if (emptyCursor) {
             if (slot == null) return;
@@ -211,8 +219,8 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         ToolType type = tools.typeOf(item);
         ItemStack material = gui.inventory.getItem(EnhancementGui.MATERIAL);
         int required = UpgradeRules.required(current + 1);
-        if (!UpgradeRules.hasMaterials(current+1,materialType(material)==type,material==null?0:material.getAmount())) {
-            Messages.send(p,Text.mm("<red>" + type.korean + " 강화 결정 " + required + "개가 필요해요.")); return;
+        if (!UpgradeRules.hasMaterials(current+1,matchesMaterial(material,type),material==null?0:material.getAmount())) {
+            Messages.send(p,Text.mm("<red>" + EnhancementMaterialRules.name(type) + " " + required + "개가 필요해요.")); return;
         }
         long fee=goldCost(current+1);
         var economyFeature=plugin.feature(EconomyFeature.class);
@@ -307,7 +315,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         if (!sender.hasPermission("servercore.admin")) { Messages.send(sender,Text.mm("<red>관리자만 사용할 수 있어요.")); return true; }
         if (cmd.getName().equals("enhance")) {
             if (args.length >= 3 && args[0].equalsIgnoreCase("material")) {
-                ToolType type = ToolType.parse(args[1]);
+                ToolType type = args[1].equalsIgnoreCase("weapon")?ToolType.TACHI:ToolType.parse(args[1]);
                 int amount;
                 try { amount = Integer.parseInt(args[2]); } catch (NumberFormatException ex) { amount = 0; }
                 Player target = args.length >= 4 ? Bukkit.getPlayerExact(args[3]) : sender instanceof Player p ? p : null;
@@ -337,7 +345,7 @@ public final class BlacksmithFeature implements Feature, Listener, TabExecutor {
         if (!s.hasPermission("servercore.admin")) return List.of();
         if (c.getName().equals("blacksmithnpc") && args.length == 1) return List.of("create","remove","face");
         if (c.getName().equals("enhance") && args.length == 1) return List.of("material");
-        if (args.length == 2 && args[0].equalsIgnoreCase("material")) return Arrays.stream(ToolType.values()).map(t -> t.id).toList();
+        if (args.length == 2 && args[0].equalsIgnoreCase("material")) return java.util.stream.Stream.concat(java.util.stream.Stream.of("weapon"),Arrays.stream(ToolType.values()).map(t -> t.id)).toList();
         return List.of();
     }
 

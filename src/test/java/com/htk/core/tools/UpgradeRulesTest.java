@@ -6,6 +6,7 @@ public final class UpgradeRulesTest {
         checks++; if (!condition) throw new AssertionError(message);
     }
     public static void main(String[] args) {
+        EnhancementMaterialRegression.run();
         for (int level = 0; level <= 25; level++) {
             check(ToolPerformance.indestructible(level) == (level == 25), "max-tier durability and fire protection");
             check(WateringCanRules.infinite(level) == (level == 25), "only max-tier water is infinite");

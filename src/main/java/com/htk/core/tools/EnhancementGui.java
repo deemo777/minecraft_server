@@ -54,7 +54,7 @@ final class EnhancementGui implements InventoryHolder {
             var artisan=feature.tools().artisanProgress(tool);
             double chance=ArtisanRules.effectivePercent(target,feature.successPercent(target),artisan);
             ItemStack material = inventory.getItem(MATERIAL);
-            boolean hasMaterials = UpgradeRules.hasMaterials(target, feature.materialType(material) == type,
+            boolean hasMaterials = UpgradeRules.hasMaterials(target, feature.matchesMaterial(material,type),
                     material == null ? 0 : material.getAmount());
             long fee = feature.goldCost(target);
             boolean hasGold = feature.canAfford(owner, fee);
